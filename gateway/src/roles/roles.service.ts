@@ -5,7 +5,7 @@ import { Role } from '@/roles/entities/role.entity';
 import { RoleDto } from './dto/role.dto';
 import { PaginationResponseDTO } from '@/base/dto/base.dto';
 import { Permission } from '@/permissions/entities/permission.entity';
-import { RolePaginationDto } from './dto/role.pagination.dto';
+import { RolePaginationDto } from './dto/pagination-role.dto';
 
 @Injectable()
 export class RolesService {

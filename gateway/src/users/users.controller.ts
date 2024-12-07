@@ -18,7 +18,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { IdDTO, ResposeDTO } from '@/base/dto/base.dto';
 import { BaseController } from '@/base/base.controller';
 import { UserDto } from '@/users/dto/user.dto';
-import { UserPaginationDto } from './dto/user.pagination.dto';
+import { UserPaginationDto } from './dto/pagination-user.dto';
 import { Auth } from '@/auth/auth.decorator';
 import { JwtService } from '@nestjs/jwt';
 

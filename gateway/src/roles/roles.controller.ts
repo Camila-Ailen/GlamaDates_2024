@@ -12,7 +12,7 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { RolesService } from '@/roles/roles.service';
 import { RoleDto } from '@/roles/dto/role.dto';
 import { IdDTO, ResposeDTO } from '@/base/dto/base.dto';
-import { RolePaginationDto } from './dto/role.pagination.dto';
+import { RolePaginationDto } from './dto/pagination-role.dto';
 
 @ApiTags('Roles')
 @Controller('roles')

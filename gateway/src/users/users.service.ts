@@ -5,7 +5,7 @@ import { UserDto } from '@/users/dto/user.dto';
 import { User } from '@/users/entities/user.entity';
 import { In, IsNull, Like, Repository } from 'typeorm';
 import { PaginationResponseDTO } from '@/base/dto/base.dto';
-import { UserPaginationDto } from './dto/user.pagination.dto';
+import { UserPaginationDto } from './dto/pagination-user.dto';
 import { Category } from '@/category/entities/category.entity';
 
 @Injectable()
