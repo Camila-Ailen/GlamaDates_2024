@@ -34,7 +34,7 @@ import { GetServerSideProps } from "next";
 
 export async function Navbar() {
     const session = await auth();
-    if (!session?.user) return <></>;
+    // if (!session?.user) return <></>;
     return (
         <header
             className="z-40 sticky top-0 flex h-16 items-center gap-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6">
