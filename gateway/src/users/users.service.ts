@@ -116,10 +116,10 @@ export class UsersService {
       }
     }
     if (params.body.categories && params.body.categories.length > 0) {
-      const permissions = await this.categoryRepository.find({
+      const categories = await this.categoryRepository.find({
         where: { id: In(params.body.categories) },
       });
-      params.body.categories = permissions;
+      params.body.categories = categories;
     }
     await this.userRepository.save(
       this.userRepository.create({

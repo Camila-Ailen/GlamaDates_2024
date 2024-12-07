@@ -58,24 +58,24 @@ export class UsersController extends BaseController {
   }
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
-  @Get('whoami')
-  //   @Auth('read:users')
-  @ApiOperation({ summary: 'Get User by ID' })
-  async whoami(
-    @Req() request: { user: User },
-    // @Param('id') id: number,
-  ): Promise<ResposeDTO> {
-    console.log('request.user', request.user);
-    const userDto = new UserDto();
-    userDto.id = request.user.id;
-    console.log('userDto', userDto);
-    try {
-      //   const user = await this.userService.getBy(userDto);
-      return { status: 'success', data: 'user' };
-    } catch (error) {
-      return { status: 'error', data: error };
-    }
-  }
+  // @Get('whoami')
+  // //   @Auth('read:users')
+  // @ApiOperation({ summary: 'Get User by ID' })
+  // async whoami(
+  //   @Req() request: { user: User },
+  //   // @Param('id') id: number,
+  // ): Promise<ResposeDTO> {
+  //   console.log('request.user', request.user);
+  //   const userDto = new UserDto();
+  //   userDto.id = request.user.id;
+  //   console.log('userDto', userDto);
+  //   try {
+  //     //   const user = await this.userService.getBy(userDto);
+  //     return { status: 'success', data: 'user' };
+  //   } catch (error) {
+  //     return { status: 'error', data: error };
+  //   }
+  // }
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Post()

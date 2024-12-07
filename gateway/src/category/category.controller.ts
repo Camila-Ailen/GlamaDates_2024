@@ -36,6 +36,15 @@ export class CategoryController {
   }
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
-
+  @Post()
+  //@Auth('create:users')
+  @ApiOperation({ summary: 'Create Category' })
+  @Post()
+  async create(@Body() body: CategoryDto): Promise<ResposeDTO> {
+    const category = await this.categoryService.create({ body });
+    return { status: 'success', data: category };
+  }
+  ////////////////////////////////////////////////
+  ////////////////////////////////////////////////
 
 }

@@ -78,4 +78,30 @@ export class CategoryService {
   }
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
+  async create(params: { body: CategoryDto }): Promise<Category> {
+    const existingCategory = await this.categoryRepository.findOne({
+      where: { name: params.body.name },
+      withDeleted: true,
+    });
+    if (existingCategory) {
+      if (existingCategory.deletedAt) {
+        throw new HttpException(
+          'Inactive category already exists',
+          HttpStatus.CONFLICT,
+        );
+      } else {
+        throw new HttpException('Category already exists', HttpStatus.CONFLICT);
+      }
+    }
+    await this.categoryRepository.save(
+      this.categoryRepository.create({
+        ...params.body,
+        createdAt: new Date(),
+      }),
+    );
+    return await this.categoryRepository.findOne({
+      where: { name: params.body.name },
+      relations: ['users'],
+    });
+  }
 }
