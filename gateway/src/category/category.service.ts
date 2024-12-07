@@ -118,4 +118,31 @@ export class CategoryService {
       relations: ['users'],
     });
   }
+  ////////////////////////////////////////////////
+  ////////////////////////////////////////////////
+  async delete(params: { id: number }): Promise<Category> {
+    const category = await this.categoryRepository.findOne({
+      where: { id: params.id },
+      relations: ['users'],
+    });
+    if (!category) {
+      throw new HttpException('Category not found', HttpStatus.NOT_FOUND);
+    }
+    if (category.users && category.users.length > 0) {
+      throw new HttpException(
+        'Category has associated users and cannot be deleted',
+        HttpStatus.CONFLICT,
+      );
+    }
+    const result = await this.categoryRepository.softDelete(params.id);
+    if (result.affected === 0) {
+      throw new HttpException('Category not found', HttpStatus.NOT_FOUND);
+    }
+    return await this.categoryRepository.findOne({
+      where: { id: params.id },
+      withDeleted: true,
+    });
+  }
+  ////////////////////////////////////////////////
+  ////////////////////////////////////////////////
 }

@@ -59,5 +59,15 @@ export class CategoryController {
       data: await this.categoryService.update({ id: params.id, body }),
     };
   }
-
+////////////////////////////////////////////////
+  ////////////////////////////////////////////////
+  @Delete(':id')
+  //@Auth('delete:users')
+  @ApiOperation({ summary: 'Delete Category' })
+  async delete(@Param() params: IdDTO): Promise<ResposeDTO> {
+    const result = await this.categoryService.delete({ id: params.id });
+    return { status: 'success', data: result };
+  }
+  ////////////////////////////////////////////////
+  ////////////////////////////////////////////////
 }
