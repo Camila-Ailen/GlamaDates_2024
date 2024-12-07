@@ -1,0 +1,81 @@
+services:
+
+  fma-adminer:
+    platform: "linux/amd64"
+    image: adminer
+    container_name: fma-adminer
+    restart: always
+    ports:
+      - "8082:8080"
+
+  # fma-frontend:
+  #   platform: "linux/amd64"
+  #   image: fma-frontend:latest
+  #   container_name: fma-frontend
+  #   restart: always
+  #   build:
+  #     target: fma-frontend
+  #     context: ./frontend
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
+  #     AUTH_SECRET: rgfvsdfsdfev8923r8f
+  #   ports:
+  #     - "3003:3000"
+  #   volumes:
+  #     - ./frontend:/app
+  #   depends_on:
+  #     - fma-gateway
+
+  fma-gateway:
+    platform: "linux/amd64"
+    image: fma-gateway:latest
+    container_name: fma-gateway
+    restart: always
+    build:
+      target: fma-gateway
+      context: ./gateway
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      TZ: ${TZ}
+      DATABASE_HOST: fma-db
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD}
+      DATABASE_PORT: ${DATABASE_PORT}
+      BASEPATH: ${BASEPATH}
+      BASE_URL: ${BASE_URL}
+      PORT: 3000
+      DESCRIPTION: ${DESCRIPTION}
+      SWAGGER_DOCS: ${SWAGGER_DOCS}
+      API_KEY: ${API_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRE_IN: ${JWT_EXPIRE_IN}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./gateway:/usr/src/app
+    # - /app/node_modules
+    depends_on:
+      - fma-db
+
+  fma-db:
+    platform: "linux/amd64"
+    container_name: fma-db
+    restart: always
+    image: postgres:17.0
+    env_file:
+      - .env
+    environment:
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_DB: ${DATABASE_NAME}
+      PG_DATA: /var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
