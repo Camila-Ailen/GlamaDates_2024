@@ -1,34 +1,41 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Req } from '@nestjs/common';
 import { CategoryService } from './category.service';
-import { CreateCategoryDto } from './dto/category.dto';
-import { UpdateCategoryDto } from './dto/pagination-category.dto';
+import { CategoryDto } from './dto/category.dto';
+import { ApiOperation } from '@nestjs/swagger';
+import { ResposeDTO } from '@/base/dto/base.dto';
+import { Category } from './entities/category.entity';
+import { PaginationCategoryDto } from './dto/pagination-category.dto';
 
-@Controller('category')
+@Controller('categories')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
-  @Post()
-  create(@Body() createCategoryDto: CreateCategoryDto) {
-    return this.categoryService.create(createCategoryDto);
-  }
-
+    ////////////////////////////////////////////////
+  ////////////////////////////////////////////////
   @Get()
-  findAll() {
-    return this.categoryService.findAll();
+//   @Auth('read:users')
+  @ApiOperation({ summary: 'Get all categories' })
+  async all(@Query() query: PaginationCategoryDto): Promise<ResposeDTO> {
+    const categories = await this.categoryService.all({ query });
+    return { status: 'success', data: categories };
   }
 
+ ////////////////////////////////////////////////
+  ////////////////////////////////////////////////
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.categoryService.findOne(+id);
+//  @Auth('read:users')
+  @ApiOperation({ summary: 'Get Category by ID' })
+  async getById(
+    @Req() request: { category: Category },
+    @Param('id') id: number,
+  ): Promise<ResposeDTO> {
+    const categoryDto = new CategoryDto();
+    categoryDto.id = id;
+    const category = await this.categoryService.getBy(categoryDto);
+    return { status: 'success', data: category };
   }
+  ////////////////////////////////////////////////
+  ////////////////////////////////////////////////
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
-    return this.categoryService.update(+id, updateCategoryDto);
-  }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.categoryService.remove(+id);
-  }
 }

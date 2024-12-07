@@ -1,26 +1,81 @@
-import { Injectable } from '@nestjs/common';
-import { CreateCategoryDto } from './dto/category.dto';
-import { UpdateCategoryDto } from './dto/pagination-category.dto';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { CategoryDto } from './dto/category.dto';
+import { PaginationCategoryDto } from './dto/pagination-category.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Category } from './entities/category.entity';
+import { Like, Repository } from 'typeorm';
+import { PaginationResponseDTO } from '@/base/dto/base.dto';
 
 @Injectable()
 export class CategoryService {
-  create(createCategoryDto: CreateCategoryDto) {
-    return 'This action adds a new category';
-  }
 
-  findAll() {
-    return `This action returns all category`;
-  }
 
-  findOne(id: number) {
-    return `This action returns a #${id} category`;
+  @InjectRepository(Category)
+  private readonly categoryRepository: Repository<Category>;
+  
+    ////////////////////////////////////////////////
+  ////////////////////////////////////////////////
+  async getBy(body: CategoryDto): Promise<Category> {
+    const category = await this.categoryRepository.findOne({
+      where: {
+        id: body.id,
+      },
+      relations: ['users'],
+    });
+    if (!category) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    return category;
   }
+  ////////////////////////////////////////////////
+  ////////////////////////////////////////////////
+ 
+  async all(params: {
+    query: PaginationCategoryDto;
+  }): Promise<PaginationResponseDTO> {
+    const emptyResponse = {
+      total: 0,
+      pageSize: 0,
+      offset: params.query.offset,
+      results: [],
+    };
+    try {
+      if (Object.keys(params.query).length === 0) {
+        return emptyResponse;
+      }
+      if (params.query.pageSize?.toString() === '0') {
+        return emptyResponse;
+      }
 
-  update(id: number, updateCategoryDto: UpdateCategoryDto) {
-    return `This action updates a #${id} category`;
-  }
+      const order = {};
+      if (params.query.orderBy && params.query.orderType) {
+        order[params.query.orderBy] = params.query.orderType;
+      }
 
-  remove(id: number) {
-    return `This action removes a #${id} category`;
+      const forPage = params.query.pageSize
+        ? parseInt(params.query.pageSize.toString(), 10) || 10
+        : 10;
+      const skip = params.query.offset;
+      const [categories, total] = await this.categoryRepository.findAndCount({
+        where: {
+          name: params.query.name
+            ? Like(`%${params.query.name}%`)
+            : undefined,
+        },
+        relations: ['users'],
+        order,
+        take: forPage,
+        skip: skip,
+      });
+
+      return {
+        total: total,
+        pageSize: forPage,
+        offset: params.query.offset,
+        results: categories,
+      };
+    } catch (error) {
+      throw new Error(`${CategoryService.name}[all]:${error.message}`);
+    }
   }
+  ////////////////////////////////////////////////
+  ////////////////////////////////////////////////
 }

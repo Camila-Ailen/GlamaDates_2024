@@ -1,5 +1,5 @@
 import { User } from './entities/user.entity';
-import { UsersService } from './users.service';
+import { UsersService } from '@/users/users.service';
 import {
   Body,
   Controller,
