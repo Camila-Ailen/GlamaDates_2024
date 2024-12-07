@@ -144,10 +144,10 @@ export class UsersService {
       ? await this._hashPassword(params.body.password)
       : params.body.password;
     if (params.body.categories && params.body.categories.length > 0) {
-      const permissions = await this.categoryRepository.find({
+      const categories = await this.categoryRepository.find({
         where: { id: In(params.body.categories) },
       });
-      params.body.categories = permissions;
+      params.body.categories = categories;
     }
     this.userRepository.merge(user, params.body);
     await this.userRepository.save(user);

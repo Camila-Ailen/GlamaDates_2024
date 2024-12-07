@@ -3,7 +3,7 @@ import { CategoryDto } from './dto/category.dto';
 import { PaginationCategoryDto } from './dto/pagination-category.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Category } from './entities/category.entity';
-import { Like, Repository } from 'typeorm';
+import { IsNull, Like, Repository } from 'typeorm';
 import { PaginationResponseDTO } from '@/base/dto/base.dto';
 
 @Injectable()
@@ -101,6 +101,20 @@ export class CategoryService {
     );
     return await this.categoryRepository.findOne({
       where: { name: params.body.name },
+      relations: ['users'],
+    });
+  }
+  ////////////////////////////////////////////////
+  ////////////////////////////////////////////////
+  async update(params: { id: number; body: CategoryDto }): Promise<Category> {
+    const category = await this.categoryRepository.findOne({
+      where: { id: params.id, deletedAt: IsNull() },
+    });
+    if (!category) throw new HttpException('Category not found', HttpStatus.NOT_FOUND);
+    this.categoryRepository.merge(category, params.body);
+    await this.categoryRepository.save(category);
+    return await this.categoryRepository.findOne({
+      where: { id: params.id, deletedAt: IsNull() },
       relations: ['users'],
     });
   }

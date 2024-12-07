@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Req } from '@
 import { CategoryService } from './category.service';
 import { CategoryDto } from './dto/category.dto';
 import { ApiOperation } from '@nestjs/swagger';
-import { ResposeDTO } from '@/base/dto/base.dto';
+import { IdDTO, ResposeDTO } from '@/base/dto/base.dto';
 import { Category } from './entities/category.entity';
 import { PaginationCategoryDto } from './dto/pagination-category.dto';
 
@@ -46,5 +46,18 @@ export class CategoryController {
   }
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
+  @Patch(':id')
+  //@Auth('update:users')
+  @ApiOperation({ summary: 'Update Category' })
+  async update(
+    @Param() params: IdDTO,
+    @Body() body: CategoryDto,
+    @Req() request: { category: Category },
+  ): Promise<ResposeDTO> {
+    return {
+      status: 'success',
+      data: await this.categoryService.update({ id: params.id, body }),
+    };
+  }
 
 }
