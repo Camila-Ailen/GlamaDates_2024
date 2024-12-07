@@ -9,6 +9,7 @@ import {CitiesModule} from './cities/cities.module';
 import {CountriesModule} from './countries/countries.module';
 import {StatesModule} from './states/states.module';
 import { PermissionsModule } from './permissions/permissions.module';
+import { CategoryModule } from './category/category.module';
 
 @Module({
     imports: [
@@ -24,6 +25,7 @@ import { PermissionsModule } from './permissions/permissions.module';
         StatesModule,
         CountriesModule,
         PermissionsModule,
+        CategoryModule,
     ]
 })
 export class AppModule {

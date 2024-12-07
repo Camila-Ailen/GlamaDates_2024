@@ -5,10 +5,11 @@ import { User } from './entities/user.entity';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { Role } from '@/roles/entities/role.entity';
+import { Category } from '@/category/entities/category.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Role]),
+    TypeOrmModule.forFeature([User, Role, Category]),
     JwtModule.register({
         secret: 'your_jwt_secret', // Usa un secreto seguro en producción
         signOptions: { expiresIn: '1h' },

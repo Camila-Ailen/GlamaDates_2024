@@ -3,14 +3,18 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 import { UserDto } from '@/users/dto/user.dto';
 import { User } from '@/users/entities/user.entity';
-import { IsNull, Like, Repository } from 'typeorm';
+import { In, IsNull, Like, Repository } from 'typeorm';
 import { PaginationResponseDTO } from '@/base/dto/base.dto';
 import { UserPaginationDto } from './dto/user.pagination.dto';
+import { Category } from '@/category/entities/category.entity';
 
 @Injectable()
 export class UsersService {
   @InjectRepository(User)
   private readonly userRepository: Repository<User>;
+
+  @InjectRepository(Category)
+  private readonly categoryRepository: Repository<Category>;
 
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
@@ -21,7 +25,7 @@ export class UsersService {
         id: body.id,
         email: body.email,
       },
-      relations: ['role', 'role.permissions'],
+      relations: ['role', 'role.permissions', 'categories'],
     });
     if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     return user;
@@ -111,6 +115,12 @@ export class UsersService {
         throw new HttpException('User already exists', HttpStatus.CONFLICT);
       }
     }
+    if (params.body.categories && params.body.categories.length > 0) {
+      const permissions = await this.categoryRepository.find({
+        where: { id: In(params.body.categories) },
+      });
+      params.body.categories = permissions;
+    }
     await this.userRepository.save(
       this.userRepository.create({
         ...params.body,
@@ -120,7 +130,7 @@ export class UsersService {
     );
     return await this.userRepository.findOne({
       where: { email: params.body.email },
-      relations: ['role', 'role.permissions'],
+      relations: ['role', 'role.permissions', 'categories'],
     });
   }
   ////////////////////////////////////////////////
@@ -133,11 +143,17 @@ export class UsersService {
     params.body.password = params.body.password
       ? await this._hashPassword(params.body.password)
       : params.body.password;
+    if (params.body.categories && params.body.categories.length > 0) {
+      const permissions = await this.categoryRepository.find({
+        where: { id: In(params.body.categories) },
+      });
+      params.body.categories = permissions;
+    }
     this.userRepository.merge(user, params.body);
     await this.userRepository.save(user);
     return await this.userRepository.findOne({
       where: { id: params.id, deletedAt: IsNull() },
-      relations: ['role', 'role.permissions'],
+      relations: ['role', 'role.permissions', 'categories'],
     });
   }
   ////////////////////////////////////////////////
