@@ -1,25 +1,13 @@
 import { create } from 'zustand'
 
-interface User {
+interface Category {
   id: number
-  firstName: string
-  lastName: string
-  email: string
-  branchOfficeId: number | null
-  role: {
-    id: number
-    role: string
+  name: string
     description: string
-    permissions: Array<{
-      id: number
-      permission: string
-      description: string | null
-    }>
-  }
 }
 
-interface UserState {
-  users: User[]
+interface CategoryState {
+  categories: Category[]
   total: number
   currentPage: number
   pageSize: number
@@ -28,18 +16,18 @@ interface UserState {
   orderBy: string
   orderType: 'ASC' | 'DESC'
   filter: string
-  fetchUsers: (page?: number) => Promise<void>
-  createUser: (userData: Partial<User>) => Promise<void>
-  updateUser: (userData: Partial<User>) => Promise<void>
-  deleteUser: (userId: number) => Promise<void>
+  fetchCategories: (page?: number) => Promise<void>
+  createCategory: (categoryData: Partial<Category>) => Promise<void>
+  updateCategory: (categoryData: Partial<Category>) => Promise<void>
+  deleteCategory: (categoryId: number) => Promise<void>
   setOrderBy: (field: string) => void
   setOrderType: (type: 'ASC' | 'DESC') => void
   setFilter: (filter: string) => void
 }
 
 
-const useUserStore = create<UserState>((set, get) => ({
-    users: [],
+const useCategoryStore = create<CategoryState>((set, get) => ({
+    categories: [],
     total: 0,
     currentPage: 1,
     pageSize: 8,
@@ -50,7 +38,7 @@ const useUserStore = create<UserState>((set, get) => ({
     filter: '',
 
 
-    fetchUsers: async (page?: number) => {
+    fetchCategories: async (page?: number) => {
         const { pageSize, orderBy, orderType, filter } = get()
         const currentPage = page || get().currentPage
 
@@ -59,64 +47,64 @@ const useUserStore = create<UserState>((set, get) => ({
 
         set({ isLoading: true, error: null })
         try {
-            const response = await fetch(`http://localhost:3000/api/users?orderBy=${orderBy}&orderType=${orderType}&offset=${(currentPage - 1) * pageSize}&pageSize=${pageSize}&filter=${filter}`, {
+            const response = await fetch(`http://localhost:3000/api/categories?orderBy=${orderBy}&orderType=${orderType}&offset=${(currentPage - 1) * pageSize}&pageSize=${pageSize}&filter=${filter}`, {
             })
             console.log("response: ", response);
-            if (!response.ok) throw new Error('Error al obtener usuarios')
+            if (!response.ok) throw new Error('Error al obtener categorias')
             const data = await response.json()
-            set({ users: data.data.results, total: data.data.total, currentPage, isLoading: false })
+            set({ categories: data.data.results, total: data.data.total, currentPage, isLoading: false })
         } catch (error) {
             set({ error: (error as any).message, isLoading: false })
         }
     },
 
-    createUser: async (userData) => {
+    createCategory: async (categoryData) => {
         set({ isLoading: true, error: null })
         try {
-            const response = await fetch(`http://localhost:3000/api/users`, {
+            const response = await fetch(`http://localhost:3000/api/categories`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
-                body: JSON.stringify(userData),
+                body: JSON.stringify(categoryData),
             })
-            if (!response.ok) throw new Error('Error al crear usuario')
-            await get().fetchUsers()
+            if (!response.ok) throw new Error('Error al crear categoria')
+            await get().fetchCategories()
         } catch (error) {
             set({ error: (error as any).message, isLoading: false })
         }
     },
 
-    updateUser: async (userData) => {
+    updateCategory: async (categoryData) => {
         set({ isLoading: true, error: null })
         try {
-            const response = await fetch(`http://localhost:3000/api/users/${userData.id}`, {
+            const response = await fetch(`http://localhost:3000/api/categories/${categoryData.id}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
-                body: JSON.stringify(userData),
+                body: JSON.stringify(categoryData),
             })
-            if (!response.ok) throw new Error('Error al actualizar usuario')
-            await get().fetchUsers()
+            if (!response.ok) throw new Error('Error al actualizar categoria')
+            await get().fetchCategories()
         } catch (error) {
             set({ error: (error as any).message, isLoading: false })
         }
     },
 
-    deleteUser: async (userId) => {
+    deleteCategory: async (categoryId) => {
         set({ isLoading: true, error: null })
         try {
-            const response = await fetch(`http://localhost:3000/api/users/${userId}`, {
+            const response = await fetch(`http://localhost:3000/api/categories/${categoryId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             })
-            if (!response.ok) throw new Error('Error al eliminar usuario')
-            await get().fetchUsers()
+            if (!response.ok) throw new Error('Error al eliminar categoria')
+            await get().fetchCategories()
         } catch (error) {
             set({ error: (error as any).message, isLoading: false })
         }
@@ -127,4 +115,4 @@ const useUserStore = create<UserState>((set, get) => ({
     setFilter: (filter) => set({ filter }),
 }))
 
-export default useUserStore
+export default useCategoryStore
