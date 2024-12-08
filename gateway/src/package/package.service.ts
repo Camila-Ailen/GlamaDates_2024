@@ -17,10 +17,10 @@ export class PackageService {
 
   @InjectRepository(Package)
   private readonly packageRepository: Repository<Package>;
-  
-    ////////////////////////////////////////////////
+
   ////////////////////////////////////////////////
-  async getBy(body: PackageDto): Promise<Package> {
+  ////////////////////////////////////////////////
+  async getBy(body: PackageDto): Promise<PackageDto> {
     const pkg = await this.packageRepository.findOne({
       where: {
         id: body.id,
@@ -28,11 +28,17 @@ export class PackageService {
       relations: ['services'],
     });
     if (!pkg) throw new HttpException('Package not found', HttpStatus.NOT_FOUND);
-    return pkg;
+    const finalPackage = new PackageDto();
+    finalPackage.name = pkg.name;
+    finalPackage.description = pkg.description;
+    finalPackage.services = pkg.services;
+    finalPackage.price = pkg.services.reduce((total, service) => total + service.price, 0);
+    finalPackage.duration = pkg.services.reduce((total, service) => total + service.duration, 0);
+    return finalPackage;
   }
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
- 
+
   async all(params: {
     query: PaginationPackageDto;
   }): Promise<PaginationResponseDTO> {
@@ -82,20 +88,25 @@ export class PackageService {
       //   }
       // }
 
+      const finalPackages: PackageDto[] = [];
+
       // y por cada paquete crear un nuevo objeto con los campos del DTO y añadir el precio total y la duracion total
       for (const pkg of packages) {
-        const finalPackage = new PackageDto();
-        finalPackage.name = pkg.name;
-        finalPackage.description = pkg.description;
-        finalPackage.services = pkg.services;
-        finalPackage.price = pkg.services.reduce((total, service) => total + service.price, 0);
-        finalPackage.duration = pkg.services.reduce((total, service) => total + service.duration, 0);
+          const finalPackage = new PackageDto();
+          finalPackage.name = pkg.name;
+          finalPackage.description = pkg.description;
+          finalPackage.services = pkg.services;
+          finalPackage.price = pkg.services.reduce((total, service) => total + service.price, 0);
+          finalPackage.duration = pkg.services.reduce((total, service) => total + service.duration, 0);
+
+          finalPackages.push(finalPackage);
       }
+      
       return {
         total: total,
         pageSize: forPage,
         offset: params.query.offset,
-        results: packages,
+        results: finalPackages,
       };
     } catch (error) {
       throw new Error(`${PackageService.name}[all]:${error.message}`);
@@ -125,7 +136,7 @@ export class PackageService {
       });
       params.body.services = service;
     }
-    console.log("desde el servicio ",params.body.services);
+    console.log("desde el servicio ", params.body.services);
     await this.packageRepository.save(
       this.packageRepository.create({
         ...params.body,
@@ -146,8 +157,8 @@ export class PackageService {
     finalPackage.name = pkg.name;
     finalPackage.description = pkg.description;
     finalPackage.services = pkg.services;
-    finalPackage.price = params.body.services.reduce((total, service) => total + service.price, 0); 
-    finalPackage.duration =  params.body.services.reduce((total, service) => total + service.duration, 0);
+    finalPackage.price = params.body.services.reduce((total, service) => total + service.price, 0);
+    finalPackage.duration = params.body.services.reduce((total, service) => total + service.duration, 0);
     return finalPackage;
   }
   ////////////////////////////////////////////////
@@ -177,8 +188,8 @@ export class PackageService {
       relations: ['services'],
     });
 
-    
-      
+
+
     // cada service en el array de services tiene un precio, sumar todos los precios y aneadirlos al precio total del paquete
     // pkg.price = params.body.services.reduce((total, service) => total + service.price, 0);
 
