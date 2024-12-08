@@ -140,6 +140,20 @@ export class ServiceService {
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   async delete(params: { id: number }): Promise<Service> {
+    const service = await this.serviceRepository.findOne({
+      where: { id: params.id },
+      relations: ['packages'],
+    });
+    if (!service) {
+      throw new HttpException('Service not found', HttpStatus.NOT_FOUND);
+    }
+    if (service.packages && service.packages.length > 0) {
+      throw new HttpException(
+        'Service has associated packages and cannot be deleted',
+        HttpStatus.CONFLICT,
+      );
+    }
+
     const result = await this.serviceRepository.softDelete(params.id);
     if (result.affected === 0) {
       throw new HttpException('Service not found', HttpStatus.NOT_FOUND);

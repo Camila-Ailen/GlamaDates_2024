@@ -1,8 +1,8 @@
-import { Category } from "@/category/entities/category.entity";
+import { Service } from "@/service/entities/service.entity";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsDate, IsInt, IsNumber, IsOptional, IsPositive, IsString } from "class-validator";
+import { IsArray, IsDate, IsInt, IsNumber, IsOptional, IsPositive, IsString } from "class-validator";
 
-export class ServiceDto {
+export class PackageDto {
     @IsOptional()
     id: number
 
@@ -22,15 +22,10 @@ export class ServiceDto {
     @IsOptional()
     price: number
 
-    @ApiProperty({ required: false, type: 'number' })
-    //@IsInt()
-    //@IsPositive()
-    duration: number
-
-    @ApiProperty({ required: false, type: 'string' })
+    @ApiProperty({ required: false })
     @IsOptional()
-    @IsString()
-    category: Category; 
+    @IsArray()
+    services: Service[];
 
     @IsOptional()
     @IsDate()
@@ -42,5 +37,5 @@ export class ServiceDto {
 
     @IsOptional()
     @IsDate()
-    deleted_at: Date;
+    deleted_at: Date; 
 }

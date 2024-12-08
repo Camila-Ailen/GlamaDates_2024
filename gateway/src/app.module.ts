@@ -11,6 +11,7 @@ import {StatesModule} from './states/states.module';
 import { PermissionsModule } from './permissions/permissions.module';
 import { CategoryModule } from './category/category.module';
 import { ServiceModule } from './service/service.module';
+import { PackageModule } from './package/package.module';
 
 @Module({
     imports: [
@@ -28,6 +29,7 @@ import { ServiceModule } from './service/service.module';
         PermissionsModule,
         CategoryModule,
         ServiceModule,
+        PackageModule,
     ]
 })
 export class AppModule {
