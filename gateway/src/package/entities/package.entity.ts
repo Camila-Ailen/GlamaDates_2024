@@ -7,11 +7,13 @@ import {
     JoinTable,
     ManyToMany,
     ManyToOne,
+    OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
   } from 'typeorm';
   import { Exclude, instanceToPlain } from 'class-transformer';
   import { Service } from '@/service/entities/service.entity';
+import { Appointment } from '@/appointment/entities/appointment.entity';
   
   @Entity('packages')
   export class Package {
@@ -27,6 +29,9 @@ import {
     @JoinTable()
     @ManyToMany(() => Service, (services) => services.packages)
     services: Service[];
+
+    @OneToMany(() => Appointment, (appointment) => appointment.package)
+    appointment: Appointment[];
 
   
     @CreateDateColumn({ name: 'created_at', type: 'timestamp', nullable: true })

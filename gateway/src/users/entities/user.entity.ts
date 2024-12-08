@@ -6,12 +6,14 @@ import {
   JoinColumn,
   ManyToMany,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Exclude, instanceToPlain } from 'class-transformer';
 import { Role } from '@/roles/entities/role.entity';
 import { Category } from '@/category/entities/category.entity';
+import { Appointment } from '@/appointment/entities/appointment.entity';
 
 @Entity('users')
 export class User {
@@ -93,6 +95,12 @@ export class User {
 
   @ManyToMany(() => Category, (category) => category.users)
   categories: Category[];
+
+  @OneToMany(() => Appointment, (appointment) => appointment.client)
+    appointmentClient: Appointment[];
+
+  @OneToMany(() => Appointment, (appointment) => appointment.employee)
+  appointmentEmployee: Appointment[];
 
   toJSON() {
     return instanceToPlain(this);

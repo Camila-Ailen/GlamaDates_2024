@@ -29,29 +29,29 @@ import { Workstation } from '@/workstation/entities/workstation.entity';
     @Column({ type: 'enum', enum: AppointmentState, default: AppointmentState.ACTIVE })
     state: AppointmentState;
 
-    // // Relacion con cliente
-    // @ManyToOne(() => User, (client) => client.appointments, {
-    //     nullable: false,
-    // })
-    // client: User;
+    // Relacion con cliente
+    @ManyToOne(() => User, (client) => client.appointmentClient, {
+        nullable: false,
+    })
+    client: User;
 
-    // // Relacion con empleado
-    // @ManyToOne(() => User, (employee) => employee.appointments, {
-    //     nullable: false,
-    // })
-    // employee: User;
+    // Relacion con empleado
+    @ManyToOne(() => User, (employee) => employee.appointmentEmployee, {
+        nullable: false,
+    })
+    employee: User;
 
-    // // Relacion con paquetes
-    // @ManyToMany(() => Package, (pkg) => pkg.appointments, {
-    //     nullable: false,
-    // })
-    // packages: Package[];
+    // Relacion con paquetes
+    @ManyToMany(() => Package, (pkg) => pkg.appointment, {
+        nullable: false,
+    })
+    package: Package[];
 
-    // // Relacion con estaciones de trabajo
-    // @ManyToMany(() => Workstation, (station) => station.appointments, {
-    //     nullable: false,
-    // })
-    // stations: Workstation[];
+    // Relacion con estaciones de trabajo
+    @ManyToMany(() => Workstation, (station) => station.appointment, {
+        nullable: false,
+    })
+    workstation: Workstation[];
     
   
   

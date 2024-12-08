@@ -5,12 +5,14 @@ import {
     Entity,
     JoinTable,
     ManyToMany,
+    OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
   } from 'typeorm';
   import { Exclude, instanceToPlain } from 'class-transformer';
 import { WorkstationState } from './workstation-state.enum';
 import { Category } from '@/category/entities/category.entity';
+import { Appointment } from '@/appointment/entities/appointment.entity';
   
   @Entity({ name: 'workstations' })
   export class Workstation {
@@ -29,6 +31,9 @@ import { Category } from '@/category/entities/category.entity';
     @JoinTable()
     @ManyToMany(() => Category, (category) => category.workstations)
     categories: Category[];
+
+    @OneToMany(() => Appointment, (appointment) => appointment.workstation)
+    appointment: Appointment[];
   
   
     @CreateDateColumn({ name: 'created_at', type: 'timestamp', nullable: true })
