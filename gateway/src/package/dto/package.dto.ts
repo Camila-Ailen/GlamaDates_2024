@@ -17,15 +17,19 @@ export class PackageDto {
     description: string
 
     @ApiProperty({ required: false, type: 'number' })
-    //@IsNumber()
-    //@IsPositive()
     @IsOptional()
+    @IsNumber()
     price: number
 
     @ApiProperty({ required: false })
     @IsOptional()
     @IsArray()
     services: Service[];
+
+    @ApiProperty({ required: false, type: 'number' })
+    @IsOptional()
+    @IsNumber()
+    duration: number
 
     @IsOptional()
     @IsDate()

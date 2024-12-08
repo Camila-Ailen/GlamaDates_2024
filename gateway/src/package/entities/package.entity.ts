@@ -24,8 +24,8 @@ import {
     @Column({ name: 'description', type: 'varchar', length: 255 })
     description: string;
   
-    @Column({ type: 'float', nullable: false })
-    price: number;  
+    // @Column({ type: 'float', nullable: false })
+    // price: number;  
 
     @JoinTable()
     @ManyToMany(() => Service, (services) => services.packages)

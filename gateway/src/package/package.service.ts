@@ -75,13 +75,22 @@ export class PackageService {
       });
 
       // por cada paquete, sumar el precio de los servicios asociados
-      for (const pkg of packages) {
-        pkg.price = 0;
-        for (const service of pkg.services) {
-          pkg.price += service.price;
-        }
-      }
+      // for (const pkg of packages) {
+      //   pkg.price = 0;
+      //   for (const service of pkg.services) {
+      //     pkg.price += service.price;
+      //   }
+      // }
 
+      // y por cada paquete crear un nuevo objeto con los campos del DTO y añadir el precio total y la duracion total
+      for (const pkg of packages) {
+        const finalPackage = new PackageDto();
+        finalPackage.name = pkg.name;
+        finalPackage.description = pkg.description;
+        finalPackage.services = pkg.services;
+        finalPackage.price = pkg.services.reduce((total, service) => total + service.price, 0);
+        finalPackage.duration = pkg.services.reduce((total, service) => total + service.duration, 0);
+      }
       return {
         total: total,
         pageSize: forPage,
@@ -94,7 +103,7 @@ export class PackageService {
   }
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
-  async create(params: { body: PackageDto }): Promise<Package> {
+  async create(params: { body: PackageDto }): Promise<PackageDto> {
     const existingPackage = await this.packageRepository.findOne({
       where: { name: params.body.name },
       withDeleted: true,
@@ -130,13 +139,20 @@ export class PackageService {
     });
 
     // cada service en el array de services tiene un precio, sumar todos los precios y aneadirlos al precio total del paquete
-    pkg.price = params.body.services.reduce((total, service) => total + service.price, 0); 
 
-    return pkg
+    // cada service en el array de services tiene una duracion, sumar todas las duraciones y aneadirlas a la duracion total del paquete
+
+    const finalPackage = new PackageDto();
+    finalPackage.name = pkg.name;
+    finalPackage.description = pkg.description;
+    finalPackage.services = pkg.services;
+    finalPackage.price = params.body.services.reduce((total, service) => total + service.price, 0); 
+    finalPackage.duration =  params.body.services.reduce((total, service) => total + service.duration, 0);
+    return finalPackage;
   }
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
-  async update(params: { id: number; body: PackageDto }): Promise<Package> {
+  async update(params: { id: number; body: PackageDto }): Promise<PackageDto> {
     const existe = await this.packageRepository.findOne({
       where: { id: params.id },
     });
@@ -160,11 +176,24 @@ export class PackageService {
       where: { id: params.id, deletedAt: IsNull() },
       relations: ['services'],
     });
+
+    
       
     // cada service en el array de services tiene un precio, sumar todos los precios y aneadirlos al precio total del paquete
-    pkg.price = params.body.services.reduce((total, service) => total + service.price, 0); 
+    // pkg.price = params.body.services.reduce((total, service) => total + service.price, 0);
 
-    return pkg
+    // new Object from DTO and add the fields
+    const finalPackage = new PackageDto();
+    finalPackage.name = params.body.name;
+    finalPackage.description = params.body.description;
+    finalPackage.services = params.body.services;
+    finalPackage.price = params.body.services.reduce((total, service) => total + service.price, 0);
+    finalPackage.duration = params.body.services.reduce((total, service) => total + service.duration, 0);
+
+
+
+
+    return finalPackage;
   }
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
