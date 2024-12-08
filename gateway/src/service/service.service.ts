@@ -1,35 +1,39 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { CategoryDto } from './dto/category.dto';
-import { PaginationCategoryDto } from './dto/pagination-category.dto';
+import { ServiceDto } from './dto/service.dto';
+import { PaginationServiceDto } from './dto/pagination-service.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Category } from './entities/category.entity';
+import { Service } from './entities/service.entity';
 import { IsNull, Like, Repository } from 'typeorm';
 import { PaginationResponseDTO } from '@/base/dto/base.dto';
+import { Category } from '@/category/entities/category.entity';
 
 @Injectable()
-export class CategoryService {
+export class ServiceService {
 
+
+  @InjectRepository(Service)
+  private readonly serviceRepository: Repository<Service>;
 
   @InjectRepository(Category)
   private readonly categoryRepository: Repository<Category>;
   
     ////////////////////////////////////////////////
   ////////////////////////////////////////////////
-  async getBy(body: CategoryDto): Promise<Category> {
-    const category = await this.categoryRepository.findOne({
+  async getBy(body: ServiceDto): Promise<Service> {
+    const service = await this.serviceRepository.findOne({
       where: {
         id: body.id,
       },
-      relations: ['users'],
+      relations: ['category'],
     });
-    if (!category) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    return category;
+    if (!service) throw new HttpException('Service not found', HttpStatus.NOT_FOUND);
+    return service;
   }
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
  
   async all(params: {
-    query: PaginationCategoryDto;
+    query: PaginationServiceDto;
   }): Promise<PaginationResponseDTO> {
     const emptyResponse = {
       total: 0,
@@ -37,6 +41,7 @@ export class CategoryService {
       offset: params.query.offset,
       results: [],
     };
+    console.log("desde el servicio 1 ",params.query);
     try {
       if (Object.keys(params.query).length === 0) {
         return emptyResponse;
@@ -54,97 +59,92 @@ export class CategoryService {
         ? parseInt(params.query.pageSize.toString(), 10) || 10
         : 10;
       const skip = params.query.offset;
-      const [categories, total] = await this.categoryRepository.findAndCount({
+      const [services, total] = await this.serviceRepository.findAndCount({
         where: {
           name: params.query.name
             ? Like(`%${params.query.name}%`)
             : undefined,
+          description: params.query.description
+            ? Like(`%${params.query.description}%`)
+            : undefined,
         },
-        relations: ['users'],
+        relations: ['category'],
         order,
         take: forPage,
         skip: skip,
       });
 
+      console.log("desde el servicio ",params.query);
+
+
       return {
         total: total,
         pageSize: forPage,
         offset: params.query.offset,
-        results: categories,
+        results: services,
       };
     } catch (error) {
-      throw new Error(`${CategoryService.name}[all]:${error.message}`);
+      throw new Error(`${ServiceService.name}[all]:${error.message}`);
     }
   }
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
-  async create(params: { body: CategoryDto }): Promise<Category> {
-    const existingCategory = await this.categoryRepository.findOne({
+  async create(params: { body: ServiceDto }): Promise<Service> {
+    const existingService = await this.serviceRepository.findOne({
       where: { name: params.body.name },
       withDeleted: true,
     });
-    if (existingCategory) {
-      if (existingCategory.deletedAt) {
+    if (existingService) {
+      if (existingService.deletedAt) {
         throw new HttpException(
-          'Inactive category already exists',
+          'Inactive service already exists',
           HttpStatus.CONFLICT,
         );
       } else {
-        throw new HttpException('Category already exists', HttpStatus.CONFLICT);
+        throw new HttpException('Service already exists', HttpStatus.CONFLICT);
       }
     }
-    await this.categoryRepository.save(
-      this.categoryRepository.create({
-        ...params.body,
-        createdAt: new Date(),
-      }),
-    );
-    return await this.categoryRepository.findOne({
-      where: { name: params.body.name },
-      relations: ['users'],
-    });
-  }
-  ////////////////////////////////////////////////
-  ////////////////////////////////////////////////
-  async update(params: { id: number; body: CategoryDto }): Promise<Category> {
     const category = await this.categoryRepository.findOne({
-      where: { id: params.id, deletedAt: IsNull() },
-    });
-    if (!category) throw new HttpException('Category not found', HttpStatus.NOT_FOUND);
-    this.categoryRepository.merge(category, params.body);
-    await this.categoryRepository.save(category);
-    return await this.categoryRepository.findOne({
-      where: { id: params.id, deletedAt: IsNull() },
-      relations: ['users'],
-    });
-  }
-  ////////////////////////////////////////////////
-  ////////////////////////////////////////////////
-  async delete(params: { id: number }): Promise<Category> {
-    const category = await this.categoryRepository.findOne({
-      where: { id: params.id },
-      relations: ['users', 'services'],
+      where: { id: params.body.category.id },
     });
     if (!category) {
       throw new HttpException('Category not found', HttpStatus.NOT_FOUND);
     }
-    if (category.users && category.users.length > 0) {
-      throw new HttpException(
-        'Category has associated users and cannot be deleted',
-        HttpStatus.CONFLICT,
-      );
-    }
-    if (category.services && category.services.length > 0) {
-      throw new HttpException(
-        'Category has associated services and cannot be deleted',
-        HttpStatus.CONFLICT,
-      );
-    }
-    const result = await this.categoryRepository.softDelete(params.id);
+    params.body.category = category;
+    console.log("desde el servicio ",params.body);
+    await this.serviceRepository.save(
+      this.serviceRepository.create({
+        ...params.body,
+        createdAt: new Date(),
+      }),
+    );
+    return await this.serviceRepository.findOne({
+      where: { name: params.body.name },
+      relations: ['category'],
+    });
+  }
+  ////////////////////////////////////////////////
+  ////////////////////////////////////////////////
+  async update(params: { id: number; body: ServiceDto }): Promise<Service> {
+    const service = await this.serviceRepository.findOne({
+      where: { id: params.id, deletedAt: IsNull() },
+    });
+    if (!service) throw new HttpException('Service not found', HttpStatus.NOT_FOUND);
+    this.serviceRepository.merge(service, params.body);
+    await this.serviceRepository.save(service);
+    return await this.serviceRepository.findOne({
+      where: { id: params.id, deletedAt: IsNull() },
+      relations: ['category'],
+    });
+  }
+  ////////////////////////////////////////////////
+  ////////////////////////////////////////////////
+  async delete(params: { id: number }): Promise<Service> {
+    const result = await this.serviceRepository.softDelete(params.id);
     if (result.affected === 0) {
-      throw new HttpException('Category not found', HttpStatus.NOT_FOUND);
+      throw new HttpException('Service not found', HttpStatus.NOT_FOUND);
     }
-    return await this.categoryRepository.findOne({
+    return await this.serviceRepository.findOne({
       where: { id: params.id },
       withDeleted: true,
     });

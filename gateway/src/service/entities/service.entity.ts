@@ -3,34 +3,36 @@ import {
     CreateDateColumn,
     DeleteDateColumn,
     Entity,
-    JoinTable,
-    ManyToMany,
-    OneToMany,
+    JoinColumn,
+    ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
   } from 'typeorm';
-  import { User } from '@/users/entities/user.entity';
-  import { Permission } from '@/permissions/entities/permission.entity';
   import { Exclude, instanceToPlain } from 'class-transformer';
-import { Service } from '@/service/entities/service.entity';
+  import { Category } from '@/category/entities/category.entity';
   
-  @Entity({ name: 'categories' })
-  export class Category {
+  @Entity('services')
+  export class Service {
     @PrimaryGeneratedColumn()
     id: number;
   
-    @Column({ type: 'varchar', length: 45, nullable: false })
+    @Column({ name: 'name', type: 'varchar', length: 255 })
     name: string;
   
-    @Column({ type: 'varchar', length: 200, nullable: true })
-    description?: string;
+    @Column({ name: 'description', type: 'varchar', length: 255 })
+    description: string;
   
-    @ManyToMany(() => User, (user) => user.categories)
-    @JoinTable()
-    users: User[];
+    @Column({ type: 'float', nullable: false })
+    price: number;
 
-    @OneToMany(() => Service, (service) => service.category)
-    services: Service[];
+    @Column({ type: 'int', nullable: false })
+    duration: number;   
+
+    @ManyToOne(() => Category, (category) => category.services, {
+        nullable: false,
+    })
+    // @JoinColumn({ name: 'category_id' })
+    category: Category;
 
   
     @CreateDateColumn({ name: 'created_at', type: 'timestamp', nullable: true })

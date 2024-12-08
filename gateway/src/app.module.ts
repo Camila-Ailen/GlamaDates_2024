@@ -10,6 +10,7 @@ import {CountriesModule} from './countries/countries.module';
 import {StatesModule} from './states/states.module';
 import { PermissionsModule } from './permissions/permissions.module';
 import { CategoryModule } from './category/category.module';
+import { ServiceModule } from './service/service.module';
 
 @Module({
     imports: [
@@ -26,6 +27,7 @@ import { CategoryModule } from './category/category.module';
         CountriesModule,
         PermissionsModule,
         CategoryModule,
+        ServiceModule,
     ]
 })
 export class AppModule {
