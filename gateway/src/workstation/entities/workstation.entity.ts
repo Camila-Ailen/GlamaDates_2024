@@ -3,31 +3,33 @@ import {
     CreateDateColumn,
     DeleteDateColumn,
     Entity,
-    JoinColumn,
     JoinTable,
     ManyToMany,
-    ManyToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
   } from 'typeorm';
   import { Exclude, instanceToPlain } from 'class-transformer';
-  import { Service } from '@/service/entities/service.entity';
+import { WorkstationState } from './workstation-state.enum';
+import { Category } from '@/category/entities/category.entity';
   
-  @Entity('packages')
-  export class Package {
+  @Entity({ name: 'workstations' })
+  export class Workstation {
     @PrimaryGeneratedColumn()
     id: number;
   
-    @Column({ name: 'name', type: 'varchar', length: 255 })
+    @Column({ type: 'varchar', length: 45, nullable: false })
     name: string;
   
-    @Column({ name: 'description', type: 'varchar', length: 255 })
-    description: string; 
+    @Column({ type: 'varchar', length: 200, nullable: true })
+    description?: string;
+
+    @Column({ type: 'enum', enum: WorkstationState, default: WorkstationState.ACTIVE })
+    state: WorkstationState;
 
     @JoinTable()
-    @ManyToMany(() => Service, (services) => services.packages)
-    services: Service[];
-
+    @ManyToMany(() => Category, (category) => category.workstations)
+    categories: Category[];
+  
   
     @CreateDateColumn({ name: 'created_at', type: 'timestamp', nullable: true })
     @Exclude()

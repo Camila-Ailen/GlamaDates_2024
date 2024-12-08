@@ -12,6 +12,7 @@ import { PermissionsModule } from './permissions/permissions.module';
 import { CategoryModule } from './category/category.module';
 import { ServiceModule } from './service/service.module';
 import { PackageModule } from './package/package.module';
+import { WorkstationModule } from './workstation/workstation.module';
 
 @Module({
     imports: [
@@ -30,6 +31,7 @@ import { PackageModule } from './package/package.module';
         CategoryModule,
         ServiceModule,
         PackageModule,
+        WorkstationModule,
     ]
 })
 export class AppModule {

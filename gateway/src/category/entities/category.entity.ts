@@ -13,6 +13,7 @@ import {
   import { Permission } from '@/permissions/entities/permission.entity';
   import { Exclude, instanceToPlain } from 'class-transformer';
 import { Service } from '@/service/entities/service.entity';
+import { Workstation } from '@/workstation/entities/workstation.entity';
   
   @Entity({ name: 'categories' })
   export class Category {
@@ -32,6 +33,9 @@ import { Service } from '@/service/entities/service.entity';
     @OneToMany(() => Service, (service) => service.category)
     services: Service[];
 
+    @ManyToMany(() => Workstation, (workstation) => workstation.categories)
+    workstations: Workstation[];
+
   
     @CreateDateColumn({ name: 'created_at', type: 'timestamp', nullable: true })
     @Exclude()
@@ -49,4 +53,4 @@ import { Service } from '@/service/entities/service.entity';
       return instanceToPlain(this);
     }
   }
-  
+   
