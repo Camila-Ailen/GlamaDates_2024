@@ -3,6 +3,7 @@ import { IsArray, IsDate, IsEnum, IsOptional, IsString } from "class-validator";
 import { Workstation } from "../entities/workstation.entity";
 import { WorkstationState } from "../entities/workstation-state.enum";
 import { Category } from "@/category/entities/category.entity";
+import { Appointment } from "@/appointment/entities/appointment.entity";
 
 export class WorkstationDto {
     @IsOptional()
@@ -27,6 +28,10 @@ export class WorkstationDto {
     @IsOptional()
     @IsArray()
     categories: Category[];
+
+    @IsOptional()
+    @IsArray()
+    appointment: Appointment[];
 
 
     @IsOptional()

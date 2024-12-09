@@ -25,7 +25,7 @@ export class UsersService {
         id: body.id,
         email: body.email,
       },
-      relations: ['role', 'role.permissions', 'categories'],
+      relations: ['role', 'role.permissions', 'categories', 'appointments'],
     });
     if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     return user;
@@ -130,7 +130,7 @@ export class UsersService {
     );
     return await this.userRepository.findOne({
       where: { email: params.body.email },
-      relations: ['role', 'role.permissions', 'categories'],
+      relations: ['role', 'role.permissions', 'categories', 'appointments'],
     });
   }
   ////////////////////////////////////////////////
@@ -153,7 +153,7 @@ export class UsersService {
     await this.userRepository.save(user);
     return await this.userRepository.findOne({
       where: { id: params.id, deletedAt: IsNull() },
-      relations: ['role', 'role.permissions', 'categories'],
+      relations: ['role', 'role.permissions', 'categories', 'appointments'],
     });
   }
   ////////////////////////////////////////////////

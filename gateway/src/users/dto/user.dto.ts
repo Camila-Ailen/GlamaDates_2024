@@ -2,6 +2,7 @@ import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { IsArray, IsDate, IsOptional, IsString } from 'class-validator';
 import { Role } from '@/roles/entities/role.entity';
 import { Category } from '@/category/entities/category.entity';
+import { Appointment } from '@/appointment/entities/appointment.entity';
 
 export class UserDto {
   @IsOptional()
@@ -47,6 +48,14 @@ export class UserDto {
   @IsOptional()
   @IsArray()
   categories?: Category[];
+
+  @IsOptional()
+  @IsArray()
+  appointmentClient?: Appointment[];
+
+  @IsOptional()
+  @IsArray()
+  appointmentEmployee?: Appointment[];
 
   @ApiProperty({ required: false, type: 'string' })
   @IsOptional()
