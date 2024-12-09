@@ -26,6 +26,7 @@ import useCategoryStore from '../store/useCategoryStore'
 import { ArrowUpDown } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { CreateCategoryDialog } from './create-category-dialog'
+import useAuthStore from '../store/useAuthStore'
 
 export function CategoriesTable() {
   const {
@@ -44,9 +45,14 @@ export function CategoriesTable() {
     setFilter
   } = useCategoryStore()
 
+  const token = useAuthStore((state) => state.token);
+  const hasPermission = useAuthStore((state) => state.hasPermission);
+
   useEffect(() => {
-    fetchCategories()
-  }, [fetchCategories, orderBy, orderType, filter])
+    if (token) {
+      fetchCategories(undefined);
+    }
+  }, [fetchCategories, orderBy, orderType, filter, token])
 
   if (isLoading) return <div>Cargando...</div>
   if (error) return <div>Ocurrió un error: {error}</div>
@@ -79,7 +85,7 @@ export function CategoriesTable() {
           className="max-w-sm"
         />
 
-<CreateCategoryDialog />
+        {hasPermission('create:categories') && <CreateCategoryDialog />}
 
       </div>
 
@@ -107,8 +113,8 @@ export function CategoriesTable() {
               <TableCell>{category.name.toUpperCase()}</TableCell>
               <TableCell>{category.description.toUpperCase()}</TableCell>
               <TableCell>
-                <EditCategoryDialog category={category} />
-                <DeleteCategoryDialog categoryId={category.id} />
+                {hasPermission('update:categories') && (<EditCategoryDialog category={category} />)}
+                {hasPermission('delete:categories') && (<DeleteCategoryDialog categoryId={category.id} />)}
               </TableCell>
             </TableRow>
           ))}
@@ -119,16 +125,15 @@ export function CategoriesTable() {
   <Pagination className="mt-4">
         <PaginationContent>
           <PaginationItem>
-            <PaginationPrevious onClick={() => fetchCategories(Math.max(currentPage - 1, 1))} />
+            <PaginationPrevious 
+            onClick={() => 
+            fetchCategories(Math.max(currentPage - 1, 1), token || undefined)
+            } 
+            />
           </PaginationItem>
           {totalPages > 6 ? (
             <>
-              <PaginationItem>
-                {/* <PaginationLink onClick={() => fetchUsers(1)} isActive={currentPage === 1}>
-                  1
-                </PaginationLink> */}
-
-              </PaginationItem>
+              <PaginationItem></PaginationItem>
               {currentPage > 3 && (
                 <PaginationItem>
                   <PaginationEllipsis />
@@ -136,10 +141,17 @@ export function CategoriesTable() {
               )}
               {[...Array(totalPages)]
                 .map((_, i) => i + 1)
-                .filter((page) => page === 1 || page === totalPages || (page >= currentPage - 2 && page <= currentPage + 2))
+                .filter(
+                  (page) => 
+                    page === 1 || 
+                    page === totalPages || 
+                    (page >= currentPage - 2 && page <= currentPage + 2)
+                  )
                 .map((page) => (
                   <PaginationItem key={page}>
-                    <PaginationLink onClick={() => fetchCategories(page)} isActive={currentPage === page}>
+                    <PaginationLink 
+                      onClick={() => fetchCategories(page, token || undefined)} 
+                      isActive={currentPage === page}>
                       {page}
                     </PaginationLink>
                   </PaginationItem>
@@ -149,23 +161,25 @@ export function CategoriesTable() {
                   <PaginationEllipsis />
                 </PaginationItem>
               )}
-              {/* <PaginationItem>
-                <PaginationLink onClick={() => fetchUsers(totalPages)} isActive={currentPage === totalPages}>
-                  {totalPages}
-                </PaginationLink>
-              </PaginationItem> */}
             </>
           ) : (
             [...Array(totalPages)].map((_, i) => (
               <PaginationItem key={i}>
-                <PaginationLink onClick={() => fetchCategories(i + 1)} isActive={currentPage === i + 1}>
+                <PaginationLink 
+                  onClick={() => fetchCategories(i + 1, token || undefined)} 
+                  isActive={currentPage === i + 1}
+                  >
                   {i + 1}
                 </PaginationLink>
               </PaginationItem>
             ))
           )}
           <PaginationItem>
-            <PaginationNext onClick={() => fetchCategories(Math.min(currentPage + 1, totalPages))} />
+            <PaginationNext 
+            onClick={() => 
+            fetchCategories(
+              Math.min(currentPage + 1, totalPages), 
+              token || undefined)} />
           </PaginationItem>
         </PaginationContent>
       </Pagination>

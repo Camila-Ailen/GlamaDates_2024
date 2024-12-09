@@ -29,6 +29,7 @@ export class PackageService {
     });
     if (!pkg) throw new HttpException('Package not found', HttpStatus.NOT_FOUND);
     const finalPackage = new PackageDto();
+    finalPackage.id = pkg.id;
     finalPackage.name = pkg.name;
     finalPackage.description = pkg.description;
     finalPackage.services = pkg.services;
@@ -93,6 +94,7 @@ export class PackageService {
       // y por cada paquete crear un nuevo objeto con los campos del DTO y añadir el precio total y la duracion total
       for (const pkg of packages) {
           const finalPackage = new PackageDto();
+          finalPackage.id = pkg.id;
           finalPackage.name = pkg.name;
           finalPackage.description = pkg.description;
           finalPackage.services = pkg.services;
@@ -154,6 +156,7 @@ export class PackageService {
     // cada service en el array de services tiene una duracion, sumar todas las duraciones y aneadirlas a la duracion total del paquete
 
     const finalPackage = new PackageDto();
+    finalPackage.id = pkg.id;
     finalPackage.name = pkg.name;
     finalPackage.description = pkg.description;
     finalPackage.services = pkg.services;
@@ -195,6 +198,7 @@ export class PackageService {
 
     // new Object from DTO and add the fields
     const finalPackage = new PackageDto();
+    finalPackage.id = pkg.id;
     finalPackage.name = params.body.name;
     finalPackage.description = params.body.description;
     finalPackage.services = params.body.services;

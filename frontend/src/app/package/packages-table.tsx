@@ -20,17 +20,17 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import { EditServiceDialog } from './edit-service-dialog'
-import { DeleteServiceDialog } from './delete-service-dialog'
-import useServiceStore from '../store/useServiceStore'
+import { EditPackageDialog } from './edit-package-dialog'
+import { DeletePackageDialog } from './delete-package-dialog'
+import usePackageStore from '../store/usePackageStore'
 import { ArrowUpDown } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { CreateServiceDialog } from './create-service-dialog'
+import { CreatePackageDialog } from './create-package-dialog'
 import useAuthStore from '../store/useAuthStore'
 
-export function ServicesTable() {
+export function PackagesTable() {
   const {
-    services,
+    packages,
     total,
     currentPage,
     pageSize,
@@ -39,18 +39,18 @@ export function ServicesTable() {
     orderBy,
     orderType,
     filter,
-    fetchServices,
+    fetchPackage,
     setOrderBy,
     setOrderType,
     setFilter
-  } = useServiceStore()
+  } = usePackageStore()
 
   const token = useAuthStore((state) => state.token);
   const hasPermission = useAuthStore((state) => state.hasPermission);
 
   useEffect(() => {
-    fetchServices()
-  }, [fetchServices, orderBy, orderType, filter])
+    fetchPackage()
+  }, [fetchPackage, orderBy, orderType, filter])
 
   if (isLoading) return <div>Cargando...</div>
   if (error) return <div>Ocurrió un error: {error}</div>
@@ -71,19 +71,19 @@ export function ServicesTable() {
       <Card>
         <CardHeader className="flex-row justify-between">
           <div>
-            <CardTitle>Servicios</CardTitle>
-            <CardDescription>Ver y actualizar servicio de la plataforma</CardDescription>
+            <CardTitle>Paquetes</CardTitle>
+            <CardDescription>Ver y actualizar paquete de la plataforma</CardDescription>
           </div>
           <div className="flex flex-row">
 
             <Input
-              placeholder="Filtrar servicios"
+              placeholder="Filtrar paquetes"
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
               className="max-w-sm"
             />
 
-            {hasPermission('create:services') && <CreateServiceDialog />}
+            {hasPermission('create:packages') && <CreatePackageDialog />}
 
           </div>
 
@@ -126,26 +126,32 @@ export function ServicesTable() {
                   onClick={() => handleSort("category")}
                   className="cursor-pointer"
                 >
-                  Categoria <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+                  Servicios <ArrowUpDown className="ml-2 h-4 w-4 inline" />
                 </TableHead>
                 <TableHead>Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {services.map((service) => (
-                <TableRow key={service.id}>
-                  <TableCell>{service.id}</TableCell>
-                  <TableCell>{service.name.toUpperCase()}</TableCell>
-                  <TableCell>{service.description.toUpperCase()}</TableCell>
-                  <TableCell>{service.duration}</TableCell>
-                  <TableCell>{service.price}</TableCell>
-                  <TableCell>{service.category.name}</TableCell>
+              {packages.map((pkg) => (
+                <TableRow key={pkg.id}>
+                  <TableCell>{pkg.id}</TableCell>
+                  <TableCell>{pkg.name.toUpperCase()}</TableCell>
+                  <TableCell>{pkg.description.toUpperCase()}</TableCell>
+                  <TableCell>{pkg.duration}</TableCell>
+                  <TableCell>{pkg.price}</TableCell>
                   <TableCell>
-                    {hasPermission("update:services") && (
-                      <EditServiceDialog service={service} />
+                    <ul>
+                      {Array.isArray(pkg.services) ? pkg.services.map((service: { id: string; name: string }) => (
+                        <li key={service.id}>{service.name}</li>
+                      )) : <li>No hay servicios asociados</li>}
+                    </ul>
+                  </TableCell>
+                  <TableCell>
+                    {hasPermission("update:packages") && (
+                      <EditPackageDialog pkg={pkg} />
                     )}
-                    {hasPermission("delete:services") && (
-                      <DeleteServiceDialog serviceId={service.id} />
+                    {hasPermission("delete:packages") && (
+                      <DeletePackageDialog packageId={pkg.id} />
                     )}
                   </TableCell>
                 </TableRow>
@@ -159,7 +165,7 @@ export function ServicesTable() {
               <PaginationItem>
                 <PaginationPrevious
                   onClick={() =>
-                    fetchServices(Math.max(currentPage - 1, 1), token || undefined)
+                    fetchPackage(Math.max(currentPage - 1, 1), token || undefined)
                   }
                 />
               </PaginationItem>
@@ -176,7 +182,7 @@ export function ServicesTable() {
                     .filter((page) => page === 1 || page === totalPages || (page >= currentPage - 2 && page <= currentPage + 2))
                     .map((page) => (
                       <PaginationItem key={page}>
-                        <PaginationLink onClick={() => fetchServices(page)} isActive={currentPage === page}>
+                        <PaginationLink onClick={() => fetchPackage(page)} isActive={currentPage === page}>
                           {page}
                         </PaginationLink>
                       </PaginationItem>
@@ -195,14 +201,14 @@ export function ServicesTable() {
               ) : (
                 [...Array(totalPages)].map((_, i) => (
                   <PaginationItem key={i}>
-                    <PaginationLink onClick={() => fetchServices(i + 1)} isActive={currentPage === i + 1}>
+                    <PaginationLink onClick={() => fetchPackage(i + 1)} isActive={currentPage === i + 1}>
                       {i + 1}
                     </PaginationLink>
                   </PaginationItem>
                 ))
               )}
               <PaginationItem>
-                <PaginationNext onClick={() => fetchServices(Math.min(currentPage + 1, totalPages))} />
+                <PaginationNext onClick={() => fetchPackage(Math.min(currentPage + 1, totalPages))} />
               </PaginationItem>
             </PaginationContent>
           </Pagination>
