@@ -25,6 +25,7 @@ export class ServiceDto {
     @ApiProperty({ required: false, type: 'number' })
     //@IsInt()
     //@IsPositive()
+    @IsOptional()
     duration: number
 
     @ApiProperty({ required: false, type: 'string' })

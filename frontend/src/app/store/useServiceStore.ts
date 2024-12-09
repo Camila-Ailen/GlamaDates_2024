@@ -2,14 +2,22 @@ import { create } from 'zustand'
 import useAuthStore from './useAuthStore'
 import { toast } from 'sonner'
 
-interface Category {
+interface Service {
     id: number
     name: string
     description: string
+    price: number
+    duration: number
+    category: {
+        id: number
+        name: string
+        description: string
+    }
+
 }
 
-interface CategoryState {
-    categories: Category[]
+interface ServiceState {
+    services: Service[]
     total: number
     currentPage: number
     pageSize: number
@@ -18,10 +26,10 @@ interface CategoryState {
     orderBy: string
     orderType: 'ASC' | 'DESC'
     filter: string
-    fetchCategories: (page?: number, token?: string) => Promise<void>
-    createCategory: (categoryData: Partial<Category>) => Promise<void>
-    updateCategory: (categoryData: Partial<Category>) => Promise<void>
-    deleteCategory: (categoryId: number) => Promise<void>
+    fetchServices: (page?: number, token?: string) => Promise<void>
+    createService: (serviceData: Partial<Service>) => Promise<void>
+    updateService: (serviceData: Partial<Service>) => Promise<void>
+    deleteService: (serviceId: number) => Promise<void>
     setOrderBy: (field: string) => void
     setOrderType: (type: 'ASC' | 'DESC') => void
     setFilter: (filter: string) => void
@@ -29,8 +37,8 @@ interface CategoryState {
 
 const token = useAuthStore.getState().token;
 
-const useCategoryStore = create<CategoryState>((set, get) => ({
-    categories: [],
+const useServiceStore = create<ServiceState>((set, get) => ({
+    services: [],
     total: 0,
     currentPage: 1,
     pageSize: 8,
@@ -41,7 +49,7 @@ const useCategoryStore = create<CategoryState>((set, get) => ({
     filter: '',
 
 
-    fetchCategories: async (page?: number) => {
+    fetchServices: async (page?: number) => {
         const { pageSize, orderBy, orderType, filter } = get()
         const currentPage = page || get().currentPage
 
@@ -52,7 +60,7 @@ const useCategoryStore = create<CategoryState>((set, get) => ({
         try {
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_BACKEND_URL
-                }/api/categories?orderBy=${orderBy}&orderType=${orderType}&offset=${(currentPage - 1) * pageSize
+                }/api/services?orderBy=${orderBy}&orderType=${orderType}&offset=${(currentPage - 1) * pageSize
                 }&pageSize=${pageSize}&filter=${filter}`,
                 {
                     headers: {
@@ -66,26 +74,26 @@ const useCategoryStore = create<CategoryState>((set, get) => ({
             }
 
             console.log("response: ", response);
-            if (!response.ok) throw new Error('Error al obtener categorias')
+            if (!response.ok) throw new Error('Error al obtener servicios')
             const data = await response.json()
-            set({ categories: data.data.results, total: data.data.total, currentPage, isLoading: false })
+            set({ services: data.data.results, total: data.data.total, currentPage, isLoading: false })
         } catch (error) {
             set({ error: (error as any).message, isLoading: false })
         }
     },
 
-    createCategory: async (categoryData) => {
+    createService: async (serviceData) => {
         set({ isLoading: true, error: null })
         try {
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/categories`,
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/services`,
                 {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify(categoryData),
+                    body: JSON.stringify(serviceData),
                 })
             if (response.status === 403) {
                 toast.error("Sesión expirada");
@@ -94,30 +102,30 @@ const useCategoryStore = create<CategoryState>((set, get) => ({
             }
 
             if (response.status === 409) {
-                toast.error("La categoria ya existe");
-                throw new Error("La categoria ya existe");
+                toast.error("El servicio ya existe");
+                throw new Error("El servicio ya existe");
             }
 
-            if (!response.ok) toast.error('Error al crear categoria')
-            toast.success('Categoria creada exitosamente')
-            await get().fetchCategories()
+            if (!response.ok) toast.error('Error al crear servicio')
+            toast.success('Servicio creado exitosamente')
+            await get().fetchServices()
         } catch (error) {
             set({ error: (error as any).message, isLoading: false })
         }
     },
 
-    updateCategory: async (categoryData) => {
+    updateService: async (serviceData) => {
         set({ isLoading: true, error: null })
         try {
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/categories/${categoryData.id}`,
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/services/${serviceData.id}`,
                 {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify(categoryData),
+                    body: JSON.stringify(serviceData),
                 })
             if (response.status === 403) {
                 toast.error("Sesión expirada");
@@ -125,18 +133,18 @@ const useCategoryStore = create<CategoryState>((set, get) => ({
                 return;
             }
 
-            if (!response.ok) throw new Error('Error al actualizar categoria')
-            await get().fetchCategories()
+            if (!response.ok) throw new Error('Error al actualizar servicio')
+            await get().fetchServices()
         } catch (error) {
             set({ error: (error as any).message, isLoading: false })
         }
     },
 
-    deleteCategory: async (categoryId) => {
+    deleteService: async (serviceId) => {
         set({ isLoading: true, error: null })
         try {
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/categories/${categoryId}`,
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/services/${serviceId}`,
                 {
                     method: 'DELETE',
                     headers: {
@@ -149,8 +157,8 @@ const useCategoryStore = create<CategoryState>((set, get) => ({
                 return;
             }
 
-            if (!response.ok) throw new Error('Error al eliminar categoria')
-            await get().fetchCategories()
+            if (!response.ok) throw new Error('Error al eliminar servicio')
+            await get().fetchServices()
         } catch (error) {
             set({ error: (error as any).message, isLoading: false })
         }
@@ -161,4 +169,4 @@ const useCategoryStore = create<CategoryState>((set, get) => ({
     setFilter: (filter) => set({ filter }),
 }))
 
-export default useCategoryStore
+export default useServiceStore
