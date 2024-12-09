@@ -1,6 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsArray, IsDate, IsEnum, IsOptional, IsString } from "class-validator";
-import { Workstation } from "../entities/workstation.entity";
 import { WorkstationState } from "../entities/workstation-state.enum";
 import { Category } from "@/category/entities/category.entity";
 import { Appointment } from "@/appointment/entities/appointment.entity";

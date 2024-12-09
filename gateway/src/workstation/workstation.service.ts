@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { CreateWorkstationDto } from './dto/workstation.dto';
-import { UpdateWorkstationDto } from './dto/pagination-workstation.dto';
+import { WorkstationDto } from './dto/workstation.dto';
+import { PaginationWorkstationDto } from './dto/pagination-workstation.dto';
 
 @Injectable()
 export class WorkstationService {
-  create(createWorkstationDto: CreateWorkstationDto) {
+  create(createWorkstationDto: WorkstationDto) {
     return 'This action adds a new workstation';
   }
 
@@ -16,7 +16,7 @@ export class WorkstationService {
     return `This action returns a #${id} workstation`;
   }
 
-  update(id: number, updateWorkstationDto: UpdateWorkstationDto) {
+  update(id: number, updateWorkstationDto: PaginationWorkstationDto) {
     return `This action updates a #${id} workstation`;
   }
 

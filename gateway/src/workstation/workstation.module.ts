@@ -17,4 +17,4 @@ import { Category } from '@/category/entities/category.entity';
   controllers: [WorkstationController],
   providers: [WorkstationService],
 })
-export class CategoryModule {}
+export class WorkstationModule {}

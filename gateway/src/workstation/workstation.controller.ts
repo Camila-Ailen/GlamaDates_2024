@@ -1,14 +1,14 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { WorkstationService } from './workstation.service';
-import { CreateWorkstationDto } from './dto/workstation.dto';
-import { UpdateWorkstationDto } from './dto/pagination-workstation.dto';
+import { WorkstationDto } from './dto/workstation.dto';
+import { PaginationWorkstationDto } from './dto/pagination-workstation.dto';
 
 @Controller('workstation')
 export class WorkstationController {
   constructor(private readonly workstationService: WorkstationService) {}
 
   @Post()
-  create(@Body() createWorkstationDto: CreateWorkstationDto) {
+  create(@Body() createWorkstationDto: WorkstationDto) {
     return this.workstationService.create(createWorkstationDto);
   }
 
@@ -23,7 +23,7 @@ export class WorkstationController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateWorkstationDto: UpdateWorkstationDto) {
+  update(@Param('id') id: string, @Body() updateWorkstationDto: PaginationWorkstationDto) {
     return this.workstationService.update(+id, updateWorkstationDto);
   }
 

@@ -1,52 +1,190 @@
-import { AppSidebar } from "@/components/app-sidebar"
+"use client";
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Separator } from "@/components/ui/separator"
+  BarChart3,
+  FileText,
+  Folder,
+  Package,
+  Settings,
+  Users,
+} from "lucide-react";
 import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar"
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { MainGraph } from "@/components/dashboard/main-graph";
+import { MonthGraph, TodayGraph } from "@/components/dashboard/countercard";
+import React from "react";
+import InsuranceForm, {
+  useStore,
+} from "@/components/apply-multistep/apply-dialog";
+import router from "next/router";
+import Link from "next/link";
 
-export default function Page() {
+interface AnimatedCardProps extends React.ComponentProps<typeof Card> {
+  index: number;
+}
+
+const AnimatedCard = React.forwardRef<HTMLDivElement, AnimatedCardProps>(
+  ({ className, index, ...props }, ref) => {
+    return (
+      <Card
+        ref={ref}
+        className={`opacity-0 animate-fade-in ${className}`}
+        style={{
+          animationDelay: `${index * 85}ms`,
+          animationFillMode: "forwards",
+        }}
+        {...props}
+      />
+    );
+  },
+);
+AnimatedCard.displayName = "AnimatedCard";
+
+export default function Component() {
+  const { openDialog } = useStore();
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">
-                    Building Your Application
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator className="hidden md:block" />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Data Fetching</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
+    <div className="flex min-h-screen flex-col">
+      <InsuranceForm />
+      <main className="flex-1">
+        <div className="container py-6">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <AnimatedCard
+              className="bg-primary text-primary-foreground"
+              index={0}
+            >
+              <Card
+                className="bg-primary text-primary-foreground"
+                onClick={openDialog}
+              >
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-base font-medium">
+                    Nueva solicitud
+                  </CardTitle>
+                  <FileText className="h-4 w-4" />
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-primary-foreground/80">
+                    Vida, casa, autos y más
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            </AnimatedCard>
+
+            <AnimatedCard
+              className="bg-primary text-primary-foreground"
+              index={1}
+            >
+              <Card className="bg-primary text-primary-foreground">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-base font-medium">
+                    Solicitudes
+                  </CardTitle>
+                  <Folder className="h-4 w-4" />
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-primary-foreground/80">
+                    Lista de solicitudes
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            </AnimatedCard>
+            <AnimatedCard
+              className="bg-primary text-primary-foreground"
+              index={2}
+            >
+              <Card className="bg-primary text-primary-foreground">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-base font-medium">
+                    Reportes
+                  </CardTitle>
+                  <BarChart3 className="h-4 w-4" />
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-primary-foreground/80">
+                    Reportes customizados
+                  </CardDescription>
+                </CardContent>
+              </Card>
+            </AnimatedCard>
+
+            <AnimatedCard
+              className="bg-primary text-primary-foreground"
+              index={3}
+            >
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-base font-medium">
+                    Productos
+                  </CardTitle>
+                  <Package className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <CardDescription>Administración de productos</CardDescription>
+                </CardContent>
+              </Card>
+            </AnimatedCard>
+            <AnimatedCard
+              className="bg-primary text-primary-foreground"
+              index={4}
+            >
+              <Link href="/users">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-base font-medium">
+                      Usuarios
+                    </CardTitle>
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription>
+                      Preferencias de los usuarios
+                    </CardDescription>
+                  </CardContent>
+                </Card>
+              </Link>
+            </AnimatedCard>
+
+            <AnimatedCard
+              className="bg-primary text-primary-foreground"
+              index={5}
+            >
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-base font-medium">
+                    Configuración
+                  </CardTitle>
+                  <Settings className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <CardDescription>Preferencias del sistema</CardDescription>
+                </CardContent>
+              </Card>
+            </AnimatedCard>
           </div>
-        </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div className="aspect-video rounded-xl bg-muted/50" />
-            <div className="aspect-video rounded-xl bg-muted/50" />
-            <div className="aspect-video rounded-xl bg-muted/50" />
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <AnimatedCard
+              className="bg-primary text-primary-foreground"
+              index={6}
+            >
+              <TodayGraph />
+            </AnimatedCard>
+
+            <AnimatedCard
+              className="bg-primary text-primary-foreground"
+              index={7}
+            >
+              <MonthGraph />
+            </AnimatedCard>
           </div>
-          <div className="min-h-[100vh] flex-1 rounded-xl bg-muted/50 md:min-h-min" />
+          <AnimatedCard index={2} className="mt-4">
+            <MainGraph />
+          </AnimatedCard>
         </div>
-      </SidebarInset>
-    </SidebarProvider>
-  )
+      </main>
+    </div>
+  );
 }

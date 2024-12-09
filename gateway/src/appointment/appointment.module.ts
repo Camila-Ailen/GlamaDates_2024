@@ -5,8 +5,8 @@ import { User } from '@/users/entities/user.entity';
 import { Package } from '@/package/entities/package.entity';
 import { Workstation } from '@/workstation/entities/workstation.entity';
 import { Appointment } from './entities/appointment.entity';
-import { AppointmentController } from './appointment.controller';
-import { AppointmentService } from './appointment.service';
+// import { AppointmentController } from './appointment.controller';
+// import { AppointmentService } from './appointment.service';
 
 @Module({
   imports: [
@@ -16,7 +16,7 @@ import { AppointmentService } from './appointment.service';
         signOptions: { expiresIn: '1h' },
       }),
 ],
-  controllers: [AppointmentController],
-  providers: [AppointmentService],
+  // controllers: [AppointmentController],
+  // providers: [AppointmentService],
 })
-export class CategoryModule {}
+export class AppointmentModule {}
