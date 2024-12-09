@@ -10,7 +10,7 @@ import { CalendarFold, TrendingUp } from "lucide-react";
 
 export function TodayGraph() {
   const [count, setCount] = useState(0);
-  const targetCount = 172; // Número objetivo para este componente
+  const targetCount = 30; // Número objetivo para este componente
   const totalDuration = 500; // Duración total fija de 500 milisegundos
 
   useEffect(() => {

@@ -155,9 +155,9 @@ export function MainGraph() {
     <Card>
       <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
-          <CardTitle>Historial de solicitudes</CardTitle>
+          <CardTitle>Historial de turnos</CardTitle>
           <CardDescription>
-            Mostrando el total global de solicitudes
+            Mostrando el total global de turnos
           </CardDescription>
         </div>
         <Select value={timeRange} onValueChange={setTimeRange}>

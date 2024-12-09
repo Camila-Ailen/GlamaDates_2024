@@ -68,10 +68,10 @@ export function MonthGraph() {
   return (
     <CounterGraph
       targetCount={572}
-      title="Solicitudes cargadas este mes"
+      title="Turnos para este mes"
       description={`Global cargado del mes de ${new Date().toLocaleDateString("es-AR", { month: "long" })}`}
       icon={CalendarDays}
-      ptag="+201 desde la semana pasada"
+      ptag="+15 desde la semana pasada"
     />
   );
 }
@@ -80,10 +80,10 @@ export function TodayGraph() {
   return (
     <CounterGraph
       targetCount={172}
-      title="Solicitudes cargadas hoy"
+      title="Turnos para hoy"
       description={`Global cargado del día ${new Date().toLocaleDateString("es-AR")}`}
       icon={CalendarFold}
-      ptag="+19 desde la última hora"
+      ptag="+3 desde la última hora"
     />
   );
 }

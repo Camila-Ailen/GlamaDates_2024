@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 
 export function MonthGraph() {
   const [count, setCount] = useState(0);
-  const targetCount = 572; // Número objetivo para este componente
+  const targetCount = 53; // Número objetivo para este componente
   const totalDuration = 500; // Duración total fija de 500 milisegundos
 
   useEffect(() => {

@@ -12,8 +12,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
-import { signIn } from "@/auth";
-import { AuthError } from "next-auth";
 import { LogIn } from "lucide-react";
 import { useState } from "react";
 import useAuthStore from "@/app/store/useAuthStore";
@@ -40,21 +38,21 @@ export function LoginForm() {
   return (
     <div
       className="flex items-center justify-center min-h-screen bg-cover bg-center"
-      style={{ backgroundImage: "url(/bg2.jpg)" }}
+      style={{ backgroundImage: "url(/fondo2.jpg)" }}
     >
       <Card className="z-20 mx-auto max-w-sm backdrop-blur supports-[backdrop-filter]:bg-background/90">
         <CardHeader>
           <div className="flex flex-row">
-            <Image
-              src="/favicon.png"
+            {/* <Image
+              src="/logo.webp"
               alt="Image"
               width="128"
               height="128"
               className="h-12 w-12 dark:brightness-[1.4]"
-            />
+            /> */}
             <h1 className="text-5xl font-bold">
-              <span className="text-sky-800 dark:text-sky-600">FMA</span>{" "}
-              Brokers
+              <span className="text-primary">GLAMA</span>{" "}
+              DATES
             </h1>
           </div>
           <CardTitle className="text-2xl">Inicio de sesión</CardTitle>

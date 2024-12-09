@@ -49,14 +49,14 @@ export function Navbar() {
           className="z-40 sticky top-0 flex h-16 items-center gap-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6"
         >
           <Image
-            src="/favicon.png"
+            src="/logo.webp"
             alt="Image"
             width="128"
             height="128"
             className="h-12 w-12 dark:brightness-[1.4]"
           />
           <strong className="text-xl font-bold">
-            <span className="text-sky-800 dark:text-sky-600">FMA </span>Brokers
+            <span className="text-primary">GLAMA </span>DATES
           </strong>
           <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6"></nav>
           <div className="flex items-center space-x-1">
