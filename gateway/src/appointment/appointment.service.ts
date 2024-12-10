@@ -1,90 +1,100 @@
-// import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-// import { AppointmentDto } from './dto/appointment.dto';
-// import { PaginationAppointmentDto } from './dto/pagination-appointment.dto';
-// import { InjectRepository } from '@nestjs/typeorm';
-// import { Appointment } from './entities/appointment.entity';
-// import { LessThan, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
-// import { Package } from '@/package/entities/package.entity';
-// import { addMinutes } from 'date-fns';
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Appointment } from "./entities/appointment.entity";
+import { Package } from "@/package/entities/package.entity";
+import { Between, Repository } from "typeorm";
+import { addMinutes, isAfter, isBefore } from "date-fns";
 
-// @Injectable()
-// export class AppointmentService {
+@Injectable()
+export class AppointmentService {
+  constructor(
+    @InjectRepository(Appointment)
+    private readonly appointmentRepository: Repository<Appointment>,
+    @InjectRepository(Package)
+    private readonly packageRepository: Repository<Package>,
+    private readonly configService: ConfigService,
+  ) {}
 
-//   @InjectRepository(Appointment)
-//   private readonly appointmentRepository: Repository<Appointment>;
+  async getAvailableAppointments(id: number, page: number, pageSize: number): Promise<Date[]> {
+    const config = await this.configService.getConfig();
 
-//   @InjectRepository(Package)
-//   private readonly packageRepository: Repository<Package>;
-  
-  
-  ////////////////////////////////////////////////
-  ////////////////////////////////////////////////
-  // async create(params: { body: AppointmentDto }): Promise<Appointment> {
-  //   console.log("desde el servicio params.body: ", params.body);
+    // Validar el paquete
+    const packageData = await this.validatePackage(id);
 
-  //   // Obtiene el paquete por ID
-  //   const pkg = await this.packageRepository.findOne({
-  //     where: {
-  //       id: params.body.package.id,
-  //     },
-  //     relations: ['services'],
-  //   });
-  //   if (!pkg) throw new HttpException('Package not found', HttpStatus.NOT_FOUND);
+    // Obtener citas existentes
+    const existingAppointments = await this.fetchExistingAppointments(config.maxReservationDays);
 
-  //   //Debo tomar como datetimeEnd el datetimeStart + la duración del paquete
-  //   // Verifica si la duración del paquete es válida
-  //   const packageDuration = params.body.package.duration;
+    // Generar espacios disponibles
+    const availableStartTimes = this.generateAvailableStartTimes(config, existingAppointments);
 
-  //   if (!packageDuration || packageDuration <= 0) {
-  //     throw new HttpException('Package duration is required', HttpStatus.BAD_REQUEST);
-  //   }
+    // Aplicar paginación
+    return this.paginateResults(availableStartTimes, page, pageSize);
+  }
 
-  //   // Verifica si existe alguna cita en el rango de fechas y horas con el mismo empleado
-  //   const existingAppointment = await this.appointmentRepository.findOne({
-  //     where: [
-  //       { datetimeStart: LessThanOrEqual(params.body.datetimeEnd),
-  //         datetimeEnd: MoreThanOrEqual(params.body.datetimeStart),
-  //         employee: params.body.employee,
-  //       }
-  //     ]
-  //   });
-  //   if (existingAppointment) {
-  //     throw new HttpException('Appointment already exists in the given time range for the same employee', HttpStatus.CONFLICT);
-  //   }
+  private async validatePackage(id: number): Promise<Package> {
+    const packageData = await this.packageRepository.findOne(id, { relations: ['services', 'services.category'] });
+    if (!packageData) {
+      throw new HttpException('Package not found', HttpStatus.NOT_FOUND);
+    }
+    return packageData;
+  }
 
-  //   // Verifica si existe alguna cita en el rango de fechas y horas con el mismo cliente
-  //   const existingAppointmentClient = await this.appointmentRepository.findOne({
-  //     where: [
-  //       { datetimeStart: LessThanOrEqual(params.body.datetimeEnd),
-  //         datetimeEnd: MoreThanOrEqual(params.body.datetimeStart),
-  //         client: params.body.client,
-  //       }
-  //     ]
-  //   });
-  //   if (existingAppointmentClient) {
-  //     throw new HttpException('Appointment already exists in the given time range for the same client', HttpStatus.CONFLICT);
-  //   }
+  private async fetchExistingAppointments(maxReservationDays: number): Promise<Appointment[]> {
+    const today = new Date();
+    const maxDate = new Date();
+    maxDate.setDate(today.getDate() + maxReservationDays);
 
-  //   // Verifica si la estación de trabajo está ocupada en el rango de fechas y horas
-  //   const existingWorkstation = await this.appointmentRepository.findOne({
-  //     where: [
-  //       { datetimeStart: LessThanOrEqual(params.body.datetimeEnd),
-  //         datetimeEnd: MoreThanOrEqual(params.body.datetimeStart),
-  //         workstation: params.body.workstation,
-  //       }
-  //     ]
-  //   })
-  //   if (existingWorkstation) {
-  //     throw new HttpException('Workstation is already occupied in the given time range', HttpStatus.CONFLICT);
-  //   }
+    return this.appointmentRepository.find({
+      where: {
+        datetimeStart: Between(today, maxDate),
+      },
+      order: { datetimeStart: 'ASC' },
+    });
+  }
 
-    // Crea la cita, tomando como datetimeStart 
+  private generateAvailableStartTimes(config: SystemConfig, existingAppointments: Appointment[]): Date[] {
+    const { intervalMinutes, maxReservationDays, openingHour1, closingHour1, openingHour2, closingHour2, openDays } = config;
 
+    const today = new Date();
+    const maxDate = new Date();
+    maxDate.setDate(today.getDate() + maxReservationDays);
 
-    
-//   }
-//   ////////////////////////////////////////////////
-//   ////////////////////////////////////////////////
+    const availableStartTimes: Date[] = [];
+    let currentStartTime = new Date(today);
 
-  
-// }
+    while (isBefore(currentStartTime, maxDate)) {
+      if (this.isValidDayAndTime(currentStartTime, config)) {
+        if (!this.hasCollision(currentStartTime, existingAppointments)) {
+          availableStartTimes.push(new Date(currentStartTime));
+        }
+      }
+      currentStartTime = addMinutes(currentStartTime, intervalMinutes);
+    }
+
+    return availableStartTimes;
+  }
+
+  private isValidDayAndTime(currentStartTime: Date, config: SystemConfig): boolean {
+    const { openDays, openingHour1, closingHour1, openingHour2, closingHour2 } = config;
+    const dayOfWeek = currentStartTime.toLocaleString('en', { weekday: 'short' }).toLowerCase();
+    const hour = currentStartTime.toTimeString().split(':')[0] + ':' + currentStartTime.toTimeString().split(':')[1];
+
+    const isOpenDay = openDays.includes(dayOfWeek);
+    const inFirstShift = openingHour1 && closingHour1 && hour >= openingHour1 && hour < closingHour1;
+    const inSecondShift = openingHour2 && closingHour2 && hour >= openingHour2 && hour < closingHour2;
+
+    return isOpenDay && (inFirstShift || inSecondShift);
+  }
+
+  private hasCollision(currentStartTime: Date, existingAppointments: Appointment[]): boolean {
+    return existingAppointments.some(app =>
+      isBefore(currentStartTime, app.datetimeEnd) && isAfter(currentStartTime, app.datetimeStart),
+    );
+  }
+
+  private paginateResults(data: Date[], page: number, pageSize: number): Date[] {
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    return data.slice(start, end);
+  }
+}

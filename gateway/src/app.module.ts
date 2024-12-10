@@ -14,6 +14,7 @@ import { ServiceModule } from './service/service.module';
 import { PackageModule } from './package/package.module';
 import { WorkstationModule } from './workstation/workstation.module';
 import { AppointmentModule } from './appointment/appointment.module';
+import { SystemConfigModule } from './system-config/system-config.module';
 
 @Module({
     imports: [
@@ -34,6 +35,7 @@ import { AppointmentModule } from './appointment/appointment.module';
         PackageModule,
         WorkstationModule,
         AppointmentModule,
+        SystemConfigModule,
     ]
 })
 export class AppModule {

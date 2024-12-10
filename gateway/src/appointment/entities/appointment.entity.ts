@@ -48,7 +48,7 @@ import { Workstation } from '@/workstation/entities/workstation.entity';
     package: Package[];
 
     // Relacion con estaciones de trabajo
-    @ManyToMany(() => Workstation, (station) => station.appointment, {
+    @ManyToOne(() => Workstation, (station) => station.appointment, {
         nullable: false,
     })
     workstation: Workstation[];
