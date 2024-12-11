@@ -40,13 +40,13 @@ import { Appointment } from '@/appointment/entities/appointment.entity';
     @ManyToOne(() => Service, (service) => service.details, {
         nullable: false,
     })
-    service: Service[];
+    service: Service;
 
     // Relacion con estaciones de trabajo
     @ManyToOne(() => Workstation, (station) => station.detailsAppointment, {
         nullable: false,
     })
-    workstation: Workstation[];
+    workstation: Workstation;
     
   
   

@@ -2,23 +2,107 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Appointment } from "./entities/appointment.entity";
 import { Package } from "@/package/entities/package.entity";
-import { Between, Repository } from "typeorm";
+import { Between, In, Repository } from "typeorm";
 import { addMinutes, isAfter, isBefore } from "date-fns";
 import { Service } from "@/service/entities/service.entity";
 import { SystemConfigService } from "@/system-config/system-config.service";
 import { SystemConfigDto } from "@/system-config/dto/system-config.dto";
 import { SystemConfig } from "@/system-config/entities/system-config.entity";
 import { DaysOfWeek } from "@/system-config/entities/DaysOfWeek.enum";
+import { AppointmentDto } from "./dto/appointment.dto";
+import { User } from "@/users/entities/user.entity";
+import { DetailsAppointment } from "@/details-appointment/entities/details-appointment.entity";
+import { AppointmentState } from "./entities/appointment-state.enum";
+import { Workstation } from "@/workstation/entities/workstation.entity";
 
 @Injectable()
 export class AppointmentService {
+  employeeRepository: any;
+  usersRepository: any;
   constructor(
     @InjectRepository(Appointment)
     private readonly appointmentRepository: Repository<Appointment>,
     @InjectRepository(Package)
     private readonly packageRepository: Repository<Package>,
+    @InjectRepository(Service)
+    private readonly serviceRepository: Repository<Service>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(Workstation)
+    private readonly workstationRepository: Repository<Workstation>,
+    @InjectRepository(DetailsAppointment)
+    private readonly detailsAppointmentRepository: Repository<DetailsAppointment>,
+
     private readonly configService: SystemConfigService,
   ) {}
+
+  async create(body: AppointmentDto, user: User): Promise<Appointment> {
+    console.log('ESTOY EN EL SERVICIO DE APPOINTMENT');
+    const pkg = await this.packageRepository.findOne({ where: { id: body.package.id }, relations: ['services'] });
+    body.package = pkg;
+
+    //hallemos los objetos empleado y estacion de trabajo
+    
+    const employee = await this.userRepository.findOne({ where: { id: 5 }, relations: ['detailsAppointmentEmployee'] });
+    console.log('employee: ', employee);
+    const workstation = await this.workstationRepository.findOne({ where: { id: 2 }, relations: ['detailsAppointment'] });
+    console.log('workstation: ', workstation);
+    // console.log('body: ', body.package.services);
+    // Verifico que hayan servicios en el paquete y los guardo en body.package.services
+    if (body.package && body.package.services.length > 0) {
+      const service = await this.serviceRepository.find({
+        where: {
+          id: In(body.package.services.map((service: Service) => service.id)),
+        },
+      });
+      body.package.services = service;
+      // console.log('service: ', service);
+    }
+
+    // Guardo la fecha y horario de la cita
+    const appointmentDate = new Date(body.datetimeStart);
+
+    // Verifico que la fecha y horario de la cita no estén ocupados
+    const existingAppointments = await this.fetchExistingAppointments(30);
+
+    if (this.hasCollision(appointmentDate, existingAppointments)) {
+      throw new HttpException('Appointment time is not available', HttpStatus.BAD_REQUEST);
+    }
+
+    // Creo la cita
+    const appointmentEntity = this.appointmentRepository.create({
+      datetimeStart: appointmentDate,
+      datetimeEnd: addMinutes(
+        appointmentDate, 
+        body.package.services.reduce((total, service) => total + service.duration, 0)
+      ),
+      client: user,
+      state: AppointmentState.PENDING,
+      package: body.package,
+    });
+
+    // console.log('appointmentEntity: ', appointmentEntity);
+    // Guardo el turno para tener su id
+    const savedAppointment = await this.appointmentRepository.save(appointmentEntity);
+
+    // debo iterar sobre los servicios del paquete para crear los detalles
+    for (const service of body.package.services) {
+      const detail = this.detailsAppointmentRepository.create({ 
+        appointment: savedAppointment,
+        service: service,
+        priceNow: service.price,
+        durationNow: service.duration,
+        employee: employee,
+        workstation: workstation,
+        createdAt: new Date(),
+      });
+      console.log('detail: ', detail);
+      // Guardo el detalle
+      await this.detailsAppointmentRepository.save(detail);
+    }
+
+    return savedAppointment;
+  }
 
   async getAvailableAppointments(id: number, page: number, pageSize: number): Promise<Date[]> {
     const configDto: SystemConfigDto = {

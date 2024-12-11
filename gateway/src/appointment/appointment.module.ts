@@ -9,18 +9,23 @@ import { AppointmentController } from './appointment.controller';
 import { AppointmentService } from './appointment.service';
 import { SystemConfig } from '@/system-config/entities/system-config.entity';
 import { SystemConfigModule } from '@/system-config/system-config.module';
+import { SystemConfigService } from '@/system-config/system-config.service';
+import { DetailsAppointment } from '@/details-appointment/entities/details-appointment.entity';
+import { Service } from '@/service/entities/service.entity';
+import { UsersModule } from '@/users/users.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Appointment, User, Package, Workstation, SystemConfig]),
+    TypeOrmModule.forFeature([Appointment, User, Package, Workstation, SystemConfig, DetailsAppointment, Service]),
     SystemConfigModule,
+    UsersModule,
     JwtModule.register({
         secret: 'your_jwt_secret', // Usa un secreto seguro en producción
         signOptions: { expiresIn: '1h' },
       }),
 ],
    controllers: [AppointmentController],
-   providers: [AppointmentService],
+   providers: [AppointmentService, AppointmentController, Service],
    exports: [AppointmentService],
 })
 export class AppointmentModule {}

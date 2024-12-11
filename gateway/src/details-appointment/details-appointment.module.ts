@@ -11,7 +11,7 @@ import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Appointment, User, Service, Workstation, DetailsAppointment]),
+    TypeOrmModule.forFeature([DetailsAppointment, Service]),
     JwtModule.register({
         secret: 'your_jwt_secret', // Usa un secreto seguro en producción
         signOptions: { expiresIn: '1h' },

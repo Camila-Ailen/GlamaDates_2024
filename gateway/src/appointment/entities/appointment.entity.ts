@@ -41,7 +41,8 @@ import { DetailsAppointment } from '@/details-appointment/entities/details-appoi
     @ManyToOne(() => Package, (pkg) => pkg.appointment, {
         nullable: false,
     })
-    package: Package[];
+    package: Package;
+
 
     // Relacion con detalles de turnos
     @OneToMany(() => DetailsAppointment, (details) => details.appointment)

@@ -35,7 +35,7 @@ export class UsersController extends BaseController {
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Get()
-//   @Auth('read:users')
+  @Auth('read:users')
   @ApiOperation({ summary: 'Get all users' })
   async all(@Query() query: UserPaginationDto): Promise<ResposeDTO> {
     const users = await this.userService.all({ query });
@@ -44,7 +44,7 @@ export class UsersController extends BaseController {
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Get(':id')
-//  @Auth('read:users')
+  @Auth('read:users')
   @ApiOperation({ summary: 'Get User by ID' })
   async getById(
     @Req() request: { user: User },
