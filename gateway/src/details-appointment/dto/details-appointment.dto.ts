@@ -1,34 +1,34 @@
 
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsDate, IsEnum, IsOptional, IsString } from 'class-validator';
-import { AppointmentState } from '../entities/appointment-state.enum';
+import { IsDate, IsEnum, IsOptional, IsString } from 'class-validator';
 import { App } from 'supertest/types';
 import { User } from '@/users/entities/user.entity';
 import { Workstation } from '@/workstation/entities/workstation.entity';
 import { Package } from '@/package/entities/package.entity';
-import { DetailsAppointment } from '@/details-appointment/entities/details-appointment.entity';
+import { Service } from '@/service/entities/service.entity';
+import { Appointment } from '@/appointment/entities/appointment.entity';
 
-export class AppointmentDto {
+export class DetailsAppointmentDto {
     @IsOptional()
     id: number;
 
+    @ApiProperty({ required: false, type: 'number' })
     @IsOptional()
-    @IsDate()
-    datetimeStart: Date;
+    priceNow: number;
 
+    @ApiProperty({ required: false, type: 'number' })
     @IsOptional()
-    @IsDate()
-    datetimeEnd: Date;
-
-    @ApiProperty({ required: false, type: 'string' })
-    @IsOptional()
-    @IsEnum(AppointmentState)
-    state: AppointmentState;
+    durationNow: number;
 
     @ApiProperty({ required: false, type: 'string' })
     @IsOptional()
     @IsString()
-    client: User; 
+    appointment: Appointment;
+
+    @ApiProperty({ required: false, type: 'string' })
+    @IsOptional()
+    @IsString()
+    employee: User; 
 
     @ApiProperty({ required: false, type: 'string' })
     @IsOptional()
@@ -38,11 +38,7 @@ export class AppointmentDto {
     @ApiProperty({ required: false, type: 'string' })
     @IsOptional()
     @IsString()
-    package: Package; 
-
-    @IsOptional()
-    @IsArray()
-    details?: DetailsAppointment[];
+    service: Service; 
 
     @IsOptional()
     @IsDate()

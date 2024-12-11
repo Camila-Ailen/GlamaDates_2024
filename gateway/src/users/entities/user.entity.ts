@@ -14,6 +14,7 @@ import { Exclude, instanceToPlain } from 'class-transformer';
 import { Role } from '@/roles/entities/role.entity';
 import { Category } from '@/category/entities/category.entity';
 import { Appointment } from '@/appointment/entities/appointment.entity';
+import { DetailsAppointment } from '@/details-appointment/entities/details-appointment.entity';
 
 @Entity('users')
 export class User {
@@ -99,8 +100,8 @@ export class User {
   @OneToMany(() => Appointment, (appointment) => appointment.client)
     appointmentClient: Appointment[];
 
-  @OneToMany(() => Appointment, (appointment) => appointment.employee)
-  appointmentEmployee: Appointment[];
+  @OneToMany(() => DetailsAppointment, (detailsAppointment) => detailsAppointment.employee)
+  detailsAppointmentEmployee: Appointment[];
 
   toJSON() {
     return instanceToPlain(this);

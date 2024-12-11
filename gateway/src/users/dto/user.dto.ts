@@ -3,6 +3,7 @@ import { IsArray, IsDate, IsOptional, IsString } from 'class-validator';
 import { Role } from '@/roles/entities/role.entity';
 import { Category } from '@/category/entities/category.entity';
 import { Appointment } from '@/appointment/entities/appointment.entity';
+import { DetailsAppointment } from '@/details-appointment/entities/details-appointment.entity';
 
 export class UserDto {
   @IsOptional()
@@ -55,7 +56,7 @@ export class UserDto {
 
   @IsOptional()
   @IsArray()
-  appointmentEmployee?: Appointment[];
+  detailsAppointmentEmployee?: DetailsAppointment[];
 
   @ApiProperty({ required: false, type: 'string' })
   @IsOptional()

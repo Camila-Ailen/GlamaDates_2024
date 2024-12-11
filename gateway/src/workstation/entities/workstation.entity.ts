@@ -13,6 +13,7 @@ import {
 import { WorkstationState } from './workstation-state.enum';
 import { Category } from '@/category/entities/category.entity';
 import { Appointment } from '@/appointment/entities/appointment.entity';
+import { DetailsAppointment } from '@/details-appointment/entities/details-appointment.entity';
   
   @Entity({ name: 'workstations' })
   export class Workstation {
@@ -32,8 +33,8 @@ import { Appointment } from '@/appointment/entities/appointment.entity';
     @ManyToMany(() => Category, (category) => category.workstations)
     categories: Category[];
 
-    @OneToMany(() => Appointment, (appointment) => appointment.workstation)
-    appointment: Appointment[];
+    @OneToMany(() => DetailsAppointment, (detailsAppointment) => detailsAppointment.workstation)
+    detailsAppointment: DetailsAppointment[];
   
   
     @CreateDateColumn({ name: 'created_at', type: 'timestamp', nullable: true })

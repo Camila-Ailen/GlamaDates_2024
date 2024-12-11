@@ -6,12 +6,14 @@ import {
     JoinColumn,
     ManyToMany,
     ManyToOne,
+    OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
 import { Exclude, instanceToPlain } from 'class-transformer';
 import { Category } from '@/category/entities/category.entity';
 import { Package } from '@/package/entities/package.entity';
+import { DetailsAppointment } from '@/details-appointment/entities/details-appointment.entity';
 
 @Entity('services')
 export class Service {
@@ -30,13 +32,19 @@ export class Service {
     @Column({ type: 'int', nullable: false })
     duration: number;
 
+    // Relacion con categorias
     @ManyToOne(() => Category, (category) => category.services, {
         nullable: false,
     })
     category: Category;
 
+    // Relacion con paquetes
     @ManyToMany(() => Package, (pkg) => pkg.services)
     packages: Package[];
+
+    // Relacion con detalles de turnos
+    @OneToMany(() => DetailsAppointment, (details) => details.service)
+    details: DetailsAppointment[];
 
 
     @CreateDateColumn({ name: 'created_at', type: 'timestamp', nullable: true })

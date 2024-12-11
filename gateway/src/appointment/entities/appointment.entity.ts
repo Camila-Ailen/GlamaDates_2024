@@ -6,6 +6,7 @@ import {
     JoinTable,
     ManyToMany,
     ManyToOne,
+    OneToMany,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
   } from 'typeorm';
@@ -14,6 +15,7 @@ import { AppointmentState } from './appointment-state.enum';
 import { User } from '@/users/entities/user.entity';
 import { Package } from '@/package/entities/package.entity';
 import { Workstation } from '@/workstation/entities/workstation.entity';
+import { DetailsAppointment } from '@/details-appointment/entities/details-appointment.entity';
   
   @Entity({ name: 'appointments' })
   export class Appointment {
@@ -35,23 +37,15 @@ import { Workstation } from '@/workstation/entities/workstation.entity';
     })
     client: User;
 
-    // Relacion con empleado
-    @ManyToOne(() => User, (employee) => employee.appointmentEmployee, {
-        nullable: false,
-    })
-    employee: User;
-
     // Relacion con paquetes
-    @ManyToMany(() => Package, (pkg) => pkg.appointment, {
+    @ManyToOne(() => Package, (pkg) => pkg.appointment, {
         nullable: false,
     })
     package: Package[];
 
-    // Relacion con estaciones de trabajo
-    @ManyToOne(() => Workstation, (station) => station.appointment, {
-        nullable: false,
-    })
-    workstation: Workstation[];
+    // Relacion con detalles de turnos
+    @OneToMany(() => DetailsAppointment, (details) => details.appointment)
+    details: DetailsAppointment[];
     
   
   

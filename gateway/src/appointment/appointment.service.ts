@@ -21,8 +21,6 @@ export class AppointmentService {
   ) {}
 
   async getAvailableAppointments(id: number, page: number, pageSize: number): Promise<Date[]> {
-    console.log('Entre al servicio de turnos')
-    console.log('id: ', id);
     const configDto: SystemConfigDto = {
       id: 1,
       intervalMinutes: 0,
@@ -36,23 +34,16 @@ export class AppointmentService {
       updated_at: undefined,
       deleted_at: undefined
     }; // Replace with appropriate id
-    console.log('configDto: ', configDto);
 
     const config = await this.configService.getSystemConfig(configDto);
-    console.log('config: ', config);
 
     // Validar el paquete
-    console.log('Antes de validar el paquete');
     const packageData = await this.validatePackage(id);
-    console.log('Después de validar el paquete, packageData: ', packageData);
 
     // Obtener citas existentes
-    console.log('Antes de obtener citas existentes');
     const existingAppointments = await this.fetchExistingAppointments(config.maxReservationDays);
-    console.log('Después de obtener citas existentes, existingAppointments: ', existingAppointments);
 
     // Generar espacios disponibles
-    console.log('Antes de generar espacios disponibles');
     const availableStartTimes = this.generateAvailableStartTimes(config, existingAppointments);
     console.log('Después de generar espacios disponibles, availableStartTimes: ', availableStartTimes);
 
@@ -63,7 +54,6 @@ export class AppointmentService {
 
   private async validatePackage(id: number): Promise<Package> {
     const packageData = await this.packageRepository.findOne({ where: { id }, relations: ['services', 'services.category'] });
-    console.log('Validadndo paquete: ', JSON.stringify(packageData, null, 2));
     if (!packageData) {
       throw new HttpException('Package not found', HttpStatus.NOT_FOUND);
     }
@@ -119,7 +109,6 @@ export class AppointmentService {
   }
 
   private isValidDayAndTime(currentStartTime: Date, config: SystemConfig): boolean {
-    console.log('Dentro de isValidDayAndTime');
     const { openDays, openingHour1, closingHour1, openingHour2, closingHour2 } = config;
   
     const daysOfWeekArray = [
