@@ -165,7 +165,7 @@ export function PackagesTable() {
               <PaginationItem>
                 <PaginationPrevious
                   onClick={() =>
-                    fetchPackage(Math.max(currentPage - 1, 1), token || undefined)
+                    fetchPackage(Math.max(currentPage - 1, 1))
                   }
                 />
               </PaginationItem>

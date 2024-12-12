@@ -79,7 +79,7 @@ export class UsersController extends BaseController {
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Post()
-  //@Auth('create:users')
+  @Auth('create:users')
   @ApiOperation({ summary: 'Create User' })
   @Post()
   async create(@Body() body: UserDto): Promise<ResposeDTO> {
@@ -89,7 +89,7 @@ export class UsersController extends BaseController {
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Patch(':id')
-  //@Auth('update:users')
+  @Auth('update:users')
   @ApiOperation({ summary: 'Update User' })
   async update(
     @Param() params: IdDTO,
@@ -104,7 +104,7 @@ export class UsersController extends BaseController {
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Delete(':id')
-  //@Auth('delete:users')
+  @Auth('delete:users')
   @ApiOperation({ summary: 'Delete User' })
   async delete(@Param() params: IdDTO): Promise<ResposeDTO> {
     const result = await this.userService.delete({ id: params.id });

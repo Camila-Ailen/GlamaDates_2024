@@ -105,7 +105,7 @@ export class ServiceService {
       }
     }
     const category = await this.categoryRepository.findOne({
-      where: { id: params.body.category.id },
+      where: { id: params.body.category as unknown as number },
     });
     if (!category) {
       throw new HttpException('Category not found', HttpStatus.NOT_FOUND);

@@ -27,7 +27,7 @@ interface PackageState {
     orderBy: string
     orderType: 'ASC' | 'DESC'
     filter: string
-    fetchPackage: (page?: number, token?: string) => Promise<void>
+    fetchPackage: (page?: number) => Promise<void>
     createPackage: (packageData: Partial<Package>) => Promise<void>
     updatePackage: (packageData: Partial<Package>) => Promise<void>
     deletePackage: (packageId: number) => Promise<void>
@@ -48,6 +48,9 @@ const usePackageStore = create<PackageState>((set, get) => ({
     orderBy: 'id',
     orderType: 'DESC',
     filter: '',
+
+
+    
 
 
     fetchPackage: async (page?: number) => {

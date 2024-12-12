@@ -37,7 +37,6 @@ export class AppointmentController extends BaseController {
       console.log('packageId: ', packageId);
       console.log('page: ', page);
       console.log('pageSize: ', pageSize);
-        console.log('Sigo en el controlador de turnos, pero intento salir');
       return this.appointmentService.getAvailableAppointments(packageId, page, pageSize);
     }
 
