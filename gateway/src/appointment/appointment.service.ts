@@ -38,15 +38,16 @@ export class AppointmentService {
 
   async create(body: AppointmentDto, user: User): Promise<Appointment> {
     console.log('ESTOY EN EL SERVICIO DE APPOINTMENT');
-    const pkg = await this.packageRepository.findOne({ where: { id: body.package.id }, relations: ['services'] });
+    // Se pasa a tipo unknown porque sino toma solo al paquete 5
+    const pkg = await this.packageRepository.findOne({ where: { id: body.package as unknown as number }, relations: ['services'] });
     body.package = pkg;
 
     //hallemos los objetos empleado y estacion de trabajo
     
-    const employee = await this.userRepository.findOne({ where: { id: 5 }, relations: ['detailsAppointmentEmployee'] });
-    console.log('employee: ', employee);
-    const workstation = await this.workstationRepository.findOne({ where: { id: 2 }, relations: ['detailsAppointment'] });
-    console.log('workstation: ', workstation);
+    // const employee = await this.userRepository.findOne({ where: { id: 5 }, relations: ['detailsAppointmentEmployee'] });
+    // console.log('employee: ', employee);
+    // const workstation = await this.workstationRepository.findOne({ where: { id: 2 }, relations: ['detailsAppointment'] });
+    // console.log('workstation: ', workstation);
     // console.log('body: ', body.package.services);
     // Verifico que hayan servicios en el paquete y los guardo en body.package.services
     if (body.package && body.package.services.length > 0) {
@@ -85,8 +86,16 @@ export class AppointmentService {
     // Guardo el turno para tener su id
     const savedAppointment = await this.appointmentRepository.save(appointmentEntity);
 
+    console.log('Cantidad de servicios: ', body.package.services.length); 
     // debo iterar sobre los servicios del paquete para crear los detalles
     for (const service of body.package.services) {
+      console.log('hasta aca todo bien ');
+      const employees = await this.findProffesionals(service.id, this.userRepository);
+      const employee = employees[0];
+
+      const workstations = await this.findWorkstations(service.id, this.workstationRepository);
+      const workstation = workstations[0];
+
       const detail = this.detailsAppointmentRepository.create({ 
         appointment: savedAppointment,
         service: service,
@@ -96,12 +105,50 @@ export class AppointmentService {
         workstation: workstation,
         createdAt: new Date(),
       });
-      console.log('detail: ', detail);
       // Guardo el detalle
       await this.detailsAppointmentRepository.save(detail);
     }
 
     return savedAppointment;
+  }
+
+
+  async findProffesionals (serviceId: number, userRepository: Repository<User>) {
+    console.log('desde la funcion: serviceId: ', serviceId);
+    const service = await this.serviceRepository.findOne({ where: { id: serviceId }, relations: ['category'] });
+    if (!service) {
+      throw new HttpException('Service not found', HttpStatus.NOT_FOUND);
+    }
+
+    const serviceCategory = service.category.id;
+
+    const users = await userRepository.createQueryBuilder('user')
+      .innerJoin('user.categories', 'category')
+      .where('category.id = :categoryId', { categoryId: serviceCategory })
+      .distinct(true)
+      // .limit(1)
+      .getMany();
+
+    return users;
+  }
+
+  async findWorkstations (serviceId: number, workstationRepository: Repository<Workstation>) {
+    const service = await this.serviceRepository.findOne({ where: { id: serviceId }, relations: ['category'] });
+
+    if (!service) {
+      throw new HttpException('Service not found', HttpStatus.NOT_FOUND);
+    }
+
+    const serviceCategory = service.category.id;
+
+    const workstations = await workstationRepository.createQueryBuilder('workstation')
+      .innerJoin('workstation.categories', 'category')
+      .where('category.id = :categoryId', { categoryId: serviceCategory })
+      .distinct(true)
+      // .limit(1)
+      .getMany();
+
+    return workstations;
   }
 
   async getAvailableAppointments(id: number, page: number, pageSize: number): Promise<Date[]> {
