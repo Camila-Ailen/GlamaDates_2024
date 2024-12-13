@@ -4,10 +4,6 @@ import {UsersModule} from './users/users.module';
 import {AuthModule} from './auth/auth.module';
 import {RolesModule} from './roles/roles.module';
 import {DatabaseModule} from './database/database.module';
-import {ClientsModule} from './clients/clients.module';
-import {CitiesModule} from './cities/cities.module';
-import {CountriesModule} from './countries/countries.module';
-import {StatesModule} from './states/states.module';
 import { PermissionsModule } from './permissions/permissions.module';
 import { CategoryModule } from './category/category.module';
 import { ServiceModule } from './service/service.module';
@@ -26,10 +22,6 @@ import { DetailsAppointmentModule } from './details-appointment/details-appointm
         AuthModule,
         RolesModule,
         DatabaseModule,
-        ClientsModule,
-        CitiesModule,
-        StatesModule,
-        CountriesModule,
         PermissionsModule,
         CategoryModule,
         ServiceModule,

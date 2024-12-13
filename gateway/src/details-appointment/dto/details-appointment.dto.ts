@@ -7,6 +7,7 @@ import { Workstation } from '@/workstation/entities/workstation.entity';
 import { Package } from '@/package/entities/package.entity';
 import { Service } from '@/service/entities/service.entity';
 import { Appointment } from '@/appointment/entities/appointment.entity';
+import { Transform } from 'class-transformer';
 
 export class DetailsAppointmentDto {
     @IsOptional()
@@ -19,6 +20,11 @@ export class DetailsAppointmentDto {
     @ApiProperty({ required: false, type: 'number' })
     @IsOptional()
     durationNow: number;
+
+    @IsOptional()
+    @Transform(({ value }) => new Date(value))
+    @IsDate()
+    datetimeStart: Date;
 
     @ApiProperty({ required: false, type: 'string' })
     @IsOptional()

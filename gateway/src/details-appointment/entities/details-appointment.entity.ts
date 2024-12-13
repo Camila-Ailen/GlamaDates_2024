@@ -24,6 +24,9 @@ import { Appointment } from '@/appointment/entities/appointment.entity';
     @Column({ type: 'int', nullable: false })
     durationNow: number;
 
+    @Column({ type: 'date', nullable: true })
+    datetimeStart: Date | null;
+
     // Relacion con turno
     @ManyToOne(() => Appointment, (appointment) => appointment.details, {
         nullable: false,

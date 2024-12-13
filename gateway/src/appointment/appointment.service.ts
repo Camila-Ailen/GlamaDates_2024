@@ -22,19 +22,24 @@ export class AppointmentService {
   constructor(
     @InjectRepository(Appointment)
     private readonly appointmentRepository: Repository<Appointment>,
+
     @InjectRepository(Package)
     private readonly packageRepository: Repository<Package>,
+
     @InjectRepository(Service)
     private readonly serviceRepository: Repository<Service>,
+
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+
     @InjectRepository(Workstation)
     private readonly workstationRepository: Repository<Workstation>,
+
     @InjectRepository(DetailsAppointment)
     private readonly detailsAppointmentRepository: Repository<DetailsAppointment>,
 
     private readonly configService: SystemConfigService,
-  ) {}
+  ) { }
 
   async create(body: AppointmentDto, user: User): Promise<Appointment> {
     console.log('ESTOY EN EL SERVICIO DE APPOINTMENT');
@@ -43,7 +48,7 @@ export class AppointmentService {
     body.package = pkg;
 
     //hallemos los objetos empleado y estacion de trabajo
-    
+
     // const employee = await this.userRepository.findOne({ where: { id: 5 }, relations: ['detailsAppointmentEmployee'] });
     // console.log('employee: ', employee);
     // const workstation = await this.workstationRepository.findOne({ where: { id: 2 }, relations: ['detailsAppointment'] });
@@ -64,7 +69,7 @@ export class AppointmentService {
     const appointmentDate = new Date(body.datetimeStart);
 
     // Verifico que la fecha y horario de la cita no estén ocupados
-    const existingAppointments = await this.fetchExistingAppointments(30);
+    const existingAppointments = await this.fetchExistingAppointments(7, body.package.services.map(service => service.category.id));
 
     if (this.hasCollision(appointmentDate, existingAppointments)) {
       throw new HttpException('Appointment time is not available', HttpStatus.BAD_REQUEST);
@@ -74,7 +79,7 @@ export class AppointmentService {
     const appointmentEntity = this.appointmentRepository.create({
       datetimeStart: appointmentDate,
       datetimeEnd: addMinutes(
-        appointmentDate, 
+        appointmentDate,
         body.package.services.reduce((total, service) => total + service.duration, 0)
       ),
       client: user,
@@ -86,7 +91,7 @@ export class AppointmentService {
     // Guardo el turno para tener su id
     const savedAppointment = await this.appointmentRepository.save(appointmentEntity);
 
-    console.log('Cantidad de servicios: ', body.package.services.length); 
+    console.log('Cantidad de servicios: ', body.package.services.length);
     // debo iterar sobre los servicios del paquete para crear los detalles
     for (const service of body.package.services) {
       console.log('hasta aca todo bien ');
@@ -96,7 +101,7 @@ export class AppointmentService {
       const workstations = await this.findWorkstations(service.id, this.workstationRepository);
       const workstation = workstations[0];
 
-      const detail = this.detailsAppointmentRepository.create({ 
+      const detail = this.detailsAppointmentRepository.create({
         appointment: savedAppointment,
         service: service,
         priceNow: service.price,
@@ -113,7 +118,7 @@ export class AppointmentService {
   }
 
 
-  async findProffesionals (serviceId: number, userRepository: Repository<User>) {
+  async findProffesionals(serviceId: number, userRepository: Repository<User>) {
     console.log('desde la funcion: serviceId: ', serviceId);
     const service = await this.serviceRepository.findOne({ where: { id: serviceId }, relations: ['category'] });
     if (!service) {
@@ -132,7 +137,7 @@ export class AppointmentService {
     return users;
   }
 
-  async findWorkstations (serviceId: number, workstationRepository: Repository<Workstation>) {
+  async findWorkstations(serviceId: number, workstationRepository: Repository<Workstation>) {
     const service = await this.serviceRepository.findOne({ where: { id: serviceId }, relations: ['category'] });
 
     if (!service) {
@@ -164,23 +169,35 @@ export class AppointmentService {
       created_at: undefined,
       updated_at: undefined,
       deleted_at: undefined
-    }; // Replace with appropriate id
+    };
 
     const config = await this.configService.getSystemConfig(configDto);
 
     // Validar el paquete
     const packageData = await this.validatePackage(id);
 
-    // Obtener citas existentes
-    const existingAppointments = await this.fetchExistingAppointments(config.maxReservationDays);
+
+    let existingAppointments: Appointment[] = [];
+    for (const service of packageData.services) {
+      if (!service) {
+        throw new HttpException('Service not found', HttpStatus.NOT_FOUND);
+      }
+
+      const categoryIds = packageData.services.map(service => service.category.id);
+
+      // Obtener citas existentes por cada categoria de servicio
+      existingAppointments = await this.fetchExistingAppointments(config.maxReservationDays, categoryIds);
+    }
+
+
 
     // Generar espacios disponibles
     const availableStartTimes = this.generateAvailableStartTimes(config, existingAppointments);
     console.log('Después de generar espacios disponibles, availableStartTimes: ', availableStartTimes);
 
+  
     // Aplicar paginación
-    // console.log('Antes de aplicar paginación');
-    return availableStartTimes;
+    return this.paginateResults(availableStartTimes, page, pageSize);
   }
 
   private async validatePackage(id: number): Promise<Package> {
@@ -191,7 +208,10 @@ export class AppointmentService {
     return packageData;
   }
 
-  private async fetchExistingAppointments(maxReservationDays: number): Promise<Appointment[]> {
+  private async fetchExistingAppointments(
+    maxReservationDays: number,
+    categoryIds: number[],
+  ): Promise<Appointment[]> {
     const today = new Date();
     const maxDate = new Date();
     maxDate.setDate(today.getDate() + maxReservationDays);
@@ -199,10 +219,18 @@ export class AppointmentService {
     return this.appointmentRepository.find({
       where: {
         datetimeStart: Between(today, maxDate),
+        package: {
+          services: {
+            category: {
+              id: In(categoryIds),
+            },
+          },
+        },
       },
       order: { datetimeStart: 'ASC' },
     });
   }
+
 
   private generateAvailableStartTimes(config: SystemConfig, existingAppointments: Appointment[]): Date[] {
     const { intervalMinutes, maxReservationDays, openingHour1, closingHour1, openingHour2, closingHour2, openDays } = config;
@@ -220,28 +248,28 @@ export class AppointmentService {
     const currentMinutes = currentStartUTC.getMinutes();
     const nextMultipleOfTen = Math.ceil(currentMinutes / 10) * 10;
     currentStartUTC.setMinutes(nextMultipleOfTen, 0, 0); // Redondear al próximo múltiplo de 10
-    
+
     const maxDateUTC = new Date(maxDate.toISOString());
 
 
     while (currentStartUTC <= maxDateUTC) {
       if (this.isValidDayAndTime(currentStartUTC, config)) {
         if (!this.hasCollision(currentStartUTC, existingAppointments)) {
-          if  (currentStartUTC.getMinutes() % intervalMinutes === 0) {
+          if (currentStartUTC.getMinutes() % intervalMinutes === 0) {
             availableStartTimes.push(new Date(currentStartUTC));
           }
-          
+
         }
       }
       currentStartUTC = addMinutes(currentStartUTC, 10);
     }
 
-    return availableStartTimes; 
+    return availableStartTimes;
   }
 
   private isValidDayAndTime(currentStartTime: Date, config: SystemConfig): boolean {
     const { openDays, openingHour1, closingHour1, openingHour2, closingHour2 } = config;
-  
+
     const daysOfWeekArray = [
       DaysOfWeek.DOMINGO,
       DaysOfWeek.LUNES,
@@ -251,38 +279,38 @@ export class AppointmentService {
       DaysOfWeek.VIERNES,
       DaysOfWeek.SABADO,
     ];
-    
+
     // Obtenemos el día de la semana como un valor del enum
     const dayOfWeek = daysOfWeekArray[currentStartTime.getDay()]; // Devuelve el enum correspondiente
-    
-  
+
+
     // Validamos si el día está dentro de los días de apertura
     const isOpenDay = openDays.includes(dayOfWeek);
-  
+
     // Convertimos las horas de apertura y cierre a objetos Date para comparaciones precisas
     const currentTime = currentStartTime.getHours() * 60 + currentStartTime.getMinutes(); // Hora en minutos
     const openingTime1 = openingHour1 ? this.timeToMinutes(openingHour1) : null;
     const closingTime1 = closingHour1 ? this.timeToMinutes(closingHour1) : null;
     const openingTime2 = openingHour2 ? this.timeToMinutes(openingHour2) : null;
     const closingTime2 = closingHour2 ? this.timeToMinutes(closingHour2) : null;
-  
+
     // Validamos si está en el primer o segundo turno
-    const inFirstShift = 
-      openingTime1 !== null && 
+    const inFirstShift =
+      openingTime1 !== null &&
       closingTime1 !== null &&
-      currentTime >= openingTime1 && 
+      currentTime >= openingTime1 &&
       currentTime < closingTime1;
-  
-    const inSecondShift = 
-      openingTime2 !== null && 
+
+    const inSecondShift =
+      openingTime2 !== null &&
       closingTime2 !== null &&
-      currentTime >= openingTime2 && 
+      currentTime >= openingTime2 &&
       currentTime < closingTime2;
-  
+
     // Retornamos true solo si el día está abierto y el tiempo está dentro de algún turno
     return isOpenDay && (inFirstShift || inSecondShift);
   }
-  
+
   // Función auxiliar para convertir horas en formato HH:mm a minutos
   private timeToMinutes(time: string): number {
     const [hours, minutes] = time.split(':').map(Number);
@@ -295,15 +323,15 @@ export class AppointmentService {
     );
   }
 
-  // private paginateResults(data: Date[], page: number, pageSize: number): Date[] {
-  //   page = page || 1;
-  //   pageSize = pageSize || 10;
-  //   console.log('Dentro de paginateResults');
-  //   console.log('data: ', data);
-  //   console.log('page: ', page);
-  //   console.log('pageSize: ', pageSize);
-  //   const start = (page - 1) * pageSize;
-  //   const end = start + pageSize;
-  //   return data.slice(start, end);
-  // }
+  private paginateResults(data: Date[], page: number, pageSize: number): Date[] {
+    if (page < 1 || pageSize < 1) {
+      throw new HttpException('Invalid pagination parameters', HttpStatus.BAD_REQUEST);
+    }
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    return data.slice(start, end);
+  }
+
+  
+
 }
