@@ -13,8 +13,8 @@ export class SystemConfigService {
     private readonly configRepository: Repository<SystemConfig>,
   ) {}
 
-  async getSystemConfig(body: SystemConfigDto): Promise<SystemConfig> {
-    const config = await this.configRepository.findOne({ where: { id: body.id } });
+  async getSystemConfig(): Promise<SystemConfig> {
+    const config = await this.configRepository.findOne({ where: { id: 1 } });
     if (!config) {
       throw new Error('Configuration not found');
     }

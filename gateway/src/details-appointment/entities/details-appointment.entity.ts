@@ -24,7 +24,7 @@ import { Appointment } from '@/appointment/entities/appointment.entity';
     @Column({ type: 'int', nullable: false })
     durationNow: number;
 
-    @Column({ type: 'date', nullable: true })
+    @Column({ type: 'timestamp', nullable: true })
     datetimeStart: Date | null;
 
     // Relacion con turno

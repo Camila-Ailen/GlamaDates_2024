@@ -184,7 +184,7 @@ export function Navbar() {
                     height="128"
                     className="h-12 w-12 dark:brightness-[1.4]"
                   />{" "}
-                  <span className="sr-only">FMA Brokers</span>
+                  <span className="sr-only">GLAMADATES</span>
                 </Link>
               </nav>
             </SheetContent>

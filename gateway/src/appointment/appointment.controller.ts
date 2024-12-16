@@ -26,18 +26,29 @@ export class AppointmentController extends BaseController {
     @Get('open-days')
     async getOpenDays(): Promise<{ openDays: string[] }> {
       const configDto = new SystemConfigDto(); // Create an instance of SystemConfigDto
-      const config = await this.configService.getSystemConfig(configDto);
+      const config = await this.configService.getSystemConfig();
       return { openDays: config.openDays };
     }
   
     @Get('availability/:packageId')
     @Auth('read:appointments')
-    async getAvailability(@Param('packageId') packageId: number, @Query('page') page: number, @Query('pageSize') pageSize: number): Promise<Date[]> {
+    async getAvailability(@Param('packageId') packageId: number, @Query('offset') offset: number, @Query('pageSize') pageSize: number): Promise<Date[]> {
       console.log('Entre al controlador de turnos')
       console.log('packageId: ', packageId);
-      console.log('page: ', page);
+      console.log('page: ', offset);
       console.log('pageSize: ', pageSize);
-      return this.appointmentService.getAvailableAppointments(packageId, page, pageSize);
+      return this.appointmentService.getAvailableAppointments(packageId, offset, pageSize);
+    }
+
+
+    @Get('availability2/:packageId')
+    @Auth('read:appointments')
+    async getAvailability2(@Param('packageId') packageId: number, @Query('offset') offset: number, @Query('pageSize') pageSize: number): Promise<Date[]> {
+      console.log('Entre al controlador de turnos')
+      console.log('packageId: ', packageId);
+      console.log('page: ', offset);
+      console.log('pageSize: ', pageSize);
+      return this.appointmentService.getAvailableAppointments2(packageId, offset, pageSize);
     }
 
     

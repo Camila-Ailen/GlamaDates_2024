@@ -9,8 +9,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 const ibmPlexSans = IBM_Plex_Sans({ weight: "300", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "FMA Brokers",
-  description: "Plataforma de gestión de seguros",
+  title: "GLAMADATES",
+  description: "Plataforma de gestión de salones de belleza",
 };
 
 export default function RootLayout({

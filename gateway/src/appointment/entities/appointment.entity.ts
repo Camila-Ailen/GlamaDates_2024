@@ -22,10 +22,10 @@ import { DetailsAppointment } from '@/details-appointment/entities/details-appoi
     @PrimaryGeneratedColumn()
     id: number;
   
-    @Column({ type: 'date', nullable: true })
+    @Column({ type: 'timestamp', nullable: true })
     datetimeStart: Date | null;
 
-    @Column({ type: 'date', nullable: true })
+    @Column({ type: 'timestamp', nullable: true })
     datetimeEnd: Date | null;
 
     @Column({ type: 'enum', enum: AppointmentState, default: AppointmentState.ACTIVE })
