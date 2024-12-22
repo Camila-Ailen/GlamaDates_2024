@@ -33,7 +33,7 @@ const useCategoryStore = create<CategoryState>((set, get) => ({
     categories: [],
     total: 0,
     currentPage: 1,
-    pageSize: 8,
+    pageSize: 10,
     isLoading: false,
     error: null,
     orderBy: 'id',

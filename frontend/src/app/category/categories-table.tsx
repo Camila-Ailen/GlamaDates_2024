@@ -111,7 +111,7 @@ export function CategoriesTable() {
             <TableRow key={category.id}>
               <TableCell>{category.id}</TableCell>
               <TableCell>{category.name.toUpperCase()}</TableCell>
-              <TableCell>{category.description.toUpperCase()}</TableCell>
+              <TableCell>{category.description ? category.description.toUpperCase() : ''}</TableCell>
               <TableCell>
                 {hasPermission('update:categories') && (<EditCategoryDialog category={category} />)}
                 {hasPermission('delete:categories') && (<DeleteCategoryDialog categoryId={category.id} />)}

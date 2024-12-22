@@ -74,7 +74,7 @@ export function Navbar() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="px-2">
-                  Solicitudes
+                  Turnos
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56">
@@ -95,26 +95,40 @@ export function Navbar() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="px-2">
-                  Productos
+                  Parametros
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56">
                 <DropdownMenuItem>
-                  <Box className="mr-2 h-4 w-4 text-primary" />
-                  <span>Productos</span>
+                  <Link href="/category" className="flex items-center">
+                    <Network className="mr-2 h-4 w-4 text-primary" />
+                    <span>Categorias</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <Network className="mr-2 h-4 w-4 text-primary" />
-                  <span>Ramas</span>
+                  <Link href="/service" className="flex items-center">
+                    <Box className="mr-2 h-4 w-4 text-primary" />
+                    <span>Servicios</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
+                  <Link href="/package" className="flex items-center">
+                    <Grid className="mr-2 h-4 w-4 text-primary" />
+                    <span>Paquetes</span>
+                  </Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem>
+                  <Link href="/users" className="flex items-center">
+                    <Users className="mr-2 h-4 w-4 text-primary" />
+                    <span>Usuarios</span>
+                  </Link>
+                </DropdownMenuItem>
+
+                {/* <DropdownMenuItem>
                   <Users className="mr-2 h-4 w-4 text-primary" />
-                  <span>Productos de socio</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Grid className="mr-2 h-4 w-4 text-primary" />
-                  <span>Variantes</span>
-                </DropdownMenuItem>
+                  <span>Roles</span>
+                </DropdownMenuItem> */}
               </DropdownMenuContent>
             </DropdownMenu>
             <DropdownMenu>
@@ -150,13 +164,15 @@ export function Navbar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56">
                 <DropdownMenuItem>
-                  <Users className="mr-2 h-4 w-4 text-primary" />
-                  <span>Usuarios</span>
+                  <Link href="/users" className="flex items-center">
+                    <Users className="mr-2 h-4 w-4 text-primary" />
+                    <span>Usuarios</span>
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                {/* <DropdownMenuItem>
                   <Building2 className="mr-2 h-4 w-4 text-primary" />
                   <span>Sucursales</span>
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

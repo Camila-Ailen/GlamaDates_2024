@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -12,10 +12,16 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import usePackageStore from '../store/usePackageStore'
+import useServiceStore from '../store/useServiceStore'
 
 export function CreatePackageDialog() {
+  const { services, fetchServices } = useServiceStore()
   const [isOpen, setIsOpen] = useState(false)
   const createPackage = usePackageStore(state => state.createPackage)
+
+  useEffect(() => {
+    fetchServices()
+  }, [fetchServices]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -40,7 +46,7 @@ export function CreatePackageDialog() {
               <Label htmlFor="name" className="text-right">
                 Nombre
               </Label>
-              <Input id="name" name="name" className="col-span-3" />
+              <Input id="name" name="name" className="col-span-3" required />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="description" className="text-right">
@@ -49,10 +55,15 @@ export function CreatePackageDialog() {
               <Input id="description" name="description" className="col-span-3" />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="category" className="text-right">
+              <Label htmlFor="services" className="text-right">
                 Servicios
               </Label>
-              <Input id="category" name="category" className="col-span-3" />
+              <select name="services" id="services" className='col-span-3' required>
+                <option value="">Selecciona un servicio</option>
+                {services.map(service => (
+                  <option key={service.id} value={service.id}>{service.name}</option>
+                ))}
+              </select>
             </div>
             </div>
           <div className="flex justify-end">

@@ -89,8 +89,10 @@ export function AppointmentCatalog() {
                                 <p>{pkg.duration} minutos</p>
                             </CardContent>
                             <CardFooter>
-                                <button className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary-dark" onClick={() => setIsDialogOpen(true)}>Seleccionar</button>
-
+                                <button className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary-dark" onClick={() => setIsDialogOpen(true)}>Ver Paquete</button>
+                            </CardFooter>
+                            <CardFooter>
+                            <button className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary-dark" onClick={() => setIsDialogOpen(true)}>Seleccionar</button>
                             </CardFooter>
                         </Card>
 

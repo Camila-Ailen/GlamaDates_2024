@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -11,11 +11,23 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectItem } from '@radix-ui/react-select'
 import useServiceStore from '../store/useServiceStore'
+import useCategoryStore from '../store/useCategoryStore'
 
 export function CreateServiceDialog() {
+  const {
+    categories,
+    pageSize,
+    fetchCategories
+  } = useCategoryStore()
+  
   const [isOpen, setIsOpen] = useState(false)
   const createService = useServiceStore(state => state.createService)
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -64,7 +76,14 @@ export function CreateServiceDialog() {
               <Label htmlFor="category" className="text-right">
                 Categoria
               </Label>
-              <Input id="category" name="category" className="col-span-3" />
+              <select name="category" id="category" className="col-span-3" required>
+                <option value="">Seleccione una categoría</option>
+                {categories.map(category => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
             </div>
             </div>
           <div className="flex justify-end">
