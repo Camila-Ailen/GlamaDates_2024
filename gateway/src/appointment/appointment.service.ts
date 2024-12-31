@@ -14,6 +14,7 @@ import { User } from "@/users/entities/user.entity";
 import { DetailsAppointment } from "@/details-appointment/entities/details-appointment.entity";
 import { AppointmentState } from "./entities/appointment-state.enum";
 import { Workstation } from "@/workstation/entities/workstation.entity";
+import { WorkstationState } from "@/workstation/entities/workstation-state.enum";
 
 @Injectable()
 export class AppointmentService {
@@ -72,18 +73,18 @@ export class AppointmentService {
     // debo iterar sobre los servicios del paquete para verificar que existen empleados y estaciones de trabajo
     // for (const service of body.package.services) {
     //   console.log('hasta aca todo bien, verificando ');
-      // console.log('service.category.id: ', );
-      // const employees = await this.findProffesionalsByCategory(service.category.id, this.userRepository);
-      // const employee = employees[0];
+    // console.log('service.category.id: ', );
+    // const employees = await this.findProffesionalsByCategory(service.category.id, this.userRepository);
+    // const employee = employees[0];
 
-      // const workstations = await this.findWorkstations(service.id, this.workstationRepository);
-      // const workstation = workstations[0];
+    // const workstations = await this.findWorkstations(service.id, this.workstationRepository);
+    // const workstation = workstations[0];
 
-      // if (!employee || !workstation) {
-      //   throw new HttpException('Employee or Workstation not found', HttpStatus.NOT_FOUND);
-      // }
+    // if (!employee || !workstation) {
+    //   throw new HttpException('Employee or Workstation not found', HttpStatus.NOT_FOUND);
+    // }
 
-      // Verifico que la fecha y horario de la cita no estén ocupados
+    // Verifico que la fecha y horario de la cita no estén ocupados
     //   const existingAppointments = await this.fetchExistingAppointments(config.maxReservationDays, [service.category.id]);
     //   if (this.hasCollision(appointmentDate, existingAppointments)) {
     //     throw new HttpException('Appointment time is not available', HttpStatus.BAD_REQUEST);
@@ -137,6 +138,55 @@ export class AppointmentService {
     return savedAppointment;
   }
 
+  async getAvailableAppointments3(id: number, page: number, pageSize: number): Promise<any> {
+    // obetener la configuracion del sistema
+    const config = await this.configService.getSystemConfig();
+
+    // Validar el paquete
+    const packageData = await this.validatePackage(id);
+
+
+    // traer citas ocuapdas basado en cada estacion de trabajo
+    // const existingAppointmentsDetail = await this.detailsAppointmentRepository.find({
+    //   where: {
+    //     workstation: {
+    //       categories: {
+    //         id: In(packageData.services.map(service => service.category.id)),
+    //       },
+    //     },
+    //     datetimeStart: Between(new Date(), new Date(new Date().setDate(new Date().getDate() + config.maxReservationDays))),
+    //   },
+    //   relations: ['workstation', 'workstation.categories'],
+    // });
+    // console.log('existingAppointmentsWorkstation: ', existingAppointmentsDetail);
+
+    // Generar espacios disponibles
+    let availableStartTimes: Date[] = [];
+    for (const service of packageData.services) {
+      console.log('vuelta para la categoria: ', service.category.id);
+
+      const existingAppointmentsDetail = await this.detailsAppointmentRepository.find({
+        where: {
+          workstation: {
+            categories: {
+              id: service.category.id,
+            },
+          },
+          datetimeStart: Between(new Date(), new Date(new Date().setDate(new Date().getDate() + config.maxReservationDays))),
+        },
+        relations: ['workstation', 'workstation.categories'],
+      });
+
+      const availabile = await this.generateAvailableStartTimes2(config, existingAppointmentsDetail, service.category.id);
+      // console.log('availabile: ', availabile);
+      availableStartTimes.push(...availabile);
+    }
+    // console.log('Después de generar espacios disponibles, availableStartTimes: ', availableStartTimes);
+
+
+    return this.paginateResults(availableStartTimes, page, pageSize);
+  }
+
 
   async findProffesionals(serviceId: number, userRepository: Repository<User>) {
     console.log('desde la funcion: serviceId: ', serviceId);
@@ -158,10 +208,10 @@ export class AppointmentService {
   }
 
   async findProffesionalsByCategory(serviceCategory: number, userRepository: Repository<User>) {
-    console.log('desde la funcion: serviceCategory: ', serviceCategory);
     const users = await userRepository.createQueryBuilder('user')
       .innerJoin('user.categories', 'category')
       .where('category.id = :categoryId', { categoryId: serviceCategory })
+      .andWhere('user.deletedAt IS NULL')
       .distinct(true)
       // .limit(1)
       .getMany();
@@ -181,6 +231,8 @@ export class AppointmentService {
     const workstations = await workstationRepository.createQueryBuilder('workstation')
       .innerJoin('workstation.categories', 'category')
       .where('category.id = :categoryId', { categoryId: serviceCategory })
+      .andWhere('workstation.state = :state', { state: WorkstationState.ACTIVE })
+      .andWhere('workstation.deletedAt IS NULL')
       .distinct(true)
       // .limit(1)
       .getMany();
@@ -199,38 +251,38 @@ export class AppointmentService {
     return workstations;
   }
 
-  async getAvailableAppointments(id: number, page: number, pageSize: number): Promise<Date[]> {
+  // async getAvailableAppointments(id: number, page: number, pageSize: number): Promise<Date[]> {
 
-    const config = await this.configService.getSystemConfig();
+  //   const config = await this.configService.getSystemConfig();
 
-    // Validar el paquete
-    const packageData = await this.validatePackage(id);
-
-
-    let existingAppointments: Appointment[] = [];
-    for (const service of packageData.services) {
-      if (!service) {
-        throw new HttpException('Service not found', HttpStatus.NOT_FOUND);
-      }
-
-      const categoryIds = packageData.services.map(service => service.category.id);
-
-      // Obtener citas existentes por cada categoria de servicio
-      existingAppointments = await this.fetchExistingAppointments(config.maxReservationDays, categoryIds);
-    }
-    console.log('categoryId: ', packageData.services.map(service => service.category.id));
-    console.log('existingAppointments: ', existingAppointments);
+  //   // Validar el paquete
+  //   const packageData = await this.validatePackage(id);
 
 
+  //   let existingAppointments: Appointment[] = [];
+  //   for (const service of packageData.services) {
+  //     if (!service) {
+  //       throw new HttpException('Service not found', HttpStatus.NOT_FOUND);
+  //     }
 
-    // Generar espacios disponibles
-    const availableStartTimes = this.generateAvailableStartTimes(config, existingAppointments, packageData.services[0].category.id);
-    console.log('Después de generar espacios disponibles, availableStartTimes: ', availableStartTimes);
+  //     const categoryIds = packageData.services.map(service => service.category.id);
+
+  //     // Obtener citas existentes por cada categoria de servicio
+  //     existingAppointments = await this.fetchExistingAppointments(config.maxReservationDays, categoryIds);
+  //   }
+  //   console.log('categoryId: ', packageData.services.map(service => service.category.id));
+  //   console.log('existingAppointments: ', existingAppointments);
 
 
-    // Aplicar paginación
-    return this.paginateResults(await availableStartTimes, page, pageSize);
-  }
+
+  //   // Generar espacios disponibles
+  //   const availableStartTimes = this.generateAvailableStartTimes(config, existingAppointments, packageData.services[0].category.id);
+  //   console.log('Después de generar espacios disponibles, availableStartTimes: ', availableStartTimes);
+
+
+  //   // Aplicar paginación
+  //   return this.paginateResults(await availableStartTimes, page, pageSize);
+  // }
 
   private async validatePackage(id: number): Promise<Package> {
     const packageData = await this.packageRepository.findOne({ where: { id }, relations: ['services', 'services.category'] });
@@ -264,83 +316,113 @@ export class AppointmentService {
   }
 
 
-  async getAvailableAppointments2(id: number, page: number, pageSize: number): Promise<any> {
-    // obetener la configuracion del sistema
-    const config = await this.configService.getSystemConfig();
+  // async getAvailableAppointments2(id: number, page: number, pageSize: number): Promise<any> {
+  //   // obetener la configuracion del sistema
+  //   const config = await this.configService.getSystemConfig();
 
-    // Validar el paquete
-    const packageData = await this.validatePackage(id);
+  //   // Validar el paquete
+  //   const packageData = await this.validatePackage(id);
 
-    console.log('packageData2: ', packageData);
+  //   // console.log('packageData2: ', packageData);
 
-    // por cada servicio obtener estaciones de trabajo que satisfagan las categorias de cada servicio y las citas existentes
-    const workstations = await this.workstationRepository.find({
-      where: {
-        categories: {
-          id: In(packageData.services.map(service => service.category.id)),
-        },
-      },
-      relations: ['categories', 'detailsAppointment'],
-    });
+  //   // por cada servicio obtener estaciones de trabajo que satisfagan las categorias de cada servicio y las citas existentes
+  //   const workstations = await this.workstationRepository.find({
+  //     where: {
+  //       categories: {
+  //         id: In(packageData.services.map(service => service.category.id)),
+  //       },
+  //       // verifica que la estacion a traer este activa
+  //       state: WorkstationState.ACTIVE,
+  //     },
+  //     relations: ['categories', 'detailsAppointment'],
+  //   });
 
-    if (!workstations) {
-      throw new HttpException('Workstations not found', HttpStatus.NOT_FOUND);
-    }
-    console.log('workstations: ', workstations);
+  //   if (!workstations) {
+  //     throw new HttpException('Workstations not found', HttpStatus.NOT_FOUND);
+  //   }
+  //   console.log('workstations: ', workstations);
 
-    // traer citas de cada estacion de trabajo
-    const existingAppointmentsWorkstation = await this.detailsAppointmentRepository.find({
-      where: {
-        workstation: {
-          categories: {
-            id: In(packageData.services.map(service => service.category.id)),
-          },
-        },
-      },
-      relations: ['workstation', 'workstation.categories'],
-    });
-    console.log('existingAppointmentsWorkstation: ', existingAppointmentsWorkstation);
+  //   // por cada servicio obtener los empleados que satisfagan las categorias de cada servicio
+  //   const employees = await this.userRepository.find({
+  //     where: {
+  //       categories: {
+  //         id: In(packageData.services.map(service => service.category.id)),
+  //       },
+  //     },
+  //   });
 
-
-    // Obtener tiempos disponibles por cada estacion de trabajo de cada servicio
-    // const availableStartTimes = [];
-    // for (const workstation of workstations) {
-    //   console.log('workstation.detailsAppointment: ', workstation.detailsAppointment);
-    //   // const availableStartTimesForWorkstation = this.generateAvailableStartTimes(config, workstation.detailsAppointment, );
-    //   // availableStartTimes.push(...availableStartTimesForWorkstation);
-    // }
-    // console.log('availableStartTimes: ', availableStartTimes);
-
-    /////////////////////////////////////////////////////////////////////////////////
-
-    let existingAppointments: Appointment[] = [];
-    for (const workstation of workstations) {
-      if (!workstation) {
-        throw new HttpException('workstation not found', HttpStatus.NOT_FOUND);
-      }
-
-      const categoryIds = workstation.categories.map(category => category.id);
-
-      console.log('categoryIds: ', categoryIds);
-
-      // Obtener citas existentes por cada workstation
-      existingAppointments = await this.fetchExistingAppointments(config.maxReservationDays, categoryIds);
-    }
-    console.log('existingAppointments: ', existingAppointments);
-
-    // Generar espacios disponibles
-    let availableStartTimes: Date[] = [];
-    for (const workstation of workstations) {
-      const availabile = await this.generateAvailableStartTimes(config, existingAppointments, workstation.categories[0].id);
-      console.log('availabile: ', availabile);
-      availableStartTimes.push(...availabile);
-    }
-    console.log('Después de generar espacios disponibles, availableStartTimes: ', availableStartTimes);
-     
-    return this.paginateResults(availableStartTimes, page, pageSize);
+  //   if (!employees) {
+  //     throw new HttpException('Employees not found', HttpStatus.NOT_FOUND);
+  //   }
+  //   // console.log('employees: ', employees);
 
 
-  }
+  //   // traer citas de cada estacion de trabajo
+  //   const existingAppointmentsWorkstation = await this.detailsAppointmentRepository.find({
+  //     where: {
+  //       workstation: {
+  //         categories: {
+  //           id: In(packageData.services.map(service => service.category.id)),
+  //         },
+  //       },
+  //       datetimeStart: Between(new Date(), new Date(new Date().setDate(new Date().getDate() + config.maxReservationDays))),
+  //     },
+  //     relations: ['workstation', 'workstation.categories'],
+  //   });
+  //   console.log('existingAppointmentsWorkstation: ', existingAppointmentsWorkstation);
+
+  //   // traer citas de cada empleado
+  //   const existingAppointmentsEmployee = await this.detailsAppointmentRepository.find({
+  //     where: {
+  //       employee: {
+  //         categories: {
+  //           id: In(packageData.services.map(service => service.category.id)),
+  //         },
+  //       },
+  //       datetimeStart: Between(new Date(), new Date(new Date().setDate(new Date().getDate() + config.maxReservationDays))),
+  //     },
+  //     relations: ['employee', 'employee.categories'],
+  //   });
+  //   console.log('existingAppointmentsEmployee: ', existingAppointmentsEmployee);
+
+
+  //   // Obtener tiempos disponibles por cada estacion de trabajo de cada servicio
+  //   // const availableStartTimes = [];
+  //   // for (const workstation of workstations) {
+  //   //   console.log('workstation.detailsAppointment: ', workstation.detailsAppointment);
+  //   //   // const availableStartTimesForWorkstation = this.generateAvailableStartTimes(config, workstation.detailsAppointment, );
+  //   //   // availableStartTimes.push(...availableStartTimesForWorkstation);
+  //   // }
+  //   // console.log('availableStartTimes: ', availableStartTimes);
+
+  //   /////////////////////////////////////////////////////////////////////////////////
+
+  //   let existingAppointments: Appointment[] = [];
+  //   for (const workstation of workstations) {
+  //     if (!workstation) {
+  //       throw new HttpException('workstation not found', HttpStatus.NOT_FOUND);
+  //     }
+
+  //     const categoryIds = workstation.categories.map(category => category.id);
+
+  //     console.log('categoryIds: ', categoryIds);
+
+  //     // Obtener citas existentes por cada workstation
+  //     existingAppointments = await this.fetchExistingAppointments(config.maxReservationDays, categoryIds);
+  //   }
+  //   console.log('existingAppointments: ', existingAppointments);
+
+  //   // Generar espacios disponibles
+  //   let availableStartTimes: Date[] = [];
+  //   for (const workstation of workstations) {
+  //     const availabile = await this.generateAvailableStartTimes(config, existingAppointments, workstation.categories[0].id);
+  //     console.log('availabile: ', availabile);
+  //     availableStartTimes.push(...availabile);
+  //   }
+  //   console.log('Después de generar espacios disponibles, availableStartTimes: ', availableStartTimes);
+
+  //   return this.paginateResults(availableStartTimes, page, pageSize);
+  // }
 
   // private async generateAvailableStartTimes(config: SystemConfig, existingAppointments: DetailsAppointment[], categoryId: number): Promise<Date[]> {
   //   const { intervalMinutes, maxReservationDays, openingHour1, closingHour1, openingHour2, closingHour2, openDays } = config;
@@ -427,7 +509,96 @@ export class AppointmentService {
   //   return availableStartTimes;
   // }
 
-  private async generateAvailableStartTimes(config: SystemConfig, existingAppointments: Appointment[], categoryId: number): Promise<Date[]> {
+
+  /////////////////////////////////////////////////////////////////////////////
+  // LA FUNCION QUE ME PUEDE SALVAR PARA VOLVER ATRAS //
+  /////////////////////////////////////////////////////////////////////////////
+  // private async generateAvailableStartTimes(config: SystemConfig, existingAppointments: Appointment[], categoryId: number): Promise<Date[]> {
+  //   const { intervalMinutes, maxReservationDays, openingHour1, closingHour1, openingHour2, closingHour2, openDays } = config;
+
+  //   const today = new Date();
+  //   const maxDate = new Date();
+  //   maxDate.setDate(today.getDate() + maxReservationDays);
+  //   const [closingHour2Hour, closingHour2Minute] = closingHour2 ? closingHour2.split(':').map(Number) : [0, 0];
+  //   const [closingHour1Hour, closingHour1Minute] = closingHour1.split(':').map(Number);
+  //   maxDate.setHours(closingHour2 ? closingHour2Hour : closingHour1Hour, closingHour2 ? closingHour2Minute : closingHour1Minute, 0, 0);
+
+  //   const availableStartTimes: Date[] = [];
+  //   let currentStartTime = new Date(today);
+  //   let currentStartUTC = new Date(currentStartTime.toISOString());
+  //   const currentMinutes = currentStartUTC.getMinutes();
+  //   const nextMultipleOfTen = Math.ceil(currentMinutes / 10) * 10;
+  //   currentStartUTC.setMinutes(nextMultipleOfTen, 0, 0); // Redondear al próximo múltiplo de 10
+
+  //   const maxDateUTC = new Date(maxDate.toISOString());
+
+  //   // Obtener profesionales de la categoria
+  //   const professionals = await this.findProffesionalsByCategory(categoryId, this.userRepository)
+  //   console.log('Profesionales: ', professionals);
+
+  //   // Obtener estaciones de trabajo de la categoria
+  //   const workstations = await this.findWorkstationsByCategory(categoryId, this.workstationRepository);
+  //   console.log('Estaciones de trabajo: ', workstations);
+
+
+
+  //   while (currentStartUTC < maxDateUTC) {
+  //     if (this.isValidDayAndTime(currentStartUTC, config)) {
+  //       if (!this.hasDetailsCollision(currentStartUTC, existingAppointments)) {
+  //         if (currentStartUTC.getMinutes() % intervalMinutes === 0) {
+  //           // verifico disponibilidad de empleados y estaciones de trabajo en el horario
+  //           let isAvailable = true;
+  //           for (const appointment of existingAppointments) {
+  //             if (isAfter(currentStartUTC, appointment.datetimeStart) && isBefore(currentStartUTC, appointment.datetimeEnd)) {
+  //               isAvailable = false;
+  //               break;
+  //             }
+  //           }
+
+
+  //           // if (isAvailable) {
+  //           //   // Verifico disponibilidad de empleados y estaciones de trabajo en el horario
+  //           //   const isAvailableForProfessionals = professionals.every(professional => {
+  //           //     return !existingAppointments.some(appointment =>
+  //           //       appointment.details.some(detail =>
+  //           //         detail.employee.id === professional.id &&
+  //           //         isAfter(currentStartUTC, detail.datetimeStart) &&
+  //           //         isBefore(currentStartUTC, appointment.datetimeEnd)
+  //           //       )
+  //           //     );
+  //           //   });
+
+
+
+  //             // const isAvailableForWorkstations = workstations.every(workstation => {
+  //             //   return !existingAppointments.some(appointment =>
+  //             //     appointment.details.some(detail =>
+  //             //       detail.workstation.id === workstation.id &&
+  //             //       isAfter(currentStartUTC, detail.datetimeStart) &&
+  //             //       isBefore(currentStartUTC, appointment.datetimeEnd)
+  //             //     )
+  //             //   );
+  //             // });
+
+  //             // console.log('isAvailableForProfessionals: ', isAvailableForProfessionals);
+  //             // console.log('isAvailableForWorkstations: ', isAvailableForWorkstations);
+
+  //             // if (isAvailableForProfessionals && isAvailableForWorkstations) {
+  //               availableStartTimes.push(new Date(currentStartUTC));
+  //             // }
+  //           // }
+  //           // availableStartTimes.push(new Date(currentStartUTC));
+  //         }
+
+  //       }
+  //     }
+  //     currentStartUTC = addMinutes(currentStartUTC, 10);
+  //   }
+
+  //   return availableStartTimes;
+  // }
+
+  private async generateAvailableStartTimes2(config: SystemConfig, existingAppointments: DetailsAppointment[], categoryId: number): Promise<Date[]> {
     const { intervalMinutes, maxReservationDays, openingHour1, closingHour1, openingHour2, closingHour2, openDays } = config;
 
     const today = new Date();
@@ -456,19 +627,22 @@ export class AppointmentService {
 
 
 
-    while (currentStartUTC <= maxDateUTC) {
+    while (currentStartUTC < maxDateUTC) {
       if (this.isValidDayAndTime(currentStartUTC, config)) {
-        if (!this.hasCollision(currentStartUTC, existingAppointments)) {
+        // esta validando los horarios en general, sin considerar categorias ni nada, si hay turno en ese horario, no va a devolver bien
+        if (!this.hasDetailsCollision(currentStartUTC, existingAppointments)) {
+          // console.log('currentStartUTC: ', currentStartUTC);
+          // console.log('existingAppointments: ', existingAppointments);
           if (currentStartUTC.getMinutes() % intervalMinutes === 0) {
             // verifico disponibilidad de empleados y estaciones de trabajo en el horario
             let isAvailable = true;
             for (const appointment of existingAppointments) {
-              if (isAfter(currentStartUTC, appointment.datetimeStart) && isBefore(currentStartUTC, appointment.datetimeEnd)) {
+              if (isAfter(currentStartUTC, appointment.datetimeStart) && isBefore(currentStartUTC, addMinutes(appointment.datetimeStart, appointment.durationNow))) {
                 isAvailable = false;
                 break;
               }
             }
- 
+
 
             // if (isAvailable) {
             //   // Verifico disponibilidad de empleados y estaciones de trabajo en el horario
@@ -484,33 +658,65 @@ export class AppointmentService {
 
 
 
-              // const isAvailableForWorkstations = workstations.every(workstation => {
-              //   return !existingAppointments.some(appointment =>
-              //     appointment.details.some(detail =>
-              //       detail.workstation.id === workstation.id &&
-              //       isAfter(currentStartUTC, detail.datetimeStart) &&
-              //       isBefore(currentStartUTC, appointment.datetimeEnd)
-              //     )
-              //   );
-              // });
+            // const isAvailableForWorkstations = workstations.every(workstation => {
+            //   return !existingAppointments.some(appointment =>
+            //     appointment.details.some(detail =>
+            //       detail.workstation.id === workstation.id &&
+            //       isAfter(currentStartUTC, detail.datetimeStart) &&
+            //       isBefore(currentStartUTC, appointment.datetimeEnd)
+            //     )
+            //   );
+            // });
 
-              // console.log('isAvailableForProfessionals: ', isAvailableForProfessionals);
-              // console.log('isAvailableForWorkstations: ', isAvailableForWorkstations);
+            // console.log('isAvailableForProfessionals: ', isAvailableForProfessionals);
+            // console.log('isAvailableForWorkstations: ', isAvailableForWorkstations);
 
-              // if (isAvailableForProfessionals && isAvailableForWorkstations) {
-                availableStartTimes.push(new Date(currentStartUTC));
-              // }
+            // if (isAvailableForProfessionals && isAvailableForWorkstations) {
+            availableStartTimes.push(new Date(currentStartUTC));
+            // }
             // }
             // availableStartTimes.push(new Date(currentStartUTC));
           }
 
+        } else {
+          console.log('Hay colisión en el horario: ', currentStartUTC);
+
+          if (currentStartUTC.getMinutes() % intervalMinutes === 0) {
+
+
+            // Verifico disponibilidad de empleados y estaciones de trabajo en el horario
+            const isAvailableForProfessionals = professionals.some(professional => {
+              return !existingAppointments.some(appointment =>
+                appointment.employee?.id === professional.id &&
+                isAfter(currentStartUTC, appointment.datetimeStart) &&
+                isBefore(currentStartUTC, addMinutes(appointment.datetimeStart, appointment.durationNow))
+              );
+            });
+
+            const isAvailableForWorkstations = workstations.some(workstation => {
+              return !existingAppointments.some(appointment =>
+                appointment.workstation?.id === workstation.id &&
+                isAfter(currentStartUTC, appointment.datetimeStart) &&
+                isBefore(currentStartUTC, addMinutes(appointment.datetimeStart, appointment.durationNow))
+              );
+            });
+
+
+
+            if (isAvailableForProfessionals && isAvailableForWorkstations) {
+              availableStartTimes.push(new Date(currentStartUTC));
+            }
+          }
         }
       }
+
       currentStartUTC = addMinutes(currentStartUTC, 10);
     }
 
     return availableStartTimes;
   }
+
+
 
   private isValidDayAndTime(currentStartTime: Date, config: SystemConfig): boolean {
     const { openDays, openingHour1, closingHour1, openingHour2, closingHour2 } = config;
@@ -562,9 +768,16 @@ export class AppointmentService {
     return hours * 60 + minutes;
   }
 
-  private hasCollision(currentStartTime: Date, existingAppointments: Appointment[]): boolean {
+  private hasCollision(currentStartTime: Date, existingAppointments: Appointment[] | DetailsAppointment[]): boolean {
     return existingAppointments.some(app =>
-      isBefore(currentStartTime, app.datetimeEnd) && isAfter(currentStartTime, app.datetimeStart),
+      isBefore(currentStartTime, app.datetimeEnd) && isAfter(addMinutes(currentStartTime, 1), app.datetimeStart),
+    );
+  }
+
+  private hasDetailsCollision(currentStartTime: Date, existingAppointments: DetailsAppointment[]): boolean {
+    return existingAppointments.some(app =>
+      isBefore(currentStartTime, addMinutes(app.datetimeStart, app.durationNow)) &&
+      isAfter(addMinutes(currentStartTime, 1), app.datetimeStart),
     );
   }
 

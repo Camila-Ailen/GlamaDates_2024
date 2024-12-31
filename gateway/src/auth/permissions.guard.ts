@@ -34,7 +34,7 @@ export class PermissionsGuard implements CanActivate {
     }
 
     const decoded = this.jwtService.verify(token);
-    console.log('decoded', decoded.id);
+    // console.log('decoded', decoded.id);
     const user: User = await this.usersService.getBy(decoded.id);
     request.user = user;
 
@@ -45,10 +45,10 @@ export class PermissionsGuard implements CanActivate {
     const hasPermission = requiredPermissions.every((permission) =>
       userPermissions.includes(permission),
     );
-    console.log('hasPermission', hasPermission);
-    console.log('requiredPermissions', requiredPermissions);
-    console.log('userPermissions', userPermissions);
-    console.log('user', user);
+    // console.log('hasPermission', hasPermission);
+    // console.log('requiredPermissions', requiredPermissions);
+    // console.log('userPermissions', userPermissions);
+    // console.log('user', user);
     if (!hasPermission) {
       throw new ForbiddenException('Insufficient permissions');
     }

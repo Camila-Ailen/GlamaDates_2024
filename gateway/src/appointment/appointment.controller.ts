@@ -30,15 +30,15 @@ export class AppointmentController extends BaseController {
       return { openDays: config.openDays };
     }
   
-    @Get('availability/:packageId')
-    @Auth('read:appointments')
-    async getAvailability(@Param('packageId') packageId: number, @Query('offset') offset: number, @Query('pageSize') pageSize: number): Promise<Date[]> {
-      console.log('Entre al controlador de turnos')
-      console.log('packageId: ', packageId);
-      console.log('page: ', offset);
-      console.log('pageSize: ', pageSize);
-      return this.appointmentService.getAvailableAppointments(packageId, offset, pageSize);
-    }
+    // @Get('availability/:packageId')
+    // @Auth('read:appointments')
+    // async getAvailability(@Param('packageId') packageId: number, @Query('offset') offset: number, @Query('pageSize') pageSize: number): Promise<Date[]> {
+    //   console.log('Entre al controlador de turnos')
+    //   console.log('packageId: ', packageId);
+    //   console.log('page: ', offset);
+    //   console.log('pageSize: ', pageSize);
+    //   return this.appointmentService.getAvailableAppointments(packageId, offset, pageSize);
+    // }
 
 
     @Get('availability2/:packageId')
@@ -48,7 +48,7 @@ export class AppointmentController extends BaseController {
       console.log('packageId: ', packageId);
       console.log('page: ', offset);
       console.log('pageSize: ', pageSize);
-      return this.appointmentService.getAvailableAppointments2(packageId, offset, pageSize);
+      return this.appointmentService.getAvailableAppointments3(packageId, offset, pageSize);
     }
 
     
