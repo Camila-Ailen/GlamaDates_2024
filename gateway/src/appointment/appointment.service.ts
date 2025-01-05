@@ -3,7 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Appointment } from "./entities/appointment.entity";
 import { Package } from "@/package/entities/package.entity";
 import { Between, In, Repository } from "typeorm";
-import { addMinutes, isAfter, isBefore } from "date-fns";
+import { add, addMinutes, isAfter, isBefore } from "date-fns";
 import { Service } from "@/service/entities/service.entity";
 import { SystemConfigService } from "@/system-config/system-config.service";
 import { SystemConfigDto } from "@/system-config/dto/system-config.dto";
@@ -683,24 +683,33 @@ export class AppointmentService {
 
           if (currentStartUTC.getMinutes() % intervalMinutes === 0) {
 
-
             // Verifico disponibilidad de empleados y estaciones de trabajo en el horario
             const isAvailableForProfessionals = professionals.some(professional => {
               return !existingAppointments.some(appointment =>
                 appointment.employee?.id === professional.id &&
-                isAfter(currentStartUTC, appointment.datetimeStart) &&
+                // isAfter(currentStartUTC, appointment.datetimeStart) &&
+                isAfter(addMinutes(currentStartUTC, 1), appointment.datetimeStart) &&
                 isBefore(currentStartUTC, addMinutes(appointment.datetimeStart, appointment.durationNow))
               );
             });
+
+            // private hasDetailsCollision(currentStartTime: Date, existingAppointments: DetailsAppointment[]): boolean {
+            //   return existingAppointments.some(app =>
+            //     isBefore(currentStartTime, addMinutes(app.datetimeStart, app.durationNow)) &&
+            //     isAfter(addMinutes(currentStartTime, 1), app.datetimeStart),
+            //   );
+            // }
 
             const isAvailableForWorkstations = workstations.some(workstation => {
               return !existingAppointments.some(appointment =>
                 appointment.workstation?.id === workstation.id &&
-                isAfter(currentStartUTC, appointment.datetimeStart) &&
+                // isAfter(currentStartUTC, appointment.datetimeStart) &&
+                isAfter(addMinutes(currentStartUTC, 1), appointment.datetimeStart) &&
                 isBefore(currentStartUTC, addMinutes(appointment.datetimeStart, appointment.durationNow))
               );
             });
 
+            
 
 
             if (isAvailableForProfessionals && isAvailableForWorkstations) {
