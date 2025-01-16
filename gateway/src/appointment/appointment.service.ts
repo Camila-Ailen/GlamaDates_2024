@@ -619,19 +619,19 @@ export class AppointmentService {
 
     // Obtener profesionales de la categoria
     const professionals = await this.findProffesionalsByCategory(categoryId, this.userRepository)
-    console.log('Profesionales: ', professionals);
+    // console.log('Profesionales: ', professionals);
 
     // Obtener estaciones de trabajo de la categoria
     const workstations = await this.findWorkstationsByCategory(categoryId, this.workstationRepository);
-    console.log('Estaciones de trabajo: ', workstations);
+    // console.log('Estaciones de trabajo: ', workstations);
 
 
 
     while (currentStartUTC < maxDateUTC) {
       if (this.isValidDayAndTime(currentStartUTC, config)) {
         // esta validando los horarios en general, sin considerar categorias ni nada, si hay turno en ese horario, no va a devolver bien
-        if (!this.hasFutureCollision(currentStartUTC, existingAppointments, serviceDuration)) {
-          if (!this.hasDetailsCollision(currentStartUTC, existingAppointments)) {
+        if (!this.hasDetailsCollision(currentStartUTC, existingAppointments)) {
+          if (!this.hasFutureCollision(currentStartUTC, existingAppointments, serviceDuration)) {
             if (currentStartUTC.getMinutes() % intervalMinutes === 0) {
               // verifico disponibilidad de empleados y estaciones de trabajo en el horario
               let isAvailable = true;
@@ -645,7 +645,8 @@ export class AppointmentService {
             }
 
           } else {
-            console.log('Hay colisión en el horario: ', currentStartUTC);
+            console.log(' ');
+            console.log('Colisiono a futuro en: ', currentStartUTC);
 
             if (currentStartUTC.getMinutes() % intervalMinutes === 0) {
 
@@ -676,15 +677,14 @@ export class AppointmentService {
               const isAvailableForProfessionals = professionals.some(professional => {
                 console.log(`Verificando profesional ${professional.id}`);
                 return !existingAppointments.some(appointment => {
-                  // console.log('Nos ponemos un poco locos, este es el turno principal: ', appointment.appointment.id);
                   console.log(`  Verificando appointment ${appointment.id} con profesional ${appointment.employee?.id}`);
                   const isSameProfessional = appointment.employee?.id === professional.id;
                   console.log(`    Es el mismo profesional: ${isSameProfessional}`);
                   const isBeforeOrEqual = isBefore(currentStartUTC, appointment.datetimeStart) || isEqual(currentStartUTC, appointment.datetimeStart);
                   console.log(`    Es antes o igual al horario actual: ${isBeforeOrEqual}`);
-                  const isAfterOrEqual = isAfter(addMinutes(currentStartUTC, intervalMinutes), appointment.datetimeStart) || isEqual(addMinutes(currentStartUTC, intervalMinutes), appointment.datetimeStart);
-                  console.log(`    Es después o igual al horario actual + intervalo: ${isAfterOrEqual}`);
-                  const result = isSameProfessional && (isBeforeOrEqual || isAfterOrEqual);
+                  // const isAfterOrEqual = isAfter(addMinutes(currentStartUTC, intervalMinutes), appointment.datetimeStart) || isEqual(addMinutes(currentStartUTC, intervalMinutes), appointment.datetimeStart);
+                  // console.log(`    Es después o igual al horario actual + intervalo: ${isAfterOrEqual}`);
+                  const result = isSameProfessional && (isBeforeOrEqual);
                   console.log(`    Resultado: ${result}`);
                   return result;
                 });
@@ -698,16 +698,13 @@ export class AppointmentService {
                   console.log(`    Es el mismo workstation: ${isSameWorkstation}`);
                   const isBeforeOrEqual = isBefore(currentStartUTC, appointment.datetimeStart) || isEqual(currentStartUTC, appointment.datetimeStart);
                   console.log(`    Es antes o igual al horario actual: ${isBeforeOrEqual}`);
-                  const isAfterOrEqual = isAfter(addMinutes(currentStartUTC, intervalMinutes), appointment.datetimeStart) || isEqual(addMinutes(currentStartUTC, intervalMinutes), appointment.datetimeStart);
-                  console.log(`    Es después o igual al horario actual + intervalo: ${isAfterOrEqual}`);
-                  const result = isSameWorkstation && (isBeforeOrEqual || isAfterOrEqual);
+                  // const isAfterOrEqual = isAfter(addMinutes(currentStartUTC, intervalMinutes), appointment.datetimeStart) || isEqual(addMinutes(currentStartUTC, intervalMinutes), appointment.datetimeStart);
+                  // console.log(`    Es después o igual al horario actual + intervalo (${intervalMinutes}): ${isAfterOrEqual}`);
+                  const result = isSameWorkstation && (isBeforeOrEqual);
                   console.log(`    Resultado: ${result}`);
                   return result;
                 });
               });
-
-              console.log('isAvailableForProfessionals: ', isAvailableForProfessionals);
-              console.log('isAvailableForWorkstations: ', isAvailableForWorkstations);
 
               if (isAvailableForProfessionals && isAvailableForWorkstations) {
                 console.log('Disponible en: ', currentStartUTC);
@@ -716,7 +713,48 @@ export class AppointmentService {
             }
           }
         } else {
-          console.log('Colisiono a futuro en: ', currentStartUTC);
+          console.log('Hay colisión en el horario: ', currentStartUTC);
+
+          if (currentStartUTC.getMinutes() % intervalMinutes === 0) {
+            // Verifico disponibilidad de empleados y estaciones de trabajo en el horario
+            const isAvailableForProfessionals = professionals.some(professional => {
+              console.log(`Verificando profesional ${professional.id}`);
+              return !existingAppointments.some(appointment => {
+                console.log(`  Verificando appointment ${appointment.id} con profesional ${appointment.employee?.id}`);
+                const isSameProfessional = appointment.employee?.id === professional.id;
+                console.log(`    Es el mismo profesional: ${isSameProfessional}`);
+                // const isBeforeOrEqual = isBefore(currentStartUTC, appointment.datetimeStart) || isEqual(currentStartUTC, appointment.datetimeStart);
+                // console.log(`    Es antes o igual al horario actual (${currentStartUTC}): ${isBeforeOrEqual}`);
+                const isAfterOrEqual = isAfter(addMinutes(currentStartUTC, intervalMinutes), appointment.datetimeStart) || isEqual(addMinutes(currentStartUTC, intervalMinutes), appointment.datetimeStart);
+                console.log(`    Es después o igual al horario actual + intervalo: ${isAfterOrEqual}`);
+                const result = isSameProfessional && (isAfterOrEqual);
+                console.log(`    Resultado: ${result}`);
+                return result;
+              });
+            });
+
+            const isAvailableForWorkstations = workstations.some(workstation => {
+              console.log(`Verificando workstation ${workstation.id}`);
+              return !existingAppointments.some(appointment => {
+                console.log(`  Verificando appointment ${appointment.id} en workstation ${appointment.workstation?.id}`);
+                const isSameWorkstation = appointment.workstation?.id === workstation.id;
+                console.log(`    Es el mismo workstation: ${isSameWorkstation}`);
+                // const isBeforeOrEqual = isBefore(currentStartUTC, appointment.datetimeStart) || isEqual(currentStartUTC, appointment.datetimeStart);
+                // console.log(`    Es antes o igual al horario actual (${appointment.datetimeStart}): ${isBeforeOrEqual}`);
+                const isAfterOrEqual = isAfter(addMinutes(currentStartUTC, intervalMinutes), appointment.datetimeStart) || isEqual(addMinutes(currentStartUTC, intervalMinutes), appointment.datetimeStart);
+                console.log(`    Es después o igual al horario actual + intervalo: ${isAfterOrEqual}`);
+                const result = isSameWorkstation && (isAfterOrEqual);
+                console.log(`    Resultado: ${result}`);
+                return result;
+              });
+            });
+
+            if (isAvailableForProfessionals && isAvailableForWorkstations) {
+              console.log('Disponible en: ', currentStartUTC);
+              availableStartTimes.push(new Date(currentStartUTC));
+            }
+
+          }
         }
       }
 
@@ -789,9 +827,9 @@ export class AppointmentService {
 
 
   private hasDetailsCollision(currentStartTime: Date, existingAppointments: DetailsAppointment[]): boolean {
-    return existingAppointments.some(app =>
+    return existingAppointments.some(app => 
       isBefore(currentStartTime, addMinutes(app.datetimeStart, app.durationNow)) &&
-      isAfter(addMinutes(currentStartTime, 1), app.datetimeStart),
+      isAfter(addMinutes(currentStartTime, 1), app.datetimeStart)
     );
   }
 
