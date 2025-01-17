@@ -68,7 +68,7 @@ export class AppointmentService {
 
     const config = await this.configService.getSystemConfig();
 
-    console.log('body.package.services: ', body.package);
+    // console.log('body.package.services: ', body.package);
 
     // debo iterar sobre los servicios del paquete para verificar que existen empleados y estaciones de trabajo
     // for (const service of body.package.services) {
@@ -103,10 +103,10 @@ export class AppointmentService {
       package: body.package,
     });
 
-    console.log('appointmentEntity: ', appointmentEntity);
+    // console.log('appointmentEntity: ', appointmentEntity);
     // Guardo el turno para tener su id
     const savedAppointment = await this.appointmentRepository.save(appointmentEntity);
-    console.log('savedAppointment: ', savedAppointment);
+    // console.log('savedAppointment: ', savedAppointment);
 
     console.log('Cantidad de servicios: ', body.package.services.length);
 
@@ -115,11 +115,33 @@ export class AppointmentService {
     // debo iterar sobre los servicios del paquete para crear los detalles
     for (const service of body.package.services) {
       console.log('hasta aca todo bien ');
+      // const employees = await this.findProffesionals(service.id, this.userRepository);
+      // const employee = employees.find(e => !this.findAvailableEmployee(e.id, null, appointmentDate));
+
+      // const employees = await this.findProffesionals(service.id, this.userRepository);
+      // const availableEmployee = await this.findAvailableEmployee(employees, appointmentEntity.datetimeStart, appointmentEntity.datetimeEnd);
+      // const employee = employees.find(e => e.id === availableEmployee);
+      // if (!employee) {
+      //   throw new HttpException('Employee not found', HttpStatus.NOT_FOUND);
+      // }
+
       const employees = await this.findProffesionals(service.id, this.userRepository);
-      const employee = employees[0];
+      const randomIndexEmployee = Math.floor(Math.random() * employees.length);
+      const employee = employees[randomIndexEmployee];
+
+      // const workstations = await this.findWorkstations(service.id, this.workstationRepository);
+      // const workstation = workstations.find(w => !this.hasAppointments(null, w.id, appointmentDate));
+      
+      // const workstations = await this.findWorkstations(service.id, this.workstationRepository);
+      // const availableWorkstation = await this.findAvailableWorkstation(workstations, appointmentEntity.datetimeStart, appointmentEntity.datetimeEnd);
+      // const workstation = workstations.find(e => e.id === availableWorkstation);
+      // if (!workstation) {
+      //   throw new HttpException('Workstation not found', HttpStatus.NOT_FOUND);
+      // }
 
       const workstations = await this.findWorkstations(service.id, this.workstationRepository);
-      const workstation = workstations[0];
+      const randomIndexStation = Math.floor(Math.random() * workstations.length);
+      const workstation = workstations[randomIndexStation];
 
       const detail = this.detailsAppointmentRepository.create({
         appointment: savedAppointment,
@@ -137,6 +159,98 @@ export class AppointmentService {
 
     return savedAppointment;
   }
+
+
+  async hasAppointments(id, workstationId, date) {
+    const appointments = await this.detailsAppointmentRepository.find({
+      where: {
+        [id === 'employee.id' ? 'employee.id' : 'workstation.id']: id,
+        workstation: workstationId,
+        datetimeStart: date
+      }
+    });
+    console.log(`Evaluando para empleado: ${id}, estacion de trabajo: ${workstationId}`);
+    console.log('Supongo que pase la busqueda de empleados y estaciones de trabajo con cantidad: ', appointments.length);
+    return appointments.length > 0;
+  }
+
+
+  async findAvailableEmployee(employees, start, end) {
+    // Convertir los parámetros de fecha a una cadena en formato ISO 8601 (UTC)
+    const startISO = start.toISOString();
+    const endISO = end.toISOString();
+  
+    // Obtener las citas en el rango de horarios especificado
+    
+    const appointments = await this.detailsAppointmentRepository.find({
+      where: {
+        datetimeStart: startISO,
+      },
+      relations: ['employee'],
+    });
+
+    console.log('Ya dentro de la funcion, appointments: ', appointments);
+    console.log(`startISO: ${startISO}`);
+    console.log(`endISO: ${endISO}`);
+  
+    // Crear un objeto para rastrear la disponibilidad de cada empleado
+    const employeeAvailability = {};
+    employees.forEach((employee) => {
+      employeeAvailability[employee.id] = true;
+    });
+  
+    // Marcar como disponibles los empleados que tienen citas en el rango de horarios
+    appointments.forEach((appointment) => {
+      if (employeeAvailability[appointment.employee.id]) {
+        employeeAvailability[appointment.employee.id] = true;
+      }
+    });
+  
+    // Buscar el primer empleado no disponible
+    const availableEmployee = employees.find((employee) => employeeAvailability[employee.id]);
+  
+    // Devolver el ID del empleado disponible o null si no se encuentra ninguno
+    return availableEmployee ? availableEmployee.id : null;
+  }
+
+  async findAvailableWorkstation(workstations, start, end) {
+    // Convertir los parámetros de fecha a una cadena en formato ISO 8601 (UTC)
+    const startISO = start.toISOString();
+    const endISO = end.toISOString();
+  
+    // Obtener las citas en el rango de horarios especificado
+    const appointments = await this.detailsAppointmentRepository.find({
+      where: {
+        datetimeStart: startISO,
+        
+      },
+    });
+    console.log('Ya dentro de la funcion, appointments: ', appointments);
+    console.log('workstations: ', workstations);
+    console.log(`startISO: ${startISO}, endISO: ${endISO}`);
+  
+    // Crear un objeto para rastrear la disponibilidad de cada workstation
+    const workstationAvailability = {};
+    workstations.forEach((workstation) => {
+      workstationAvailability[workstation.id] = false;
+    });
+  
+    // Marcar como disponibles los workstations que tienen citas en el rango de horarios
+    appointments.forEach((appointment) => {
+      if (!workstationAvailability[appointment.workstation.id]) {
+        workstationAvailability[appointment.workstation.id] = true;
+      }
+    });
+  
+    // Buscar el primer workstation no disponible
+    const availableWorkstation = workstations.find((workstation) => !workstationAvailability[workstation.id]);
+
+    console.log('availableWorkstation: ', availableWorkstation);
+  
+    // Devolver el ID del workstation disponible o null si no se encuentra ninguno
+    return availableWorkstation ? availableWorkstation.id : null;
+  }
+
 
   async getAvailableAppointments3(id: number, page: number, pageSize: number): Promise<any> {
     // obtener la configuracion del sistema
@@ -847,3 +961,20 @@ export class AppointmentService {
 
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
