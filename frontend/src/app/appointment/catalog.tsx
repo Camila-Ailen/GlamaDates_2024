@@ -22,7 +22,6 @@ export function AppointmentCatalog() {
         setOrderType,
         setOrderBy,
         fetchPackage,
-
     } = usePackageStore();
 
     const {
@@ -38,6 +37,12 @@ export function AppointmentCatalog() {
 
     const [availability, setAvailability] = useState<string[]>([]);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [selectedPackage, setSelectedPackage] = useState('');
+
+    const handleOpenDialog = (packageName: string) => {
+        setSelectedPackage(packageName)
+        setIsDialogOpen(true)
+      }
 
     const handleSelectPackage = async (packageId: number) => {
         const availableDates = await fetchPackageAvailability(packageId);
@@ -92,7 +97,19 @@ export function AppointmentCatalog() {
                                 <button className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary-dark" onClick={() => setIsDialogOpen(true)}>Ver Paquete</button>
                             </CardFooter>
                             <CardFooter>
-                            <button className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary-dark" onClick={() => setIsDialogOpen(true)}>Seleccionar</button>
+                                <button
+                                    className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
+                                    onClick={() => handleOpenDialog(pkg.name)}
+                                >
+                                    Seleccionar
+                                </button>
+                                {isDialogOpen && (
+                                    <CalendarAppointmentDialog
+                                        availableAppointments={appointments}
+                                        onClose={() => setIsDialogOpen(false)}
+                                        packageName={selectedPackage}
+                                    />
+                                )}
                             </CardFooter>
                         </Card>
 

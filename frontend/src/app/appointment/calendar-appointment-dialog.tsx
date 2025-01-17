@@ -9,10 +9,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import usePackageStore from '../store/usePackageStore'
 import { UserPen } from 'lucide-react'
+import Calendar from 'react-calendar'
+import 'react-calendar/dist/Calendar.css'
 
 export interface Appointment {
     id: number;
@@ -34,29 +33,38 @@ export interface Appointment {
     ]
 }
 
-export function CalendarAppointmentDialog({ availableAppointments }: { availableAppointments: Appointment[] }) {
-  const [isOpen, setIsOpen] = useState(false)
-  const updatePackage = usePackageStore(state => state.updatePackage)
+export function CalendarAppointmentDialog({ availableAppointments, onClose, packageName }: { availableAppointments: Appointment[], onClose: () => void, packageName: string }) {
+  const [selectedDate, setSelectedDate] = useState(new Date())
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const formData = new FormData(event.currentTarget)
-    const packageData = Object.fromEntries(formData)
-    await updatePackage({ ...packageData, id: availableAppointments. })
-    setIsOpen(false)
+  const handleDateChange = (date: Date) => {
+    setSelectedDate(date)
+  }
+
+  const tileClassName = ({ date, view }: { date: Date, view: string }) => {
+    if (view === 'month') {
+      const appointmentDates = availableAppointments.map(app => new Date(app.datetimeStart).toDateString())
+      if (appointmentDates.includes(date.toDateString())) {
+        return 'highlight'
+      }
+    }
+    return null
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={true} onOpenChange={onClose}>
       <DialogTrigger asChild>
         <Button variant="outline" className="mr-2"><UserPen/></Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Editar Servicio</DialogTitle>
+          <DialogTitle>{packageName}</DialogTitle>
         </DialogHeader>
-
-        </DialogContent>
+        <Calendar
+          onChange={handleDateChange}
+          value={selectedDate}
+          tileClassName={tileClassName}
+        />
+      </DialogContent>
     </Dialog>
   )
 }
