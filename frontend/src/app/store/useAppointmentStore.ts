@@ -32,35 +32,42 @@ interface AppointmentState {
     orderBy: string
     orderType: 'ASC' | 'DESC'
     filter: string
-    fetchPackageAvailability: (appointmentId: number) => Promise<string[]>
+    fetchPackageAvailability: (packageId: number, orderBy:string, orderType: 'ASC' | 'DESC', offset:number, pageSize:number) => Promise<string[]>
 }
 
 const token = useAuthStore.getState().token;
 
-const useAppointmentStore = create<AppointmentState>((set, get) => ({
+export const useAppointmentStore = create<AppointmentState>((set, get) => ({
     appointments: [],
     total: 0,
     currentPage: 1,
-    pageSize: 8,
+    pageSize: 20,
     isLoading: false,
     error: null,
     orderBy: 'id',
-    orderType: 'DESC',
+    orderType: 'ASC',
     filter: '',
 
 
-    fetchPackageAvailability: async (packageId: number) => {
+    fetchPackageAvailability: async (packageId: number, orderBy:string, orderType: 'ASC' | 'DESC', offset: number, pageSize:number) => {
         try {
+            console.log('packageId: ', packageId);
+            console.log('ruta: ', `${process.env.NEXT_PUBLIC_BACKEND_URL}/appointment/availability2/${packageId}?orderBy=${orderBy}&orderType=${orderType}&offset=${offset}&pageSize=${pageSize}`);
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_BACKEND_URL}/appointment/availability/${packageId}`,
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/appointment/availability2/${packageId}?orderBy=${orderBy}&orderType=${orderType}&offset=${offset}&pageSize=${pageSize}`,
                 {
                     method: 'GET',
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`, // JWT token
-                        'Content-Type': 'application/json'
+                        Authorization: `Bearer ${token}`,
                     },
                 }
             );
+            if (response.status === 403) {
+                toast.error("Sesión expirada");
+                useAuthStore.getState().logout();
+                return;
+            }
+
             if (!response.ok) {
                 throw new Error('Error al obtener la disponibilidad');
             }
@@ -68,11 +75,11 @@ const useAppointmentStore = create<AppointmentState>((set, get) => ({
             return data; // Retorna la lista de fechas
         } catch (error) {
             console.error(error);
-            return null;
+            return [];
         }
     },
 
 
-}))
+}));
 
 export default useAppointmentStore

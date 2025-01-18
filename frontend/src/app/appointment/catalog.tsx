@@ -39,18 +39,21 @@ export function AppointmentCatalog() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedPackage, setSelectedPackage] = useState('');
 
-    const handleOpenDialog = (packageName: string) => {
-        setSelectedPackage(packageName)
-        setIsDialogOpen(true)
-      }
-
-    const handleSelectPackage = async (packageId: number) => {
-        const availableDates = await fetchPackageAvailability(packageId);
+    const handleOpenDialog = async (packageId: number, packageName: string) => {
+        const offset = 1;
+        const pageSize = 2000;
+        const orderBy = 'id'; 
+        const orderType = 'DESC'; 
+        const availableDates = await fetchPackageAvailability(packageId, orderBy, orderType, offset, pageSize);
         console.log("availableDates: ", availableDates);
         if (availableDates) {
             setAvailability(availableDates); // Actualiza las fechas disponibles
+            setSelectedPackage(packageName)
+            setIsDialogOpen(true)
         }
-    };
+      }
+
+   
 
     const token = useAuthStore((state) => state.token);
     const hasPermission = useAuthStore((state) => state.hasPermission);
@@ -99,7 +102,7 @@ export function AppointmentCatalog() {
                             <CardFooter>
                                 <button
                                     className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
-                                    onClick={() => handleOpenDialog(pkg.name)}
+                                    onClick={() => handleOpenDialog(pkg.id, pkg.name)}
                                 >
                                     Seleccionar
                                 </button>
@@ -108,6 +111,7 @@ export function AppointmentCatalog() {
                                         availableAppointments={appointments}
                                         onClose={() => setIsDialogOpen(false)}
                                         packageName={selectedPackage}
+                                        availableDates={availability}
                                     />
                                 )}
                             </CardFooter>
