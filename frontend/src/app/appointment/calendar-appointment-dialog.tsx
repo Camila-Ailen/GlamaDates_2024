@@ -44,12 +44,13 @@ export function CalendarAppointmentDialog({ availableAppointments, onClose, pack
     if (appointmentDates.includes(date.toDateString())) {
       setSelectedDate(date)
 
-      // Filtrar horarios disponibles para la fecha seleccionada
-      const times = availableAppointments
-        .filter(app => new Date(app.datetimeStart).toDateString() === date.toDateString())
-        .map(app => new Date(app.datetimeStart).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }))
+      const times = availableDates
+        .filter(d => new Date(d).toDateString() === date.toDateString())
+        .map(d => new Date(d).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }))
       setAvailableTimes(times)
       setIsTimeModalOpen(true) // Abrir modal de horarios
+      console.log('times: ', times)
+
     }
   }
 
@@ -78,7 +79,6 @@ export function CalendarAppointmentDialog({ availableAppointments, onClose, pack
             onChange={handleDateChange}
             tileClassName={tileClassName}
             locale="es-AR"
-            // calendarType="US"
             className="custom-calendar"
           />
         </DialogContent>
@@ -96,7 +96,7 @@ export function CalendarAppointmentDialog({ availableAppointments, onClose, pack
                 Horarios disponibles para el {selectedDate.toLocaleDateString('es-AR')}
               </DialogTitle>
             </DialogHeader>
-            <div className="flex flex-col gap-2">
+            <div className="time-grid">
               {availableTimes.length > 0 ? (
                 availableTimes.map((time, index) => (
                   <Button
