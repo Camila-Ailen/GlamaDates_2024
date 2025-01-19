@@ -34,9 +34,11 @@ export interface Appointment {
   ];
 }
 
-export function CalendarAppointmentDialog({ availableAppointments, onClose, packageName, availableDates }: { availableAppointments: Appointment[], onClose: () => void, packageName: string, availableDates: Date[] }) {
+export function CalendarAppointmentDialog({ onClose, packageName, availableDates, services, duration, price }: { onClose: () => void, packageName: string, availableDates: Date[], services: string[], duration: string, price: number }) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [isTimeModalOpen, setIsTimeModalOpen] = useState(false)
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
   const [availableTimes, setAvailableTimes] = useState<string[]>([])
 
   const handleDateChange = (date: Date) => {
@@ -49,9 +51,13 @@ export function CalendarAppointmentDialog({ availableAppointments, onClose, pack
         .map(d => new Date(d).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }))
       setAvailableTimes(times)
       setIsTimeModalOpen(true) // Abrir modal de horarios
-      console.log('times: ', times)
-
     }
+  }
+
+  const handleTimeSelect = (time: string) => {
+    setSelectedTime(time)
+    setIsTimeModalOpen(false)
+    setIsDetailsModalOpen(true)
   }
 
   const tileClassName = ({ date, view }: { date: Date, view: string }) => {
@@ -103,10 +109,7 @@ export function CalendarAppointmentDialog({ availableAppointments, onClose, pack
                     key={index}
                     variant="outline"
                     className="time-button"
-                    onClick={() => {
-                      alert(`Has seleccionado el horario ${time}`)
-                      setIsTimeModalOpen(false)
-                    }}
+                    onClick={() => handleTimeSelect(time)}
                   >
                     {time}
                   </Button>
@@ -114,6 +117,28 @@ export function CalendarAppointmentDialog({ availableAppointments, onClose, pack
               ) : (
                 <p>Al parecer se acaba de ocupar el ultimo horario disponible para esta fecha. Intenta con otra fecha.</p>
               )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Modal de detalles del turno */}
+      {isDetailsModalOpen && selectedDate && selectedTime && (
+        <Dialog open={isDetailsModalOpen} onOpenChange={() => setIsDetailsModalOpen(false)}>
+          <DialogContent className="custom-dialog-content">
+            <DialogHeader>
+              <DialogTitle className="custom-dialog-title">Detalles del Turno</DialogTitle>
+            </DialogHeader>
+            <div className="appointment-details">
+              <p><strong>Nombre del paquete:</strong> {packageName}</p>
+              <p><strong>Servicios incluidos:</strong> {services.join(', ')}</p>
+              <p><strong>Fecha y hora del turno:</strong> {selectedDate.toLocaleDateString('es-AR')} a las {selectedTime}</p>
+              <p><strong>Duración:</strong> {duration}</p>
+              <p><strong>Precio:</strong> ${price}</p>
+            </div>
+            <div className="button-group">
+              <Button variant="outline" onClick={() => setIsDetailsModalOpen(false)}>Cancelar</Button>
+              <Button variant="solid" onClick={() => alert('Turno confirmado')}>Confirmar Turno</Button>
             </div>
           </DialogContent>
         </Dialog>
