@@ -46,8 +46,6 @@ export class AppointmentController extends BaseController {
     async getAvailability2(@Param('packageId') packageId: number, @Query('offset') offset: number, @Query('pageSize') pageSize: number): Promise<Date[]> {
       console.log('Entre al controlador de turnos')
       console.log('packageId: ', packageId);
-      console.log('page: ', offset);
-      console.log('pageSize: ', pageSize);
       return this.appointmentService.getAvailableAppointments3(packageId, offset, pageSize);
     }
 
