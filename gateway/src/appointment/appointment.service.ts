@@ -16,6 +16,7 @@ import { AppointmentState } from "./entities/appointment-state.enum";
 import { Workstation } from "@/workstation/entities/workstation.entity";
 import { WorkstationState } from "@/workstation/entities/workstation-state.enum";
 import { last } from "rxjs";
+import { raw } from "express";
 
 @Injectable()
 export class AppointmentService {
@@ -44,7 +45,7 @@ export class AppointmentService {
   ) { }
 
   async create(body: AppointmentDto, user: User): Promise<Appointment> {
-    console.log('ESTOY EN EL SERVICIO DE APPOINTMENT');
+    console.log('ESTOY EN EL SERVICIO DE APPOINTMENT: creacion de turno');
     // Se pasa a tipo unknown porque sino toma solo al paquete 5
     const pkg = await this.packageRepository.findOne({ where: { id: body.package as unknown as number }, relations: ['services'] });
     body.package = pkg;
@@ -56,6 +57,7 @@ export class AppointmentService {
         where: {
           id: In(body.package.services.map((service: Service) => service.id)),
         },
+        relations: ['category'],
       });
       body.package.services = service;
     }
@@ -69,30 +71,29 @@ export class AppointmentService {
 
     const config = await this.configService.getSystemConfig();
 
-    // console.log('body.package.services: ', body.package);
-
-    // debo iterar sobre los servicios del paquete para verificar que existen empleados y estaciones de trabajo
-    // for (const service of body.package.services) {
-    //   console.log('hasta aca todo bien, verificando ');
-    // console.log('service.category.id: ', );
-    // const employees = await this.findProffesionalsByCategory(service.category.id, this.userRepository);
-    // const employee = employees[0];
-
-    // const workstations = await this.findWorkstations(service.id, this.workstationRepository);
-    // const workstation = workstations[0];
-
-    // if (!employee || !workstation) {
-    //   throw new HttpException('Employee or Workstation not found', HttpStatus.NOT_FOUND);
-    // }
-
     // Verifico que la fecha y horario de la cita no estén ocupados
-    //   const existingAppointments = await this.fetchExistingAppointments(config.maxReservationDays, [service.category.id]);
-    //   if (this.hasCollision(appointmentDate, existingAppointments)) {
-    //     throw new HttpException('Appointment time is not available', HttpStatus.BAD_REQUEST);
-    //   }
-    // }
+    for (const service of body.package.services) {
+      const professionals = await this.findProffesionals(service.id, this.userRepository);
+      const workstations = await this.findWorkstations(service.id, this.workstationRepository);
+
+      // Espero que funcione usar esto :v
+      const existingAppointmentsDetail = await this.colisionAvailable(appointmentDate, service.duration, service.category.id);
+
+      console.log('existingAppointmentsDetail: ', existingAppointmentsDetail.length);
+      console.log('Cantidad de profesionales: ', professionals.length);
+      console.log('Cantidad de estaciones de trabajo: ', workstations.length);
+      // console.log('Las estaciones de trabajo son: ', workstations);
+
+      if (existingAppointmentsDetail.length >= professionals.length && existingAppointmentsDetail.length >= workstations.length) {
+        throw new HttpException('No hay espacio disponible para esta cita', HttpStatus.BAD_REQUEST);
+      }
+
+      console.log('Hay espacio disponible para esta cita');
+      // Si no entro al if, es porque hay turnos disponibles
+    }
 
     // Creo la cita
+    console.log('Creando la cita');
     const appointmentEntity = this.appointmentRepository.create({
       datetimeStart: appointmentDate,
       datetimeEnd: addMinutes(
@@ -104,45 +105,164 @@ export class AppointmentService {
       package: body.package,
     });
 
-    // console.log('appointmentEntity: ', appointmentEntity);
+
     // Guardo el turno para tener su id
     const savedAppointment = await this.appointmentRepository.save(appointmentEntity);
-    // console.log('savedAppointment: ', savedAppointment);
-
-    console.log('Cantidad de servicios: ', body.package.services.length);
-
 
 
     // debo iterar sobre los servicios del paquete para crear los detalles
     for (const service of body.package.services) {
-      console.log('hasta aca todo bien ');
-      // const employees = await this.findProffesionals(service.id, this.userRepository);
-      // const employee = employees.find(e => !this.findAvailableEmployee(e.id, null, appointmentDate));
-
-      // const employees = await this.findProffesionals(service.id, this.userRepository);
-      // const availableEmployee = await this.findAvailableEmployee(employees, appointmentEntity.datetimeStart, appointmentEntity.datetimeEnd);
-      // const employee = employees.find(e => e.id === availableEmployee);
-      // if (!employee) {
-      //   throw new HttpException('Employee not found', HttpStatus.NOT_FOUND);
-      // }
-
-      const employees = await this.findProffesionals(service.id, this.userRepository);
-      const randomIndexEmployee = Math.floor(Math.random() * employees.length);
-      const employee = employees[randomIndexEmployee];
-
-      // const workstations = await this.findWorkstations(service.id, this.workstationRepository);
-      // const workstation = workstations.find(w => !this.hasAppointments(null, w.id, appointmentDate));
-
-      // const workstations = await this.findWorkstations(service.id, this.workstationRepository);
-      // const availableWorkstation = await this.findAvailableWorkstation(workstations, appointmentEntity.datetimeStart, appointmentEntity.datetimeEnd);
-      // const workstation = workstations.find(e => e.id === availableWorkstation);
-      // if (!workstation) {
-      //   throw new HttpException('Workstation not found', HttpStatus.NOT_FOUND);
-      // }
-
+      // Vamos primero con la asignacion de profesionales al servicio
+      // Buscamos los profesionales de la categoria del servicio
+      console.log('Entre al for del servicio: ', service.id);
+      const professionals = await this.findProffesionals(service.id, this.userRepository);
       const workstations = await this.findWorkstations(service.id, this.workstationRepository);
-      const randomIndexStation = Math.floor(Math.random() * workstations.length);
-      const workstation = workstations[randomIndexStation];
+      const existingAppointmentsDetail = await this.colisionAvailable(appointmentDate, service.duration, service.category.id);
+      const existingAppointmentsDetailIds = existingAppointmentsDetail.map(detail => detail.id);
+
+      console.log('existingAppointmentsDetailIds: ', existingAppointmentsDetailIds);
+
+      const professionalIds = professionals.map(professional => professional.id);
+      const workstationIds = workstations.map(workstation => workstation.id);
+
+      let selectedProfessional: User[] = [];
+      let selectedWorkstation: Workstation[] = [];
+      if (existingAppointmentsDetailIds.length > 0) {
+        console.log('Hay turnos asignados, entre al if');
+        const rawWorkstations = await this.detailsAppointmentRepository
+          .createQueryBuilder('details')
+          .innerJoin('details.workstation', 'workstation')
+          .select([
+            'workstation.id AS workstation_id',
+            'workstation.name AS workstation_name',
+            'workstation.description AS workstation_description',
+            'workstation.state AS workstation_state',
+            'workstation.createdAt AS workstation_created_at',
+            'workstation.updatedAt AS workstation_updated_at',
+            'workstation.deletedAt AS workstation_deleted_at',
+          ])
+          .where(
+            'workstation.id NOT IN (SELECT "workstationId" FROM "details_appointments" WHERE id IN (:...existingAppointmentsDetailIds))',
+            { existingAppointmentsDetailIds: existingAppointmentsDetail.map(detail => detail.id) }
+          )
+          .andWhere('workstation.id IN (:...workstationIds)', { workstationIds })
+          .groupBy(
+            'workstation.id, workstation.name, workstation.description, workstation.state, workstation.createdAt, workstation.updatedAt, workstation.deletedAt'
+          )
+          .getRawMany();
+
+        const rawProfessionals = await this.detailsAppointmentRepository
+          .createQueryBuilder('details')
+          .innerJoin('details.employee', 'employee')
+          .select([
+            'employee.id AS employee_id',
+            'employee.firstName AS employee_first_name',
+            'employee.lastName AS employee_last_name',
+            'employee.email AS employee_email',
+            'employee.birthdate AS employee_birthdate',
+            'employee.gender AS employee_gender',
+            'employee.phone AS employee_phone',
+            'employee.emailToken AS employee_email_token',
+            'employee.emailVerifiedAt AS employee_email_verified_at',
+            'employee.emailChange AS employee_email_change',
+            'employee.password AS employee_password',
+            'employee.rememberToken AS employee_remember_token',
+            'employee.branchOfficeId AS employee_branch_office_id',
+            'employee.createdAt AS employee_created_at',
+            'employee.updatedAt AS employee_updated_at',
+            'employee.deletedAt AS employee_deleted_at',
+          ])
+          .where(
+            'employee.id NOT IN (SELECT "employeeId" FROM "details_appointments" WHERE id IN (:...existingAppointmentsDetailIds))',
+            { existingAppointmentsDetailIds }
+          )
+          .andWhere('employee.id IN (:...professionalIds)', { professionalIds })
+          .groupBy('employee.id, employee.firstName, employee.lastName, employee.email, employee.birthdate, employee.gender, employee.phone, employee.emailToken, employee.emailVerifiedAt, employee.emailChange, employee.password, employee.rememberToken, employee.branchOfficeId, employee.createdAt, employee.updatedAt, employee.deletedAt')
+          .getRawMany();
+
+        selectedWorkstation = rawWorkstations.map(workstation => ({
+          id: workstation.workstation_id,
+          name: workstation.workstation_name,
+          description: workstation.workstation_description,
+          state: workstation.workstation_state,
+          categories: [],
+          detailsAppointment: [],
+          createdAt: workstation.workstation_created_at,
+          updatedAt: workstation.workstation_updated_at,
+          deletedAt: workstation.workstation_deleted_at,
+          toJSON: () => ({})
+        }))
+
+        selectedProfessional = rawProfessionals.map(prof => ({
+          id: prof.employee_id,
+          firstName: prof.employee_first_name,
+          lastName: prof.employee_last_name,
+          email: prof.employee_email,
+          birthdate: prof.employee_birthdate,
+          gender: prof.employee_gender,
+          phone: prof.employee_phone,
+          emailToken: prof.employee_email_token,
+          emailVerifiedAt: prof.employee_email_verified_at,
+          emailChange: prof.employee_email_change,
+          password: prof.employee_password,
+          rememberToken: prof.employee_remember_token,
+          branchOfficeId: prof.employee_branch_office_id,
+          createdAt: prof.employee_created_at,
+          updatedAt: prof.employee_updated_at,
+          deletedAt: prof.employee_deleted_at,
+          role: null,
+          categories: [],
+          appointmentClient: [],
+          detailsAppointmentEmployee: [],
+          toJSON: () => ({})
+        }));
+
+      } else {
+        console.log('Entre al else');
+        selectedProfessional = professionals;
+        selectedWorkstation = workstations;
+      }
+
+      console.log('selectedProfessional: ', selectedProfessional);
+      console.log('selectedProfessional.length: ', selectedProfessional.length);
+
+      if (selectedProfessional.length === 0) {
+        throw new Error('No hay profesionales disponibles.');
+      }
+
+      const randomIndexEmployee = Math.floor(Math.random() * selectedProfessional.length);
+      console.log('randomIndexEmployee: ', randomIndexEmployee);
+      const employee = selectedProfessional[randomIndexEmployee];
+
+      console.log('employee: ', employee);
+      console.log('selectedWorkstation: ', selectedWorkstation);
+      console.log('selectedWorkstation.length: ', selectedWorkstation.length);
+
+      if (selectedWorkstation.length === 0) {
+        throw new Error('No hay estaciones de trabajo disponibles.');
+      }
+
+      const randomIndexStation = Math.floor(Math.random() * selectedWorkstation.length);
+      // console.log('randomIndexStation: ', randomIndexStation);
+      const workstation = selectedWorkstation[randomIndexStation];
+
+      // console.log('workstation: ', workstation);
+
+      if (!employee || !workstation) {
+        throw new Error('Profesional o estación de trabajo inválidos.');
+      }
+
+      console.log('Id empleado: ', employee.id);
+
+      if (!employee.id) {
+        throw new Error('El empleado seleccionado no tiene un ID válido.');
+      }
+
+      if (!workstation.id) {
+        throw new Error('La estación de trabajo seleccionada no tiene un ID válido.');
+      }
+
+
 
       const detail = this.detailsAppointmentRepository.create({
         appointment: savedAppointment,
@@ -150,8 +270,8 @@ export class AppointmentService {
         priceNow: service.price,
         durationNow: service.duration,
         datetimeStart: appointmentDate,
-        employee: employee,
         workstation: workstation,
+        employee: { id: employee.id },
         createdAt: new Date(),
       });
       // Guardo el detalle
@@ -160,6 +280,152 @@ export class AppointmentService {
 
     return savedAppointment;
   }
+
+
+
+
+  //   async create(body: AppointmentDto, user: User): Promise<Appointment> {
+  //     console.log('ESTOY EN EL SERVICIO DE APPOINTMENT: creación de turno');
+
+  //     const pkg = await this.packageRepository.findOne({ where: { id: body.package as unknown as number }, relations: ['services'] });
+  //     body.package = pkg;
+
+  //     if (body.package && body.package.services.length > 0) {
+  //         const service = await this.serviceRepository.find({
+  //             where: {
+  //                 id: In(body.package.services.map((service: Service) => service.id)),
+  //             },
+  //             relations: ['category'],
+  //         });
+  //         body.package.services = service;
+  //     }
+
+  //     const appointmentDate = new Date(body.datetimeStart);
+  //     console.log('appointmentDate: ', appointmentDate);
+
+  //     const config = await this.configService.getSystemConfig();
+
+  //     for (const service of body.package.services) {
+  //         const professionals = await this.findProffesionals(service.id, this.userRepository);
+  //         const workstations = await this.findWorkstations(service.id, this.workstationRepository);
+
+  //         const existingAppointmentsDetail = await this.detailsAppointmentRepository
+  //             .createQueryBuilder('details')
+  //             .innerJoin('details.service', 'service')
+  //             .innerJoin('details.appointment', 'appointment')
+  //             .where('service.category.id = :categoryId', { categoryId: service.category.id })
+  //             .andWhere('appointment.state != :cancelledState', { cancelledState: AppointmentState.CANCELLED })
+  //             .andWhere('details.datetimeStart < :appointmentDateEnd', {
+  //                 appointmentDateEnd: new Date(appointmentDate.getTime() + service.duration * 60000),
+  //             })
+  //             .andWhere(
+  //                 'DATE_ADD(details.datetimeStart, INTERVAL details.durationNow MINUTE) > :appointmentDateStart',
+  //                 { appointmentDateStart: appointmentDate }
+  //             )
+  //             .getMany();
+
+  //         console.log('existingAppointmentsDetail: ', existingAppointmentsDetail.length);
+  //         console.log('Cantidad de profesionales: ', professionals.length);
+  //         console.log('Cantidad de estaciones de trabajo: ', workstations.length);
+
+  //         if (existingAppointmentsDetail.length >= professionals.length && existingAppointmentsDetail.length >= workstations.length) {
+  //             throw new HttpException('No hay espacio disponible para esta cita', HttpStatus.BAD_REQUEST);
+  //         }
+
+  //         console.log('Hay espacio disponible para esta cita');
+  //     }
+
+  //     console.log('Creando la cita');
+  //     const appointmentEntity = this.appointmentRepository.create({
+  //         datetimeStart: appointmentDate,
+  //         datetimeEnd: addMinutes(
+  //             appointmentDate,
+  //             body.package.services.reduce((total, service) => total + service.duration, 0)
+  //         ),
+  //         client: user,
+  //         state: AppointmentState.PENDING,
+  //         package: body.package,
+  //     });
+
+  //     const savedAppointment = await this.appointmentRepository.save(appointmentEntity);
+
+  //     for (const service of body.package.services) {
+  //         console.log('Entre al for del servicio: ', service.id);
+  //         const professionals = await this.findProffesionals(service.id, this.userRepository);
+  //         const workstations = await this.findWorkstations(service.id, this.workstationRepository);
+
+  //         const existingAppointmentsDetail = await this.detailsAppointmentRepository
+  //             .createQueryBuilder('details')
+  //             .innerJoin('details.service', 'service')
+  //             .innerJoin('details.appointment', 'appointment')
+  //             .where('service.category.id = :categoryId', { categoryId: service.category.id })
+  //             .andWhere('appointment.state != :cancelledState', { cancelledState: AppointmentState.CANCELLED })
+  //             .andWhere('details.datetimeStart < :appointmentDateEnd', {
+  //                 appointmentDateEnd: new Date(appointmentDate.getTime() + service.duration * 60000),
+  //             })
+  //             .andWhere(
+  //                 'DATE_ADD(details.datetimeStart, INTERVAL details.durationNow MINUTE) > :appointmentDateStart',
+  //                 { appointmentDateStart: appointmentDate }
+  //             )
+  //             .getMany();
+
+  //         const existingAppointmentsDetailIds = existingAppointmentsDetail.map(detail => detail.id);
+
+  //         console.log('existingAppointmentsDetailIds: ', existingAppointmentsDetailIds);
+
+  //         const professionalIds = professionals.map(professional => professional.id);
+  //         const workstationIds = workstations.map(workstation => workstation.id);
+
+  //         let selectedProfessional: any[] = [];
+  //         let selectedWorkstation: any[] = [];
+  //         if (existingAppointmentsDetailIds.length > 0) {
+  //             selectedProfessional = await this.detailsAppointmentRepository
+  //                 .createQueryBuilder('details')
+  //                 .innerJoin('details.employee', 'employee')
+  //                 .select('employee')
+  //                 .where('employee.id NOT IN (SELECT "employeeId" FROM "details_appointments" WHERE id IN (:...existingAppointmentsDetailIds))', { existingAppointmentsDetailIds })
+  //                 .andWhere('employee.id IN (:...professionalIds)', { professionalIds })
+  //                 .getMany();
+
+  //             selectedWorkstation = await this.detailsAppointmentRepository
+  //                 .createQueryBuilder('details')
+  //                 .innerJoin('details.workstation', 'workstation')
+  //                 .select('workstation')
+  //                 .where('workstation.id NOT IN (SELECT "workstationId" FROM "details_appointments" WHERE id IN (:...existingAppointmentsDetailIds))', { existingAppointmentsDetailIds })
+  //                 .andWhere('workstation.id IN (:...workstationIds)', { workstationIds })
+  //                 .getMany();
+  //         } else {
+  //             console.log('Entre al else');
+  //         }
+
+  //         const randomIndexEmployee = Math.floor(Math.random() * selectedProfessional.length);
+  //         const employee = selectedProfessional[randomIndexEmployee];
+
+  //         const randomIndexStation = Math.floor(Math.random() * selectedWorkstation.length);
+  //         const workstation = selectedWorkstation[randomIndexStation];
+
+  //         if (!employee || !workstation) {
+  //             throw new Error('Profesional o estación de trabajo inválidos.');
+  //         }
+
+  //         const detail = this.detailsAppointmentRepository.create({
+  //             appointment: savedAppointment,
+  //             service: service,
+  //             priceNow: service.price,
+  //             durationNow: service.duration,
+  //             datetimeStart: appointmentDate,
+  //             employee: employee,
+  //             workstation: workstation,
+  //             createdAt: new Date(),
+  //         });
+  //         await this.detailsAppointmentRepository.save(detail);
+  //     }
+
+  //     return savedAppointment;
+  // }
+
+
+
 
 
   async hasAppointments(id, workstationId, date) {
@@ -190,9 +456,9 @@ export class AppointmentService {
       relations: ['employee'],
     });
 
-    console.log('Ya dentro de la funcion, appointments: ', appointments);
-    console.log(`startISO: ${startISO}`);
-    console.log(`endISO: ${endISO}`);
+    // console.log('Ya dentro de la funcion, appointments: ', appointments);
+    // console.log(`startISO: ${startISO}`);
+    // console.log(`endISO: ${endISO}`);
 
     // Crear un objeto para rastrear la disponibilidad de cada empleado
     const employeeAvailability = {};
@@ -226,9 +492,9 @@ export class AppointmentService {
 
       },
     });
-    console.log('Ya dentro de la funcion, appointments: ', appointments);
-    console.log('workstations: ', workstations);
-    console.log(`startISO: ${startISO}, endISO: ${endISO}`);
+    // console.log('Ya dentro de la funcion, appointments: ', appointments);
+    // console.log('workstations: ', workstations);
+    // console.log(`startISO: ${startISO}, endISO: ${endISO}`);
 
     // Crear un objeto para rastrear la disponibilidad de cada workstation
     const workstationAvailability = {};
@@ -461,7 +727,7 @@ export class AppointmentService {
           console.log('Hay colisión en el horario: ', currentStartUTC);
 
           if (currentStartUTC.getMinutes() % intervalMinutes === 0) {
-            
+
             // turnos en colision con el horario actual
             const colisionAppointments = await this.colisionAvailable(currentStartUTC, serviceDuration, categoryId);
 
@@ -541,9 +807,6 @@ export class AppointmentService {
         end: addMinutes(currentStartTime, serviceDuration),
       })
       .getMany();
-
-    console.log('existingAppointments en colisionAvailableFuture: ', existingAppointments);
-
 
     return existingAppointments;
   }

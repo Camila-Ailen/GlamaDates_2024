@@ -101,7 +101,7 @@ export class User {
     appointmentClient: Appointment[];
 
   @OneToMany(() => DetailsAppointment, (detailsAppointment) => detailsAppointment.employee)
-  detailsAppointmentEmployee: Appointment[];
+  detailsAppointmentEmployee: DetailsAppointment[];
 
   toJSON() {
     return instanceToPlain(this);
