@@ -2,8 +2,8 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Appointment } from "./entities/appointment.entity";
 import { Package } from "@/package/entities/package.entity";
-import { Between, In, Repository } from "typeorm";
-import { add, addMinutes, isAfter, isBefore, isEqual } from "date-fns";
+import { Between, In, LessThanOrEqual, MoreThanOrEqual, Repository } from "typeorm";
+import { add, addMinutes, isAfter, isBefore, isEqual, subMinutes } from "date-fns";
 import { Service } from "@/service/entities/service.entity";
 import { SystemConfigService } from "@/system-config/system-config.service";
 import { SystemConfigDto } from "@/system-config/dto/system-config.dto";
@@ -440,115 +440,42 @@ export class AppointmentService {
             }
 
           } else {
-            // console.log(' ');
-            // console.log('Colisiono a futuro en: ', currentStartUTC);
+            console.log(' ');
+            console.log('Colisiono a futuro en: ', currentStartUTC);
 
             if (currentStartUTC.getMinutes() % intervalMinutes === 0) {
 
-              // // Verifico disponibilidad de empleados y estaciones de trabajo en el horario
-              // const isAvailableForProfessionals = professionals.some(professional => {
-              //   return !existingAppointments.some(appointment =>
-              //     appointment.employee?.id === professional.id &&
-              //     // isAfter(currentStartUTC, appointment.datetimeStart) &&
-              //     (isBefore(currentStartUTC, appointment.datetimeStart) || isEqual(currentStartUTC, appointment.datetimeStart)) &&
-              //     isAfter(addMinutes(currentStartUTC, 1), appointment.datetimeStart) &&
-              //     isBefore(currentStartUTC, addMinutes(appointment.datetimeStart, appointment.durationNow))
-              //   );
-              // });
-
-
-              // const isAvailableForWorkstations = workstations.some(workstation => {
-              //   return !existingAppointments.some(appointment =>
-              //     appointment.workstation?.id === workstation.id &&
-              //     // isAfter(currentStartUTC, appointment.datetimeStart) &&
-              //     (isBefore(currentStartUTC, appointment.datetimeStart) || isEqual(currentStartUTC, appointment.datetimeStart)) &&
-              //     isAfter(addMinutes(currentStartUTC, 1), appointment.datetimeStart) &&
-              //     isBefore(currentStartUTC, addMinutes(appointment.datetimeStart, appointment.durationNow))
-              //   );
-              // });
-
-
-              // Verifico disponibilidad de empleados y estaciones de trabajo en el horario
-              const isAvailableForProfessionals = professionals.some(professional => {
-                // console.log(`Verificando profesional ${professional.id}`);
-                return !existingAppointments.some(appointment => {
-                  // console.log(`  Verificando appointment ${appointment.id} con profesional ${appointment.employee?.id}`);
-                  const isSameProfessional = appointment.employee?.id === professional.id;
-                  // console.log(`    Es el mismo profesional: ${isSameProfessional}`);
-                  const isBeforeOrEqual = isBefore(currentStartUTC, appointment.datetimeStart) || isEqual(currentStartUTC, appointment.datetimeStart);
-                  // console.log(`    Es antes o igual al horario actual: ${isBeforeOrEqual}`);
-                  // const isAfterOrEqual = isAfter(addMinutes(currentStartUTC, intervalMinutes), appointment.datetimeStart) || isEqual(addMinutes(currentStartUTC, intervalMinutes), appointment.datetimeStart);
-                  // console.log(`    Es después o igual al horario actual + intervalo: ${isAfterOrEqual}`);
-                  const result = isSameProfessional && (isBeforeOrEqual);
-                  // console.log(`    Resultado: ${result}`);
-                  return result;
-                });
-              });
-
-              const isAvailableForWorkstations = workstations.some(workstation => {
-                // console.log(`Verificando workstation ${workstation.id}`);
-                return !existingAppointments.some(appointment => {
-                  // console.log(`  Verificando appointment ${appointment.id} en workstation ${appointment.workstation?.id}`);
-                  const isSameWorkstation = appointment.workstation?.id === workstation.id;
-                  // console.log(`    Es el mismo workstation: ${isSameWorkstation}`);
-                  const isBeforeOrEqual = isBefore(currentStartUTC, appointment.datetimeStart) || isEqual(currentStartUTC, appointment.datetimeStart);
-                  // console.log(`    Es antes o igual al horario actual: ${isBeforeOrEqual}`);
-                  // const isAfterOrEqual = isAfter(addMinutes(currentStartUTC, intervalMinutes), appointment.datetimeStart) || isEqual(addMinutes(currentStartUTC, intervalMinutes), appointment.datetimeStart);
-                  // console.log(`    Es después o igual al horario actual + intervalo (${intervalMinutes}): ${isAfterOrEqual}`);
-                  const result = isSameWorkstation && (isBeforeOrEqual);
-                  // console.log(`    Resultado: ${result}`);
-                  return result;
-                });
-              });
-
-              if (isAvailableForProfessionals && isAvailableForWorkstations) {
-                console.log('Disponible en: ', currentStartUTC);
+              const colisionAppointmentsFuture = await this.colisionAvailableFuture(currentStartUTC, serviceDuration, categoryId);
+              // Evaluo si hay cantidad de profesionales y estaciones de trabajo suficientes disponibles
+              if (colisionAppointmentsFuture.length < professionals.length && colisionAppointmentsFuture.length < workstations.length) {
+                // Como aqui todavia no se deben asignar, con saber que hay disponibles es suficiente
                 availableStartTimes.push(new Date(currentStartUTC));
+              } else {
+                console.log('No hay suficientes turnos disponibles (colision futura)');
               }
+
             }
           }
         } else {
-          // console.log('Hay colisión en el horario: ', currentStartUTC);
+          console.log(' ');
+          console.log('Hay colisión en el horario: ', currentStartUTC);
 
           if (currentStartUTC.getMinutes() % intervalMinutes === 0) {
-            // Verifico disponibilidad de empleados y estaciones de trabajo en el horario
-            const isAvailableForProfessionals = professionals.some(professional => {
-              // console.log(`Verificando profesional ${professional.id}`);
-              return !existingAppointments.some(appointment => {
-                // console.log(`  Verificando appointment ${appointment.id} con profesional ${appointment.employee?.id}`);
-                const isSameProfessional = appointment.employee?.id === professional.id;
-                // console.log(`    Es el mismo profesional: ${isSameProfessional}`);
-                // const isBeforeOrEqual = isBefore(currentStartUTC, appointment.datetimeStart) || isEqual(currentStartUTC, appointment.datetimeStart);
-                // console.log(`    Es antes o igual al horario actual (${currentStartUTC}): ${isBeforeOrEqual}`);
-                const isAfterOrEqual = isAfter(addMinutes(currentStartUTC, intervalMinutes), appointment.datetimeStart) || isEqual(addMinutes(currentStartUTC, intervalMinutes), appointment.datetimeStart);
-                // console.log(`    Es después o igual al horario actual + intervalo: ${isAfterOrEqual}`);
-                const result = isSameProfessional && (isAfterOrEqual);
-                // console.log(`    Resultado: ${result}`);
-                return result;
-              });
-            });
+            
+            // turnos en colision con el horario actual
+            const colisionAppointments = await this.colisionAvailable(currentStartUTC, serviceDuration, categoryId);
 
-            const isAvailableForWorkstations = workstations.some(workstation => {
-              // console.log(`Verificando workstation ${workstation.id}`);
-              return !existingAppointments.some(appointment => {
-                // console.log(`  Verificando appointment ${appointment.id} en workstation ${appointment.workstation?.id}`);
-                const isSameWorkstation = appointment.workstation?.id === workstation.id;
-                // console.log(`    Es el mismo workstation: ${isSameWorkstation}`);
-                // const isBeforeOrEqual = isBefore(currentStartUTC, appointment.datetimeStart) || isEqual(currentStartUTC, appointment.datetimeStart);
-                // console.log(`    Es antes o igual al horario actual (${appointment.datetimeStart}): ${isBeforeOrEqual}`);
-                const isAfterOrEqual = isAfter(addMinutes(currentStartUTC, intervalMinutes), appointment.datetimeStart) || isEqual(addMinutes(currentStartUTC, intervalMinutes), appointment.datetimeStart);
-                // console.log(`    Es después o igual al horario actual + intervalo: ${isAfterOrEqual}`);
-                const result = isSameWorkstation && (isAfterOrEqual);
-                // console.log(`    Resultado: ${result}`);
-                return result;
-              });
-            });
+            // console.log('colisionAppointments cantidad: ', colisionAppointments.length);
+            // console.log('profesionales cantidad: ', professionals.length);
+            // console.log('estaciones de trabajo cantidad: ', workstations.length);
 
-            if (isAvailableForProfessionals && isAvailableForWorkstations) {
-              // console.log('Disponible en: ', currentStartUTC);
+            // Evaluo si hay cantidad de profesionales y estaciones de trabajo suficientes disponibles
+            if (colisionAppointments.length < professionals.length && colisionAppointments.length < workstations.length) {
+              // Como aqui todavia no se deben asignar, con saber que hay disponibles es suficiente
               availableStartTimes.push(new Date(currentStartUTC));
+            } else {
+              console.log('No hay suficientes turnos disponibles (colision presente)');
             }
-
           }
         }
       }
@@ -557,6 +484,68 @@ export class AppointmentService {
     }
 
     return availableStartTimes;
+  }
+
+
+  // tengo que ingresar
+  // 1. la fecha y hora actuales (currentStartTime)
+  // 2. la duracion del servicio (serviceDuration)
+  // 3. la id de la categoria del servicio (category)
+  private async colisionAvailable(currentStartTime: Date, serviceDuration: number, category: number) {
+    // pasar a un array las citas de la categoria afectadas en el servicio
+    console.log('Entre a la funcion colisionAvailable');
+    // const existingAppointments = await this.detailsAppointmentRepository.find({
+    //   where: [
+    //     {
+    //       workstation: { categories: { id: category } }
+    //     },
+    //     {
+    //       datetimeStart: 
+    //       (Between(currentStartTime, addMinutes(currentStartTime, serviceDuration))) ||
+
+    //       ((LessThanOrEqual(currentStartTime)) && MoreThanOrEqual(subMinutes(currentStartTime, serviceDuration))) ||
+
+    //       ((MoreThanOrEqual(currentStartTime)) && LessThanOrEqual(addMinutes(currentStartTime, serviceDuration))) ||
+
+    //       ((LessThanOrEqual(currentStartTime)) && MoreThanOrEqual(subMinutes(currentStartTime, serviceDuration)))
+    //     },
+    //   ],
+    //   relations: ['workstation', 'workstation.categories'],
+    // })
+
+    const existingAppointments = await this.detailsAppointmentRepository
+      .createQueryBuilder('detailsAppointment')
+      .innerJoin('detailsAppointment.workstation', 'workstation')
+      .innerJoin('workstation.categories', 'category')
+      .where('category.id = :categoryId', { categoryId: category })
+      .andWhere('detailsAppointment.datetimeStart BETWEEN :start AND :end', {
+        start: subMinutes(currentStartTime, serviceDuration),
+        end: addMinutes(currentStartTime, serviceDuration),
+      })
+      .getMany();
+
+    return existingAppointments;
+  }
+
+  private async colisionAvailableFuture(currentStartTime: Date, serviceDuration: number, category: number) {
+    // pasar a un array las citas de la categoria afectadas en el servicio
+    console.log('Entre a la funcion colisionAvailableFuture');
+
+    const existingAppointments = await this.detailsAppointmentRepository
+      .createQueryBuilder('detailsAppointment')
+      .innerJoin('detailsAppointment.workstation', 'workstation')
+      .innerJoin('workstation.categories', 'category')
+      .where('category.id = :categoryId', { categoryId: category })
+      .andWhere('detailsAppointment.datetimeStart BETWEEN :start AND :end', {
+        start: subMinutes(currentStartTime, serviceDuration),
+        end: addMinutes(currentStartTime, serviceDuration),
+      })
+      .getMany();
+
+    console.log('existingAppointments en colisionAvailableFuture: ', existingAppointments);
+
+
+    return existingAppointments;
   }
 
 
@@ -612,19 +601,35 @@ export class AppointmentService {
   }
 
 
+  // private hasFutureCollision(currentStartTime: Date, existingAppointments: DetailsAppointment[], serviceDuration: number): boolean {
+  //   const endTime = addMinutes(currentStartTime, serviceDuration);
+  //   return existingAppointments.some(app =>
+  //     isBefore(currentStartTime, app.datetimeStart) &&
+  //     isAfter(endTime, app.datetimeStart)
+  //   );
+  // }
+
   private hasFutureCollision(currentStartTime: Date, existingAppointments: DetailsAppointment[], serviceDuration: number): boolean {
     const endTime = addMinutes(currentStartTime, serviceDuration);
     return existingAppointments.some(app =>
-      isBefore(currentStartTime, app.datetimeStart) &&
-      isAfter(endTime, app.datetimeStart)
+    (isBefore(currentStartTime, app.datetimeStart) &&
+      isAfter(endTime, app.datetimeStart))
     );
   }
 
+  // private hasDetailsCollision(currentStartTime: Date, existingAppointments: DetailsAppointment[]): boolean {
+  //   return existingAppointments.some(app =>
+  //     isBefore(currentStartTime, addMinutes(app.datetimeStart, app.durationNow)) &&
+  //     isAfter(addMinutes(currentStartTime, 1), app.datetimeStart)
+  //   );
+  // }
 
   private hasDetailsCollision(currentStartTime: Date, existingAppointments: DetailsAppointment[]): boolean {
     return existingAppointments.some(app =>
-      isBefore(currentStartTime, addMinutes(app.datetimeStart, app.durationNow)) &&
-      isAfter(addMinutes(currentStartTime, 1), app.datetimeStart)
+      (isBefore(currentStartTime, addMinutes(app.datetimeStart, app.durationNow)) &&
+        isAfter(addMinutes(currentStartTime, 1), app.datetimeStart)) ||
+      (isBefore(currentStartTime, app.datetimeStart) &&
+        isAfter(addMinutes(currentStartTime, 1), addMinutes(app.datetimeStart, app.durationNow)))
     );
   }
 
