@@ -12,6 +12,11 @@ interface Package {
         description: string
         price: number
         duration: number
+        category: {
+            id: number
+            name: string
+            description: string
+        }
     }
     price: number
     duration: number

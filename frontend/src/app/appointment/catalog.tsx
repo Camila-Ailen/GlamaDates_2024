@@ -35,7 +35,7 @@ export function AppointmentCatalog() {
     } = useAppointmentStore();
 
 
-    const [availability, setAvailability] = useState<string[]>([]);
+    const [availability, setAvailability] = useState<Date[]>([]);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedPackage, setSelectedPackage] = useState('');
 
@@ -45,9 +45,8 @@ export function AppointmentCatalog() {
         const orderBy = 'id'; 
         const orderType = 'DESC'; 
         const availableDates = await fetchPackageAvailability(packageId, orderBy, orderType, offset, pageSize);
-        console.log("availableDates: ", availableDates);
         if (availableDates) {
-            setAvailability(availableDates); // Actualiza las fechas disponibles
+            setAvailability(availableDates.map(date => new Date(date))); // Actualiza las fechas disponibles
             setSelectedPackage(packageName)
             setIsDialogOpen(true)
         }
@@ -109,9 +108,11 @@ export function AppointmentCatalog() {
                                 {isDialogOpen && (
                                     <CalendarAppointmentDialog
                                         availableAppointments={appointments}
+                                        availableDates={availability}
+                                        services={pkg.services.map(service => service.name)}
                                         onClose={() => setIsDialogOpen(false)}
                                         packageName={selectedPackage}
-                                        availableDates={availability}
+                                        packageId={pkg.id}
                                     />
                                 )}
                             </CardFooter>

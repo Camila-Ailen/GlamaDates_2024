@@ -22,6 +22,24 @@ interface Appointment {
     ]
 }
 
+interface DetailsAppointment {
+    id: number,
+    priceNow: number,
+    durationNow: number,
+    appointment: string,
+    employee: string,
+    workstation: string,
+    service: string
+}
+
+interface Service {
+    id: number;
+    name: string;
+    category: string;
+    price: number;
+    duration: number;
+  }
+
 interface AppointmentState {
     appointments: Appointment[]
     total: number
@@ -32,6 +50,8 @@ interface AppointmentState {
     orderBy: string
     orderType: 'ASC' | 'DESC'
     filter: string
+    selectedServices: Service[]
+    setSelectedServices: (services: Service[]) => void
     fetchPackageAvailability: (packageId: number, orderBy:string, orderType: 'ASC' | 'DESC', offset:number, pageSize:number) => Promise<string[]>
 }
 
@@ -48,11 +68,14 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
     orderType: 'ASC',
     filter: '',
 
+    selectedServices: [],
+    setSelectedServices: (services) => set({ selectedServices: services }),
+    
+
 
     fetchPackageAvailability: async (packageId: number, orderBy:string, orderType: 'ASC' | 'DESC', offset: number, pageSize:number) => {
         try {
             console.log('packageId: ', packageId);
-            console.log('ruta: ', `${process.env.NEXT_PUBLIC_BACKEND_URL}/appointment/availability2/${packageId}?orderBy=${orderBy}&orderType=${orderType}&offset=${offset}&pageSize=${pageSize}`);
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/appointment/availability2/${packageId}?orderBy=${orderBy}&orderType=${orderType}&offset=${offset}&pageSize=${pageSize}`,
                 {
