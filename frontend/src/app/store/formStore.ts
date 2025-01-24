@@ -3,33 +3,37 @@ import { create } from 'zustand'
 import { createJSONStorage, persist } from "zustand/middleware"
 
 interface FormData {
-  step1: { date: Date }
+  step1: { date: Date, availableTimes: string[] }
   step2: { time: string }
-  step3: { interests: string[] }
+  step3: { selectedPackage: string }
 }
 
 interface FormStore {
   currentStep: number
-  formData: FormData
+  formData: {
+    step1: { date: Date; availableTimes: string[] }
+    step2: { date: Date; time: string }
+    step3: { packageId: number }
+  }
   setStep: (step: number) => void
-  updateFormData: (step: keyof FormData, data: Partial<FormData[keyof FormData]>) => void
+  updateFormData: (step: string, data: any) => void
   isStepValid: (step: number) => boolean
   submitForm: () => Promise<void>
 }
 
 export const useFormStore = create<FormStore>()(
-  persist(
+  // persist(
     (set, get) => ({
       currentStep: 1,
       formData: {
-        step1: { date: new Date() },
-        step2: { time: " " },
-        step3: { interests: [] },
+        step1: { date: new Date(), availableTimes: [] },
+        step2: { date: new Date(), time: "" },
+        step3: { packageId: 0 },
       },
       setStep: (step) => set({ currentStep: step }),
       updateFormData: (step, data) =>
         set((state) => ({
-          formData: { ...state.formData, [step]: { ...state.formData[step], ...data } },
+          formData: { ...state.formData, [step]: { ...(state.formData[step as keyof FormData]), ...data } },
         })),
       isStepValid: (step) => {
         const { formData } = get()
@@ -39,7 +43,7 @@ export const useFormStore = create<FormStore>()(
           case 2:
             return formData.step2.time.length > 0
           case 3:
-            return formData.step3.interests.length > 0
+            return formData.step3.packageId > 0
           default:
             return false
         }
@@ -62,10 +66,10 @@ export const useFormStore = create<FormStore>()(
         }
       },
     }),
-    {
-      name: "form-storage",
-      storage: createJSONStorage(() => localStorage),
-    },
-  ),
+    // {
+    //   name: "form-storage",
+    //   storage: createJSONStorage(() => localStorage),
+    // },
+  // ),
 )
 

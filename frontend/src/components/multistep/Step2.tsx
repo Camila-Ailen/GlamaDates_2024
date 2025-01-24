@@ -1,26 +1,53 @@
 import type React from "react"
 import { useFormStore } from "@/app/store/formStore"
+import { Button } from "../ui/button"
+import { useEffect, useState } from "react"
+import { set } from "react-hook-form"
 
 const Step2: React.FC = () => {
   const { formData, updateFormData } = useFormStore()
+  // const [availableTimes, setAvailableTimes] = useState<string[]>([])
+  const [selectedTime, setSelectedTime] = useState<string | null>(null)
+
+  const selectedDate = formData.step1.date
+  const availableTimes = formData.step1.availableTimes
+
+  useEffect(() => {
+    console.log("Available times:", availableTimes)
+  }, [availableTimes])
+
+  useEffect(() => {
+    if (selectedTime) {
+      updateFormData("step2", { date: selectedDate, time: selectedTime })
+    }
+  }, [selectedTime, updateFormData])
+
+  const handleTimeChange = (time: string) => {
+    setSelectedTime(time)
+  }
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-4">Step 2: Professional Information</h2>
-      <input
-        type="number"
-        value={formData.step2.age}
-        onChange={(e) => updateFormData("step2", { age: Number.parseInt(e.target.value) })}
-        placeholder="Age"
-        className="w-full p-2 mb-4 border rounded"
-      />
-      <input
-        type="text"
-        value={formData.step2.occupation}
-        onChange={(e) => updateFormData("step2", { occupation: e.target.value })}
-        placeholder="Occupation"
-        className="w-full p-2 mb-4 border rounded"
-      />
+    <div className="custom-dialog-content">
+      <h2 className="custom-dialog-title">Step 2: Professional Information</h2>
+      <div className="time-grid">
+      {availableTimes.length > 0 ? (
+        availableTimes.map((time, index) => (
+          <Button
+            key={index}
+            variant={selectedTime === time ? "default" : "outline"}
+            className={'time-button ${selectedTime === time ? "selected-time" : ""}'}
+            onClick={() => handleTimeChange(time)}
+          >
+            {time}
+          </Button>
+        ))
+      ) : (
+        <p>Al parecer se acaba de ocupar el ultimo horario disponible para esta fecha. Intenta con otra fecha.</p>
+      )}
+      </div>
+      {formData.step2 && formData.step2.time && (
+        <p>Hora seleccionada: {formData.step2.time}</p>
+      )}
     </div>
   )
 }

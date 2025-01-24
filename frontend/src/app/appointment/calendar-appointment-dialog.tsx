@@ -107,7 +107,7 @@
 //   return (
 //     <>
 //       {/* Modal principal */}
-//       <Dialog open={isOpen} onOpenChange={setIsOpen}>
+//       {/* <Dialog open={isOpen} onOpenChange={setIsOpen}>
 //         <DialogTrigger>
 //           <Button variant="outline" className="mr-2">Ver calendario</Button>
 //         </DialogTrigger>
@@ -125,7 +125,7 @@
 //           <MultiStepForm />
 //         </DialogContent>
 
-//       </Dialog>
+//       </Dialog> */}
 
 //       {/* {isTimeModalOpen && selectedDate && (
 //         <Dialog open={isTimeModalOpen} onOpenChange={() => setIsTimeModalOpen(false)}>
@@ -158,7 +158,7 @@
 //         </Dialog>
 //       )} */}
 
-//       {/* {isDetailsModalOpen && selectedDate && selectedTime && selectedServices.length > 0 && (
+//       {isDetailsModalOpen && selectedDate && selectedTime && selectedServices.length > 0 && (
 //         <Dialog open={isDetailsModalOpen} onOpenChange={() => setIsDetailsModalOpen(false)}>
 //           <DialogContent className="custom-dialog-content">
 //             <DialogHeader>
@@ -182,7 +182,7 @@
 //             </div>
 //           </DialogContent>
 //         </Dialog>
-//       )} */}
+//       )}
 //     </>
 //   )
 // }

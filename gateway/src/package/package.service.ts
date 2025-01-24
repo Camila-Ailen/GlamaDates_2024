@@ -25,7 +25,7 @@ export class PackageService {
       where: {
         id: body.id,
       },
-      relations: ['services'],
+      relations: ['services', 'services.category'],
     });
     if (!pkg) throw new HttpException('Package not found', HttpStatus.NOT_FOUND);
     const finalPackage = new PackageDto();
@@ -75,7 +75,7 @@ export class PackageService {
             ? Like(`%${params.query.description}%`)
             : undefined,
         },
-        relations: ['services'],
+        relations: ['services', 'services.category'],
         order,
         take: forPage,
         skip: skip,
@@ -148,7 +148,7 @@ export class PackageService {
 
     const pkg = await this.packageRepository.findOne({
       where: { name: params.body.name },
-      relations: ['services'],
+      relations: ['services', 'services.category'],
     });
 
     // cada service en el array de services tiene un precio, sumar todos los precios y aneadirlos al precio total del paquete
@@ -188,7 +188,7 @@ export class PackageService {
 
     const pkg = await this.packageRepository.findOne({
       where: { id: params.id, deletedAt: IsNull() },
-      relations: ['services'],
+      relations: ['services', 'services.category'],
     });
 
 
@@ -215,7 +215,7 @@ export class PackageService {
   async delete(params: { id: number }): Promise<Package> {
     const pkg = await this.packageRepository.findOne({
       where: { id: params.id },
-      relations: ['services'],
+      relations: ['services', 'services.category'],
     });
     if (!pkg) {
       throw new HttpException('Package not found', HttpStatus.NOT_FOUND);

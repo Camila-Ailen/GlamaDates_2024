@@ -34,6 +34,7 @@ interface PackageState {
     orderBy: string
     orderType: 'ASC' | 'DESC'
     filter: string
+    selectedPackage: Package | null
     fetchPackage: (page?: number) => Promise<void>
     createPackage: (packageData: Partial<Package>) => Promise<void>
     updatePackage: (packageData: Partial<Package>) => Promise<void>
@@ -55,16 +56,19 @@ const usePackageStore = create<PackageState>((set, get) => ({
     orderBy: 'id',
     orderType: 'ASC',
     filter: '',
+    selectedPackage: null,
 
 
+
+    selectPackage: (packageId: number) => {
+        const packageData = get().packages.find((packageItem) => packageItem.id === packageId);
+        set({ selectedPackage: packageData });
+    },
     
-
 
     fetchPackage: async (page?: number) => {
         const { pageSize, orderBy, orderType, filter } = get()
         const currentPage = page || get().currentPage
-
-        console.log("BACKEND_URL: ", process.env.NEXT_PUBLIC_BACKEND_URL);
 
 
         set({ isLoading: true, error: null })
@@ -87,6 +91,7 @@ const usePackageStore = create<PackageState>((set, get) => ({
             console.log("response: ", response);
             if (!response.ok) throw new Error('Error al obtener paquetes')
             const data = await response.json()
+        console.log("data: ", data);
             set({ packages: data.data.results, total: data.data.total, currentPage, isLoading: false })
         } catch (error) {
             set({ error: (error as any).message, isLoading: false })

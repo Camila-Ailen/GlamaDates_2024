@@ -12,6 +12,13 @@ interface Service {
   id: number;
   name: string;
   description: string;
+  price: number;
+  duration: number;
+  category: {
+    id: number;
+    name: string;
+    description: string;
+  };
 }
 
 interface Package {
@@ -42,7 +49,7 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
       case 2:
         return <Step2 />
       case 3:
-        return <Step3 />
+        return <Step3 selectedPackage={selectedPackage} />
       default:
         return null
     }
@@ -74,7 +81,7 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Formulario de Reserva</DialogTitle>
+          <DialogTitle>Formulario de Reserva para {selectedPackage.name}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col items-center">
           <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-xl">
