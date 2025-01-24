@@ -17,9 +17,6 @@ import {
 import { MainGraph } from "@/components/dashboard/main-graph";
 import { MonthGraph, TodayGraph } from "@/components/dashboard/countercard";
 import React from "react";
-import InsuranceForm, {
-  useStore,
-} from "@/components/apply-multistep/apply-dialog";
 import router from "next/router";
 import Link from "next/link";
 
@@ -45,10 +42,8 @@ const AnimatedCard = React.forwardRef<HTMLDivElement, AnimatedCardProps>(
 AnimatedCard.displayName = "AnimatedCard";
 
 export default function Component() {
-  const { openDialog } = useStore();
   return (
     <div className="flex min-h-screen flex-col">
-      <InsuranceForm />
       <main className="flex-1">
         <div className="container py-6">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -58,7 +53,6 @@ export default function Component() {
             >
               <Card
                 className="bg-primary text-primary-foreground"
-                onClick={openDialog}
               >
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-base font-medium">

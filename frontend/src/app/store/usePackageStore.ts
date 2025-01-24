@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import useAuthStore from './useAuthStore'
 import { toast } from 'sonner'
+import { off } from 'process'
 
 interface Package {
     id: number
@@ -27,6 +28,7 @@ interface PackageState {
     total: number
     currentPage: number
     pageSize: number
+    offset?: number
     isLoading: boolean
     error: string | null
     orderBy: string
