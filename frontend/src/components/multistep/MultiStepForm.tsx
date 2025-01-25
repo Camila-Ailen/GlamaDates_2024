@@ -7,6 +7,7 @@ import ProgressBar from "./ProgressBar"
 import { toast } from "sonner"
 import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog"
+import "@/components/multistep/calendar-appointment-dialog.css"
 
 interface Service {
   id: number;
@@ -70,18 +71,19 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
   const handleSubmit = async () => {
     if (isStepValid(3)) {
       await submitForm()
-      toast.success("En este punto, cree el turno 🎉")
+      toast.success("Reserva confirmada con éxito")
+      onClose()
     }
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <button onClick={() => setIsOpen(true)}>Seleccionar Paquete</button>
+        <button className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary-dark" onClick={() => setIsOpen(true)}>Seleccionar Paquete</button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Formulario de Reserva para {selectedPackage.name}</DialogTitle>
+          <DialogTitle className="custom-dialog-title">Formulario de Reserva para {selectedPackage.name.toUpperCase()}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col items-center">
           <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-xl">
@@ -106,7 +108,7 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
               ) : (
                 <button
                   onClick={handleSubmit}
-                  disabled={!isStepValid(currentStep)}
+                  // disabled={!isStepValid(currentStep)}
                   className="px-4 py-2 bg-green-500 text-white rounded disabled:opacity-50"
                 >
                   Confirmar

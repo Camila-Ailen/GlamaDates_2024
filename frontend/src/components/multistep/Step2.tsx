@@ -28,7 +28,8 @@ const Step2: React.FC = () => {
 
   return (
     <div className="custom-dialog-content">
-      <h2 className="custom-dialog-title">Step 2: Professional Information</h2>
+      <h2 className="custom-dialog-title">Paso 2: Seleccione el horario</h2>
+      <h3> Fecha seleccionada: {selectedDate?.toLocaleDateString('es-AR')}</h3>
       <div className="time-grid">
       {availableTimes.length > 0 ? (
         availableTimes.map((time, index) => (

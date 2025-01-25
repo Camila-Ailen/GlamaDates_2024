@@ -58,6 +58,8 @@ export class AppointmentController extends BaseController {
       @Body() appointmentDto: AppointmentDto,
     ) {
       const user = request.user;
+      console.log('ENTRE AL CONTROLADOR DE TURNOS, CREACION DE TURNO');
+      console.log('user desde controlador: ', user);
       console.log('appointmentDto desde controlador: ', appointmentDto);
       return await this.appointmentService.create(appointmentDto, user);
     }
