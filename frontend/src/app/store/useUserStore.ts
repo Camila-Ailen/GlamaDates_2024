@@ -2,7 +2,7 @@ import { toast } from "sonner";
 import { create } from "zustand";
 import useAuthStore from "./useAuthStore";
 
-interface User {
+export interface User {
   id: number;
   firstName: string;
   lastName: string;

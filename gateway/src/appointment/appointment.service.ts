@@ -762,7 +762,11 @@ export class AppointmentService {
           deletedAt: IsNull(),
         },
         relations: ['details', 'details.employee', 'details.workstation', 'details.service', 'client', 'package'],
-        order,
+        order: {
+          package: {
+            name: 'ASC',
+          },
+        },
         take: forPage,
         skip,
       });
