@@ -28,7 +28,7 @@ interface Appointment {
 interface Category {
     id: number,
     name: string,
-    description: string
+    description: string,
 }
 
 export interface Workstation {
@@ -47,11 +47,7 @@ interface Service {
     price: number;
     duration: number;
     description: string;
-    category: {
-      id: number;
-      name: string;
-      description: string;
-    }
+    category: Category;
   }
 
 interface AppointmentState {
@@ -67,7 +63,7 @@ interface AppointmentState {
     selectedServices: Service[]
     setSelectedServices: (services: Service[]) => void
     fetchPackageAvailability: (packageId: number, orderBy:string, orderType: 'ASC' | 'DESC', offset:number, pageSize:number) => Promise<string[]>
-    fetchAppointment: (page?: number, token?: string) => Promise<void>
+    fetchAppointments: (page?: number, token?: string) => Promise<void>
     setOrderBy: (field: string) => void
     setOrderType: (type: 'ASC' | 'DESC') => void
     setFilter: (filter: string) => void
@@ -83,7 +79,7 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
     isLoading: false,
     error: null,
     orderBy: 'id',
-    orderType: 'ASC',
+    orderType: 'DESC',
     filter: '',
 
     selectedServices: [],
@@ -122,7 +118,7 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
     },
 
 
-    fetchAppointment: async (page?: number) => {
+    fetchAppointments: async (page?: number) => {
         const { pageSize, orderBy, orderType, filter } = get()
         const currentPage = page || get().currentPage
 

@@ -41,7 +41,7 @@ export function AppointmentsTable() {
         orderBy,
         orderType,
         filter,
-        fetchAppointment,
+        fetchAppointments,
         setOrderBy,
         setOrderType,
         setFilter
@@ -50,9 +50,15 @@ export function AppointmentsTable() {
     const token = useAuthStore((state) => state.token);
     const hasPermission = useAuthStore((state) => state.hasPermission);
 
+    // useEffect(() => {
+    //     fetchAppointments()
+    // }, [fetchAppointments, orderBy, orderType, filter])
+
     useEffect(() => {
-        fetchAppointment()
-    }, [fetchAppointment, orderBy, orderType, filter])
+        if (token) {
+            fetchAppointments()
+        }
+    }, [fetchAppointments, token, orderBy, orderType, filter])
 
     if (isLoading) return <div>Cargando...</div>
     if (error) return <div>Ocurrió un error: {error}</div>
@@ -195,7 +201,7 @@ export function AppointmentsTable() {
                             <PaginationItem>
                                 <PaginationPrevious
                                     onClick={() =>
-                                        fetchAppointment(Math.max(currentPage - 1, 1), token || undefined)
+                                        fetchAppointments(Math.max(currentPage - 1, 1), token || undefined)
                                     }
                                 />
                             </PaginationItem>
@@ -217,7 +223,7 @@ export function AppointmentsTable() {
                                         .map((page) => (
                                             <PaginationItem key={page}>
                                                 <PaginationLink 
-                                                    onClick={() => fetchAppointment(page, token || undefined)} 
+                                                    onClick={() => fetchAppointments(page, token || undefined)} 
                                                     isActive={currentPage === page}>
                                                     {page}
                                                 </PaginationLink>
@@ -238,7 +244,7 @@ export function AppointmentsTable() {
                                 [...Array(totalPages)].map((_, i) => (
                                     <PaginationItem key={i}>
                                         <PaginationLink 
-                                            onClick={() => fetchAppointment(i + 1, token || undefined)} 
+                                            onClick={() => fetchAppointments(i + 1, token || undefined)} 
                                             isActive={currentPage === i + 1}>
                                             {i + 1}
                                         </PaginationLink>
@@ -248,7 +254,7 @@ export function AppointmentsTable() {
                             <PaginationItem>
                                 <PaginationNext 
                                     onClick={() => 
-                                        fetchAppointment(
+                                        fetchAppointments(
                                             Math.min(currentPage + 1, totalPages), 
                                             token || undefined)} />
                             </PaginationItem>

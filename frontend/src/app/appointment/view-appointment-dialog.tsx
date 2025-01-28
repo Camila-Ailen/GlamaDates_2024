@@ -16,7 +16,7 @@ import { Eye, UserPen, View } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { format } from 'date-fns/format'
 import { User } from '../store/useUserStore'
-import { DetailsAppointment } from '../store/useAppointmentStore'
+// import { DetailsAppointment } from '../store/useAppointmentStore'
 
 export function ViewAppointmentDialog({ appointment }) {
     const [isOpen, setIsOpen] = useState(false)
@@ -56,7 +56,7 @@ export function ViewAppointmentDialog({ appointment }) {
                                                                 <li><strong>{detail.service.name}</strong></li>
                                                                 {/* <li>Categoria: {detail.service.category.name}</li> */}
                                                                 <li>Precio: {detail.service.price.toFixed(2)}</li>
-                                                                <li>Inicio: {detail.datetimeStart.toLocaleString()}</li>
+                                                                <li>Inicio: {format(new Date(detail.datetimeStart), 'HH:mm')}hs</li>
                                                                 <li>Duracion: {detail.service.duration} minutos</li>
                                                                 <li>Descripcion: {detail.service.description}</li>
                                                                 <li>Empleado: {detail.employee.firstName} {detail.employee.lastName}</li>

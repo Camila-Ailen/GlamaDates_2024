@@ -65,7 +65,6 @@ const useCategoryStore = create<CategoryState>((set, get) => ({
                 return;
             }
 
-            console.log("response: ", response);
             if (!response.ok) throw new Error('Error al obtener categorias')
             const data = await response.json()
             set({ categories: data.data.results, total: data.data.total, currentPage, isLoading: false })

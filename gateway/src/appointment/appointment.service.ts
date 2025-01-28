@@ -737,7 +737,7 @@ export class AppointmentService {
       offset: params.query.offset,
       results: [],
     };
-    console.log('Entre a la funcion all');
+
     try {
       if (Object.keys(params.query).length === 0) {
         return emptyResponse;
@@ -756,25 +756,20 @@ export class AppointmentService {
         : 10;
       const skip = params.query.offset;
 
-      console.log('Vamos a hacer la busqueda');
       const [appointments, total] = await this.appointmentRepository.findAndCount({
         where: {
           deletedAt: IsNull(),
         },
         relations: ['details', 'details.employee', 'details.workstation', 'details.service', 'client', 'package'],
-        order: {
-          package: {
-            name: 'ASC',
-          },
-        },
+        order,
         take: forPage,
         skip,
       });
 
       return {
-        total,
+        total: total,
         pageSize: forPage,
-        offset: skip,
+        offset: params.query.offset,
         results: appointments,
       };
   } catch (error) {
