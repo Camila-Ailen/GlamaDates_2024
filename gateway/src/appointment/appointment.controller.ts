@@ -49,6 +49,18 @@ export class AppointmentController extends BaseController {
   }
 
 
+  ////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
+  // Trae los turnos de un usuario
+  @Get('user')
+  @Auth('read:appointments')
+  async allByUser(@Req() request: { user: User }, @Query() query: PaginationAppointmentDto): Promise<ResposeDTO> {
+    const user = request.user;
+    const appointments = await this.appointmentService.allByUser(user, { query });
+    return { status: 'success', data: appointments };
+  }
+
+
 
   @Post()
   @Auth('create:appointments')

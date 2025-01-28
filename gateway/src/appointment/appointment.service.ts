@@ -779,5 +779,61 @@ export class AppointmentService {
   }
 
 
+  //////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+
+  async allByUser(user: User, params: {
+    query: PaginationAppointmentDto;
+  }): Promise<PaginationResponseDTO> {
+    const emptyResponse = {
+      total: 0,
+      pageSize: 0,
+      offset: params.query.offset,
+      results: [],
+    };
+
+
+    try {
+      if (Object.keys(params.query).length === 0) {
+        return emptyResponse;
+      }
+      if (params.query.pageSize?.toString() === '0') {
+        return emptyResponse;
+      }
+
+      const order = {};
+      if (params.query.orderBy && params.query.orderType) {
+        order[params.query.orderBy] = params.query.orderType;
+      }
+
+      const forPage = params.query.pageSize
+        ? parseInt(params.query.pageSize.toString(), 10) || 10
+        : 10;
+      const skip = params.query.offset;
+
+      const [appointments, total] = await this.appointmentRepository.findAndCount({
+        where: {
+          deletedAt: IsNull(),
+          client: {id: user.id},
+        },
+        relations: ['details', 'details.employee', 'details.workstation', 'details.service', 'client', 'package'],
+        order,
+        take: forPage,
+        skip,
+      });
+
+      return {
+        total: total,
+        pageSize: forPage,
+        offset: params.query.offset,
+        results: appointments,
+      };
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+
 
 }

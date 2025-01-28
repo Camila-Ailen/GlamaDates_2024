@@ -147,6 +147,8 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
         }
     },
 
+    
+
 
     setOrderBy: (field) => set({ orderBy: field }),
     setOrderType: (type) => set({ orderType: type }),
