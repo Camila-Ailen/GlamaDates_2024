@@ -4,14 +4,15 @@ import { toast } from 'sonner'
 import { Package } from './usePackageStore'
 import { User } from './useUserStore'
 
-interface DetailsAppointment {
+export interface DetailsAppointment {
     id: number,
     priceNow: number,
     durationNow: number,
     appointment: Appointment,
     employee: User,
     workstation: Workstation,
-    service: Service
+    service: Service,
+    datetimeStart: Date,
 }
 
 interface Appointment {
@@ -30,7 +31,7 @@ interface Category {
     description: string
 }
 
-interface Workstation {
+export interface Workstation {
     id: number,
     name: string,
     description: string,
@@ -45,6 +46,7 @@ interface Service {
     name: string;
     price: number;
     duration: number;
+    description: string;
     category: {
       id: number;
       name: string;

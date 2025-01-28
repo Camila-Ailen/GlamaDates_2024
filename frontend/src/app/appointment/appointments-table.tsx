@@ -24,10 +24,11 @@ import {
 // import { EditPackageDialog } from './edit-package-dialog'
 // import { DeletePackageDialog } from './delete-package-dialog'
 import useAppointmentStore from '../store/useAppointmentStore'
-import { ArrowUpDown } from 'lucide-react'
+import { ArrowUpDown, View } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 // import { CreatePackageDialog } from './create-package-dialog'
 import useAuthStore from '../store/useAuthStore'
+import { ViewAppointmentDialog } from './view-appointment-dialog'
 
 export function AppointmentsTable() {
     const {
@@ -170,7 +171,7 @@ export function AppointmentsTable() {
                                     {/* <TableCell>{appointment.price}</TableCell> */}
                                     <TableCell>
                                         {hasPermission("read:appointments") && (
-                                            <p>Ver :v</p>
+                                            <ViewAppointmentDialog appointment={appointment} />
                                         )}
                                         {/* {hasPermission("update:appointments") && (
                         <EditPackageDialog pkg={appointment.package} />

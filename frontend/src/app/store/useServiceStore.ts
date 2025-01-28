@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import useAuthStore from './useAuthStore'
 import { toast } from 'sonner'
 
-interface Service {
+export interface Service {
     id: number
     name: string
     description: string
