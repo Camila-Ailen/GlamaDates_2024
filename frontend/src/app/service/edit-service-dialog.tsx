@@ -21,7 +21,9 @@ interface Service {
     duration: number;
     price: number;
     category: {
-        id: string;
+        id: number;
+        name: string;
+        description: string;
     };
 }
 

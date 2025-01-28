@@ -13,17 +13,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import usePackageStore from '../store/usePackageStore'
 import { UserPen } from 'lucide-react'
+import { Package } from '../store/usePackageStore'
 
-export interface Package {
-    id: number;
-    name: string;
-    description: string;
-    duration: number;
-    price: number;
-    services: {
-        id: string;
-    };
-}
+
 
 export function EditPackageDialog({ pkg }: { pkg: Package }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -67,7 +59,7 @@ export function EditPackageDialog({ pkg }: { pkg: Package }) {
               <Input
                 id="services"
                 name="services"
-                defaultValue={pkg.services.id}
+                defaultValue={pkg.services.map(service => service.id).join(', ')}
                 className="col-span-3"
               />
             </div>

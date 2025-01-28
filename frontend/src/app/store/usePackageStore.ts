@@ -3,25 +3,27 @@ import useAuthStore from './useAuthStore'
 import { toast } from 'sonner'
 import { off } from 'process'
 
-interface Package {
-    id: number
-    name: string
-    description: string
-    services: {
-        id: number
-        name: string
-        description: string
-        price: number
-        duration: number
-        category: {
-            id: number
-            name: string
-            description: string
-        }
-    }
-    price: number
-    duration: number
-}
+  
+  interface Service {
+      id: number;
+      name: string;
+      description: string;
+      price: number;
+      duration: number;
+      category: {
+        id: number;
+        name: string;
+        description: string;
+      }
+  }
+  export interface Package {
+      id: number;
+      name: string;
+      description: string;
+      duration: number;
+      price: number;
+      services: Service[];
+  }
 
 interface PackageState {
     packages: Package[]

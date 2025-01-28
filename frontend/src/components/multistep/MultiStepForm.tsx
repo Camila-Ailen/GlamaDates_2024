@@ -4,53 +4,38 @@ import Step1 from "./Step1"
 import Step2 from "./Step2"
 import Step3 from "./Step3"
 import ProgressBar from "./ProgressBar"
-import { toast } from "sonner"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog"
 import "@/components/multistep/calendar-appointment-dialog.css"
-
-interface Service {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  duration: number;
-  category: {
-    id: number;
-    name: string;
-    description: string;
-  };
-}
-
-interface Package {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  duration: number;
-  services: Service[];
-}
+import type { Package } from "@/app/store/usePackageStore"
 
 interface MultiStepFormProps {
-  availability: Date[];
-  selectedPackage: Package;
-  onClose: () => void;
+  availability: Date[]
+  selectedPackage: Package
+  onClose: () => void
+  onPackageSelect: () => void
 }
 
-const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPackage, onClose }) => {
+const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPackage, onClose, onPackageSelect }) => {
+  const { currentStep, setStep, isStepValid, submitForm, isOpen, openForm, closeForm, updateFormData, formData } =
+    useFormStore()
   
-  const { currentStep, setStep, isStepValid, submitForm } = useFormStore()
-  const [isOpen, setIsOpen] = useState(false)
+  console.log("MultiStepForm -> formData.selectedPackage", formData.selectedPackage?.id)
 
+  // useEffect(() => {
+  //   if (isOpen) {
+  //     updateFormData("selectedPackage", selectedPackage)
+  //   }
+  // }, [isOpen, selectedPackage, updateFormData])
 
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <Step1 availableDates={availability} selectedPackage={selectedPackage} />
+        return <Step1 availableDates={availability} />
       case 2:
         return <Step2 />
       case 3:
-        return <Step3 selectedPackage={selectedPackage} />
+        return formData.selectedPackage ? <Step3 selectedPackage={formData.selectedPackage} /> : null
       default:
         return null
     }
@@ -71,19 +56,28 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
   const handleSubmit = async () => {
     if (isStepValid(3)) {
       await submitForm()
-      toast.success("Reserva confirmada con éxito")
+      closeForm()
       onClose()
     }
   }
 
+  const handleOpenForm = () => {
+    onPackageSelect()
+    openForm()
+  }
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={(open) => (open ? handleOpenForm() : closeForm())}>
       <DialogTrigger asChild>
-        <button className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary-dark" onClick={() => setIsOpen(true)}>Seleccionar Paquete</button>
+        <button className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary-dark">
+          Seleccionar Paquete
+        </button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="custom-dialog-title">Formulario de Reserva para {selectedPackage.name.toUpperCase()}</DialogTitle>
+          <DialogTitle className="custom-dialog-title">
+            Formulario de Reserva para {formData.selectedPackage?.name.toUpperCase()}
+          </DialogTitle>
         </DialogHeader>
         <div className="flex flex-col items-center">
           <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-xl">
@@ -108,7 +102,6 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
               ) : (
                 <button
                   onClick={handleSubmit}
-                  // disabled={!isStepValid(currentStep)}
                   className="px-4 py-2 bg-green-500 text-white rounded disabled:opacity-50"
                 >
                   Confirmar
