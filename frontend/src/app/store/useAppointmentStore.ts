@@ -15,7 +15,7 @@ export interface DetailsAppointment {
     datetimeStart: Date,
 }
 
-interface Appointment {
+export interface Appointment {
     id: number,
     datetimeStart: Date,
     datetimeEnd: Date,

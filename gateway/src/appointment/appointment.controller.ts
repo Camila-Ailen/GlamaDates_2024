@@ -57,6 +57,7 @@ export class AppointmentController extends BaseController {
   async allByUser(@Req() request: { user: User }, @Query() query: PaginationAppointmentDto): Promise<ResposeDTO> {
     const user = request.user;
     const appointments = await this.appointmentService.allByUser(user, { query });
+    console.log('data: ', appointments);
     return { status: 'success', data: appointments };
   }
 

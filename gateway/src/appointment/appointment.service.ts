@@ -792,7 +792,6 @@ export class AppointmentService {
       results: [],
     };
 
-
     try {
       if (Object.keys(params.query).length === 0) {
         return emptyResponse;

@@ -66,13 +66,8 @@ export const useFormStore = create<FormStore>()((set, get) => ({
       let [hours, minutes] = timePart.split(':').map(Number);
     
       if (modifier.replace(/\s+/g, '').trim() === 'p.m.') {
-        console.log("PM")
         hours += 12;
-      } else {
-        console.log("AM")
-        hours = 0;
-      }
-      console.log(`Hours: "${hours}" Minutes: "${minutes}"`)
+      } 
       return { hours, minutes };
     };
 

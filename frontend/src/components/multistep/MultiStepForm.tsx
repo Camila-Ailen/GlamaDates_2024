@@ -20,8 +20,6 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
   const { currentStep, setStep, isStepValid, submitForm, isOpen, openForm, closeForm, updateFormData, formData } =
     useFormStore()
   
-  console.log("MultiStepForm -> formData.selectedPackage", formData.selectedPackage?.id)
-
   // useEffect(() => {
   //   if (isOpen) {
   //     updateFormData("selectedPackage", selectedPackage)

@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import MyDates from './myDates'
+import { MyDates } from './myDates'
 
 
 export default function MyDatesPage() {

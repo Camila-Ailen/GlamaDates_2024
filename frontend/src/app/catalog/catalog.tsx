@@ -28,7 +28,7 @@ const AppointmentCatalog = () => {
     updateFormData("selectedPackage", pkg)
     const availabilityData = await fetchPackageAvailability(pkg.id, orderBy, orderType, offset, pageSize)
     if (availabilityData) {
-        console.log("Desde catalogo de paquetes, el selectedPackage: ", pkg)
+      console.log("Desde catalogo de paquetes, el selectedPackage: ", pkg)
 
       setAvailability(availabilityData.map((date) => new Date(date)))
     }
@@ -42,7 +42,7 @@ const AppointmentCatalog = () => {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4">
-      <div className="grid auto-rows-min gap-4 md:grid-cols-3 lg:grid-cols-5">
+      <div className="grid auto-rows-min gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
         {packages.map((pkg) => (
           <div key={pkg.id} className="p-4 bg-muted/50 rounded-xl shadow-lg cursor-pointer hover:bg-muted transition">
             <Card>
