@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 
 const Step2: React.FC = () => {
   const { formData, updateFormData } = useFormStore()
-  const [selectedTime, setSelectedTime] = useState<string | null>(null)
+  const [selectedTime, setSelectedTime] = useState<string | null>(formData.step2.time || null)
 
   const selectedDate = formData.step1.date
   const availableTimes = formData.step1.availableTimes
@@ -44,7 +44,6 @@ const Step2: React.FC = () => {
           <p>Al parecer se acaba de ocupar el ultimo horario disponible para esta fecha. Intenta con otra fecha.</p>
         )}
       </div>
-      {formData.step2 && formData.step2.time && <p>Hora seleccionada: {formData.step2.time}</p>}
     </div>
   )
 }

@@ -21,7 +21,7 @@ const Step1: React.FC<InitialFormData> = ({ availableDates }) => {
         .map((d) => new Date(d).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }))
       updateFormData("step1", { date: selectedDate, availableTimes: times })
     }
-    console.log("Paquete seleccionado: ", formData.selectedPackage?.name)
+    // console.log("Paquete seleccionado: ", formData.selectedPackage?.name)
   }, [selectedDate, availableDates, updateFormData])
 
   const tileClassName = ({ date, view }: { date: Date; view: string }) => {
@@ -46,7 +46,6 @@ const Step1: React.FC<InitialFormData> = ({ availableDates }) => {
 
   return (
     <div className="custom-dialog-content calendar-container">
-      <h2 className="text-2xl font-bold mb-4">Paquete: {formData.selectedPackage?.name} </h2>
       <h3 className="custom-dialog-title">Seleccione la fecha</h3>
       <Calendar onChange={handleDateChange} tileClassName={tileClassName} locale="es-AR" className="custom-calendar" />
     </div>

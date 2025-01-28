@@ -33,7 +33,9 @@ export const useFormStore = create<FormStore>()((set, get) => ({
     step3: { packageId: 0 },
     selectedPackage: null,
   },
+  
   setStep: (step) => set({ currentStep: step }),
+  
   updateFormData: (step, data) =>
     set((state) => ({
       formData: {
@@ -42,7 +44,8 @@ export const useFormStore = create<FormStore>()((set, get) => ({
         ...(step === "selectedPackage" ? { selectedPackage: data as Package } : {}),
       },
     })),
-  isStepValid: (step) => {
+  
+    isStepValid: (step) => {
     const { formData } = get()
     switch (step) {
       case 1:
@@ -102,6 +105,7 @@ export const useFormStore = create<FormStore>()((set, get) => ({
       // Handle error
     }
   },
+  
   resetForm: () =>
     set({
       currentStep: 1,
@@ -113,7 +117,9 @@ export const useFormStore = create<FormStore>()((set, get) => ({
       },
     }),
   isOpen: false,
+  
   openForm: () => set({ isOpen: true }),
+  
   closeForm: () => {
     set({ isOpen: false })
     get().resetForm()
