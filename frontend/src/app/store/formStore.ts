@@ -59,6 +59,23 @@ export const useFormStore = create<FormStore>()((set, get) => ({
     }
   },
   submitForm: async () => {
+    const convertTo24HourFormat = (time: string) => {
+      console.log(`Time: "${time}"`)
+      const [timePart, modifier] = time.split(' ');
+      console.log(`Time part: "${timePart}" Modifier: "${modifier}"`)
+      let [hours, minutes] = timePart.split(':').map(Number);
+    
+      if (modifier.replace(/\s+/g, '').trim() === 'p.m.') {
+        console.log("PM")
+        hours += 12;
+      } else {
+        console.log("AM")
+        hours = 0;
+      }
+      console.log(`Hours: "${hours}" Minutes: "${minutes}"`)
+      return { hours, minutes };
+    };
+
     const { formData } = get()
     const _package = formData.step3.packageId.toString()
     const date = formData.step1.date
@@ -67,9 +84,10 @@ export const useFormStore = create<FormStore>()((set, get) => ({
     if (!date) {
       throw new Error("Date is null")
     }
+    const { hours, minutes } = convertTo24HourFormat(time);
     const datetime = new Date(date)
-    datetime.setHours(Number.parseInt(time.split(":")[0]))
-    datetime.setMinutes(Number.parseInt(time.split(":")[1]))
+    datetime.setHours(hours)
+    datetime.setMinutes(minutes)
     datetime.setSeconds(0)
     datetime.setMilliseconds(0)
 
