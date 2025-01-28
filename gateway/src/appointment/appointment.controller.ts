@@ -9,60 +9,56 @@ import { User } from '@/users/entities/user.entity';
 import { Auth } from '@/auth/auth.decorator';
 import { JwtService } from '@nestjs/jwt';
 import { BaseController } from '@/base/base.controller';
+import { ResposeDTO } from '@/base/dto/base.dto';
 
 @Controller('appointment')
 export class AppointmentController extends BaseController {
   @Inject(AppointmentService)
   private readonly appointmentService: AppointmentService;
   private jwtService: JwtService;
-    @Inject(SystemConfigService)
-    private readonly configService: SystemConfigService; // Para verificar parámetros globales
+  @Inject(SystemConfigService)
+  private readonly configService: SystemConfigService; // Para verificar parámetros globales
 
-    constructor (){
-      //private readonly appointmentService: AppointmentService,
-      super (AppointmentController);
-    }
-  
-    @Get('open-days')
-    async getOpenDays(): Promise<{ openDays: string[] }> {
-      const configDto = new SystemConfigDto(); // Create an instance of SystemConfigDto
-      const config = await this.configService.getSystemConfig();
-      return { openDays: config.openDays };
-    }
-  
-    // @Get('availability/:packageId')
-    // @Auth('read:appointments')
-    // async getAvailability(@Param('packageId') packageId: number, @Query('offset') offset: number, @Query('pageSize') pageSize: number): Promise<Date[]> {
-    //   console.log('Entre al controlador de turnos')
-    //   console.log('packageId: ', packageId);
-    //   console.log('page: ', offset);
-    //   console.log('pageSize: ', pageSize);
-    //   return this.appointmentService.getAvailableAppointments(packageId, offset, pageSize);
-    // }
+  constructor() {
+    super(AppointmentController);
+  }
+
+  @Get('open-days')
+  async getOpenDays(): Promise<{ openDays: string[] }> {
+    const configDto = new SystemConfigDto(); // Create an instance of SystemConfigDto
+    const config = await this.configService.getSystemConfig();
+    return { openDays: config.openDays };
+  }
 
 
-    @Get('availability2/:packageId')
-    @Auth('read:appointments')
-    async getAvailability2(@Param('packageId') packageId: number, @Query('offset') offset: number, @Query('pageSize') pageSize: number): Promise<Date[]> {
-      console.log('Entre al controlador de turnos')
-      console.log('packageId: ', packageId);
-      return this.appointmentService.getAvailableAppointments3(packageId, offset, pageSize);
-    }
+  // Trae los horarios disponibles para un paquete
+  @Get('availability2/:packageId')
+  @Auth('read:appointments')
+  async getAvailability2(@Param('packageId') packageId: number, @Query('offset') offset: number, @Query('pageSize') pageSize: number): Promise<Date[]> {
+    return this.appointmentService.getAvailableAppointments3(packageId, offset, pageSize);
+  }
 
-    
+  ////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
+  // Trae los turnos, todos
+  @Get()
+  @Auth('read:appointments')
+  async all(@Query() query: PaginationAppointmentDto): Promise<ResposeDTO> {
+    const appointments = await this.appointmentService.all({ query });
+    return { status: 'success', data: appointments };
+  }
 
-    @Post()
-    @Auth('create:appointments')
-    async create(
-      @Req() request: { user: User },
-      @Body() appointmentDto: AppointmentDto,
-    ) {
-      const user = request.user;
-      console.log('ENTRE AL CONTROLADOR DE TURNOS, CREACION DE TURNO');
-      console.log('user desde controlador: ', user);
-      console.log('appointmentDto desde controlador: ', appointmentDto);
-      return await this.appointmentService.create(appointmentDto, user);
-    }
 
-    
+
+  @Post()
+  @Auth('create:appointments')
+  async create(
+    @Req() request: { user: User },
+    @Body() appointmentDto: AppointmentDto,
+  ) {
+    const user = request.user;
+    return await this.appointmentService.create(appointmentDto, user);
+  }
+
+
 }
