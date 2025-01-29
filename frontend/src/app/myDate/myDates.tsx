@@ -91,9 +91,7 @@ export function MyDates() {
                                 )}
                             </CardContent>
                             <CardFooter>
-                                
-                                    <ViewMydateDialog appointment={myDate} />
-                                    
+                                <ViewMydateDialog appointment={myDate} />
                             </CardFooter>
                         </Card>
                     </div>

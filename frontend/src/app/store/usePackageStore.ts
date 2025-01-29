@@ -37,7 +37,7 @@ interface PackageState {
     orderType: 'ASC' | 'DESC'
     filter: string
     selectedPackage: Package | null
-    fetchPackage: (page?: number) => Promise<void>
+    fetchPackage: (page?: number, token?: string) => Promise<void>
     createPackage: (packageData: Partial<Package>) => Promise<void>
     updatePackage: (packageData: Partial<Package>) => Promise<void>
     deletePackage: (packageId: number) => Promise<void>
