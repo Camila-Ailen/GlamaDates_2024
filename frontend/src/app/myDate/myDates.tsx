@@ -6,6 +6,7 @@ import useMyDatesStore from "../store/useMyDatesStore"
 import { format } from "date-fns/format"
 import useAuthStore from "../store/useAuthStore"
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
+import { ViewMydateDialog } from "./view-mydate-dialog"
 
 
 export function MyDates() {
@@ -65,36 +66,36 @@ export function MyDates() {
 
     return (
         <div className="flex flex-1 flex-col gap-4 p-4">
-            <div className="grid auto-rows-min gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))' }}>
+            <h1 className="text-3xl font-bold text-center text-pink-700 mb-6">Mis Citas</h1>
+            <div className="flex flex-wrap justify-center gap-6">
                 {myDates.map((myDate) => (
-                    <div key={myDate.id} className="p-6 bg-pink-100 rounded-2xl shadow-lg cursor-pointer hover:bg-pink-200 transition">
-                        {/* <div className="flex items-center gap-1.5"> */}
-                            <Card className="h-full flex flex-col justify-center items-center text-center">
-                                <CardHeader>
-                                    <CardTitle className="text-lg font-semibold text-pink-700">
-                                        <div>{format(new Date(myDate.datetimeStart), 'dd/MM/yyyy')}  </div>
-                                        <div>{format(new Date(myDate.datetimeStart), 'HH:mm')}hs</div>
-                                        <p className="text-pink-600"> {myDate.package.name.toUpperCase()}</p>
-                                    </CardTitle>
-                                    <CardDescription className="text-pink-500">
-                                        {myDate.package.description}
-                                        {/* {myDate.package.services[0].name} */}
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    {myDate.package && myDate.package.services && myDate.package.services.length >= 1 &&(
-                                        <ul className="list-disc list-inside text-pink-500">
-                                            {myDate.package.services.map((service) => (
-                                                <li key={service.id}>{service.name}</li>
-                                            ))}
-                                        </ul>
-                                    )}
-                                </CardContent>
-                                <CardFooter>
-                                    <p>y aca el boton</p>
-                                </CardFooter>
-                            </Card>
-                        {/* </div> */}
+                    <div key={myDate.id} className="p-6 bg-pink-100 rounded-2xl shadow-lg cursor-pointer hover:bg-pink-200 transition" style={{ minWidth: '250px', minHeight: '250px' }}>
+                        <Card className="h-full flex flex-col justify-center items-center text-center">
+                            <CardHeader>
+                                <CardTitle className="text-lg font-semibold text-pink-700">
+                                    <div>{format(new Date(myDate.datetimeStart), 'dd/MM/yyyy')}  </div>
+                                    <div>{format(new Date(myDate.datetimeStart), 'HH:mm')}hs</div>
+                                    <p className="text-pink-600"> {myDate.package.name.toUpperCase()}</p>
+                                </CardTitle>
+                                <CardDescription className="text-pink-500">
+                                    {myDate.package.description}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {myDate.package && myDate.package.services && myDate.package.services.length >= 1 && (
+                                    <ul className="list-disc list-inside text-pink-500">
+                                        {myDate.package.services.map((service) => (
+                                            <li key={service.id}>{service.name}</li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </CardContent>
+                            <CardFooter>
+                                
+                                    <ViewMydateDialog appointment={myDate} />
+                                    
+                            </CardFooter>
+                        </Card>
                     </div>
                 ))}
             </div>

@@ -32,7 +32,7 @@ export const useMyDatesStore = create<MyDatesState>((set, get) => ({
     pageSize: 8,
     isLoading: false,
     error: null,
-    orderBy: 'id',
+    orderBy: 'datetimeStart',
     orderType: 'DESC',
     filter: '',
 

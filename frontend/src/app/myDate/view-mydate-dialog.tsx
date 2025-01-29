@@ -18,7 +18,7 @@ import { format } from 'date-fns/format'
 import { User } from '../store/useUserStore'
 // import { DetailsAppointment } from '../store/useAppointmentStore'
 
-export function ViewAppointmentDialog({ appointment }) {
+export function ViewMydateDialog({ appointment }) {
     const [isOpen, setIsOpen] = useState(false)
 
     console.log("APPOINTMENT: ", appointment)
@@ -26,7 +26,9 @@ export function ViewAppointmentDialog({ appointment }) {
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline" className="mr-2"><Eye /></Button>
+                <button className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary-dark">
+                    Seleccionar Paquete
+                </button>
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
@@ -37,7 +39,7 @@ export function ViewAppointmentDialog({ appointment }) {
                         <div className="custom-dialog-content">
                             <div className="appointment-details">
                                 <p><strong>Paquete:</strong> {appointment.package.name.toUpperCase()}</p>
-                                <p><strong>Cliente:</strong> {appointment.client.firstName.toUpperCase()} {appointment.client.lastName.toUpperCase()}</p>
+                                {/* <p><strong>Cliente:</strong> {appointment.client.firstName.toUpperCase()} {appointment.client.lastName.toUpperCase()}</p> */}
                                 <p><strong>Fecha:</strong> {format(new Date(appointment.datetimeStart), 'dd/MM/yyyy')}</p>
                                 <p><strong>Hora:</strong> {format(new Date(appointment.datetimeStart), 'HH:mm')}hs</p>
                                 <p><strong>Estado:</strong> {appointment.state}</p>
@@ -77,3 +79,4 @@ export function ViewAppointmentDialog({ appointment }) {
     )
 
 }
+
