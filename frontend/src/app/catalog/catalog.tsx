@@ -10,10 +10,12 @@ import MultiStepForm from "@/components/multistep/MultiStepForm"
 import type { Package } from "../store/usePackageStore"
 import { useFormStore } from "../store/formStore"
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
+import { Dialog, DialogContent, DialogTrigger } from "@radix-ui/react-dialog"
+import { ViewMydateDialog } from "./view-package-dialog"
 
 
 // export function AppointmentCatalog() {
-  const AppointmentCatalog = () => {
+const AppointmentCatalog = () => {
 
   const {
     packages,
@@ -37,6 +39,13 @@ import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, Pagi
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null)
   const { updateFormData, resetForm } = useFormStore()
 
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+
+  const handleCardClick = (pkg) => {
+    setSelectedPackage(pkg)
+    setIsDialogOpen(true)
+  }
+
   const handlePackageSelect = async (pkg: Package) => {
     const offset = 1
     const pageSize = 2000
@@ -50,7 +59,7 @@ import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, Pagi
 
       setAvailability(availabilityData.map((date) => new Date(date)))
     }
-  } 
+  }
 
   const token = useAuthStore((state) => state.token);
   const hasPermission = useAuthStore((state) => state.hasPermission);
@@ -84,43 +93,55 @@ import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, Pagi
   return (
     <div className="flex flex-1 flex-col gap-4 p-4">
       <h1 className="text-3xl font-bold text-center text-pink-700 mb-6">Catalogo de Paquetes y Servicios</h1>
-      <div className="flex flex-wrap justify-center gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {packages.map((pkg) => (
-          <div key={pkg.id} className="p-6 bg-pink-100 rounded-2xl shadow-lg cursor-pointer hover:bg-pink-200 transition" style={{ minWidth: '250px', minHeight: '250px' }}>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold text-pink-700">
-                  {pkg.name.toUpperCase()}
-                </CardTitle>
-                <CardDescription className="text-pink-500">
-                  {pkg.description}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p>${pkg.price.toFixed(2)}</p>
-                <p>{pkg.duration} minutos</p>
-                <p>Servicios:</p>
-                <ul className="list-disc list-inside text-pink-500">
-                  {pkg.services.map((service) => (
-                    <li key={service.id}>
-                      {service.name.toUpperCase()}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-              <CardFooter>
-              <MultiStepForm
-                  availability={availability}
-                  selectedPackage={pkg}
-                  onClose={() => {
-                    setSelectedPackage(null)
-                    resetForm()
-                  }}
-                  onPackageSelect={() => handlePackageSelect(pkg)}
-                />
-              </CardFooter>
-            </Card>
-          </div>
+          <Dialog key={pkg.id} open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild >
+              <div key={pkg.id} className="p-6 bg-pink-100 rounded-2xl shadow-lg cursor-pointer hover:bg-pink-200 dark:hover:bg-gray-300 transition flex flex-col"
+                style={{ minWidth: '250px', minHeight: '250px' }}
+                onClick={() => handleCardClick(pkg)}>
+                <Card className="flex flex-col flex-grow">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold text-pink-700">
+                      {pkg.name.toUpperCase()}
+                    </CardTitle>
+                    <CardDescription className="text-pink-500">
+                      {pkg.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-grow">
+                    <p>${pkg.price.toFixed(2)}</p>
+                    <p>{pkg.duration} minutos</p>
+                    <p>Servicios:</p>
+                    <ul className="list-disc list-inside text-pink-500">
+                      {pkg.services.map((service) => (
+                        <li key={service.id}>
+                          {service.name.toUpperCase()}
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                  <CardFooter className="mt-auto">
+                    <div onClick={(e) => e.stopPropagation()} className="w-full">
+                      <MultiStepForm
+                        availability={availability}
+                        selectedPackage={pkg}
+                        onClose={() => {
+                          setSelectedPackage(null)
+                          resetForm()
+                        }}
+                        onPackageSelect={() => handlePackageSelect(pkg)}
+                      />
+                    </div>
+                  </CardFooter>
+                </Card>
+              </div>
+            </DialogTrigger>
+
+            {selectedPackage && selectedPackage.id === pkg.id && (
+              <ViewMydateDialog _package={selectedPackage} />
+            )}
+          </Dialog>
         ))}
       </div>
       <Pagination className="mt-4">
