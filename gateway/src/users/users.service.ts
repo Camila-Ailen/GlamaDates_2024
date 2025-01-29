@@ -19,7 +19,6 @@ export class UsersService {
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   async getBy(body: UserDto): Promise<User> {
-    console.log('body', body);
     const user = await this.userRepository.findOne({
       where: {
         id: body.id,

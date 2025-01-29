@@ -62,6 +62,8 @@ export class AppointmentController extends BaseController {
   }
 
 
+  ////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
 
   @Post()
   @Auth('create:appointments')
@@ -72,6 +74,4 @@ export class AppointmentController extends BaseController {
     const user = request.user;
     return await this.appointmentService.create(appointmentDto, user);
   }
-
-
 }

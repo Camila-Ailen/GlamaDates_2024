@@ -34,8 +34,8 @@ export class PermissionsGuard implements CanActivate {
     }
 
     const decoded = this.jwtService.verify(token);
-    // console.log('decoded', decoded.id);
-    const user: User = await this.usersService.getBy(decoded.id);
+    console.log('userId: ', decoded.id);
+    const user: User = await this.usersService.getBy(decoded);
     request.user = user;
 
     const userPermissions = user.role.permissions.map(
