@@ -84,7 +84,7 @@ export class AppointmentService {
         throw new HttpException('No hay espacio disponible para esta cita', HttpStatus.BAD_REQUEST);
       }
 
-      
+
     }
 
     // Creo la cita
@@ -349,22 +349,28 @@ export class AppointmentService {
     // Generar espacios disponibles
     let availableStartTimes: Date[] = [];
     for (const service of packageData.services) {
-      // Obtener las citas existentes en el rango de fechas permitido (para no mostrar turnos en el pasado)
-      const existingAppointmentsDetail = await this.detailsAppointmentRepository.find({
-        where: {
-          workstation: {
-            categories: {
-              id: service.category.id,
+      const professionals = await this.findProffesionals(service.id, this.userRepository);
+      const workstations = await this.findWorkstations(service.id, this.workstationRepository);
+      if (professionals.length > 0 && workstations.length > 0) {
+        // Obtener las citas existentes en el rango de fechas permitido (para no mostrar turnos en el pasado)
+        const existingAppointmentsDetail = await this.detailsAppointmentRepository.find({
+          where: {
+            workstation: {
+              categories: {
+                id: service.category.id,
+              },
             },
+            datetimeStart: Between(new Date(), new Date(new Date().setDate(new Date().getDate() + config.maxReservationDays))),
           },
-          datetimeStart: Between(new Date(), new Date(new Date().setDate(new Date().getDate() + config.maxReservationDays))),
-        },
-        relations: ['appointment', 'workstation', 'workstation.categories', 'employee', 'service'],
-      });
+          relations: ['appointment', 'workstation', 'workstation.categories', 'employee', 'service'],
+        });
 
-      // Generar espacios disponibles para el servicio actual
-      const availabile = await this.generateAvailableStartTimes2(config, existingAppointmentsDetail, service.category.id, service.duration);
-      availableStartTimes.push(...availabile);
+        // Generar espacios disponibles para el servicio actual
+        const availabile = await this.generateAvailableStartTimes2(config, existingAppointmentsDetail, service.category.id, service.duration);
+        availableStartTimes.push(...availabile);
+      } else {
+        throw new HttpException('No hay profesionales o estaciones de trabajo disponibles para este paquete', HttpStatus.BAD_REQUEST);
+      }
     }
 
     return this.paginateResults(availableStartTimes, page, pageSize);
@@ -728,7 +734,7 @@ export class AppointmentService {
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
 
-  async all (params: {
+  async all(params: {
     query: PaginationAppointmentDto;
   }): Promise<PaginationResponseDTO> {
     const emptyResponse = {
@@ -772,8 +778,8 @@ export class AppointmentService {
         offset: params.query.offset,
         results: appointments,
       };
-  } catch (error) {
-    console.error(error);
+    } catch (error) {
+      console.error(error);
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
@@ -813,7 +819,7 @@ export class AppointmentService {
       const [appointments, total] = await this.appointmentRepository.findAndCount({
         where: {
           deletedAt: IsNull(),
-          client: {id: user.id},
+          client: { id: user.id },
         },
         relations: ['details', 'details.employee', 'details.workstation', 'details.service', 'client', 'package'],
         order,

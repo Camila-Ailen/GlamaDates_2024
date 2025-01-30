@@ -29,7 +29,7 @@ export function LoginForm() {
     setError("");
     try {
       await login(email, password);
-      router.push("/dashboard");
+      router.push("/catalog");
     } catch (err) {
       setError("Error de autenticación. Por favor, intente de nuevo.");
     }

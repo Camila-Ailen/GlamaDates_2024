@@ -12,6 +12,7 @@ import { useFormStore } from "../store/formStore"
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
 import { Dialog, DialogContent, DialogTrigger } from "@radix-ui/react-dialog"
 import { ViewMydateDialog } from "./view-package-dialog"
+import { toast } from "sonner"
 
 
 // export function AppointmentCatalog() {
@@ -123,7 +124,8 @@ const AppointmentCatalog = () => {
                   </CardContent>
                   <CardFooter className="mt-auto">
                     <div onClick={(e) => e.stopPropagation()} className="w-full">
-                      <MultiStepForm
+                      
+                        <MultiStepForm
                         availability={availability}
                         selectedPackage={pkg}
                         onClose={() => {
@@ -132,6 +134,7 @@ const AppointmentCatalog = () => {
                         }}
                         onPackageSelect={() => handlePackageSelect(pkg)}
                       />
+                       
                     </div>
                   </CardFooter>
                 </Card>
