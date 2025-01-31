@@ -15,12 +15,27 @@ if (!process.env.TZ) {
 }
 
 async function bootstrap() {
+  // const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+  //   logger:
+  //     process.env.NODE_ENV === 'development'
+  //       ? ['log', 'debug', 'error', 'verbose', 'warn']
+  //       : ['log', 'error', 'warn'],
+  // });
+
+  const httpsOptions = {
+    key: fs.readFileSync('localhost-key.pem'),
+    cert: fs.readFileSync('localhost.pem'),
+  };
+  
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    httpsOptions,
     logger:
       process.env.NODE_ENV === 'development'
         ? ['log', 'debug', 'error', 'verbose', 'warn']
         : ['log', 'error', 'warn'],
   });
+  
+
   // Get the ConfigService instance
   const config: ConfigService = app.get(ConfigService);
 
@@ -55,11 +70,19 @@ async function bootstrap() {
       configCORS.origin = [config.get<string>('FRONT_URL')];
       break;
   }
-  //   app.enableCors(configCORS);
+
+  // //   app.enableCors(configCORS);
+  // app.enableCors({
+  //   origin: '*',
+  //   methods: 'GET,PUT,PATCH,POST,DELETE,OPTIONS',
+  // });
+
   app.enableCors({
-    origin: '*',
+    origin: [config.get<string>('FRONT_URL')],
+    credentials: true,
     methods: 'GET,PUT,PATCH,POST,DELETE,OPTIONS',
   });
+  
 
   // Swagger Docs
   let swaggerPath = '';
@@ -82,8 +105,10 @@ async function bootstrap() {
       .build();
     const document = SwaggerModule.createDocument(app, configSwagger);
     fs.writeFileSync('./swagger-spec.json', JSON.stringify(document));
-    swaggerPath = `${basepath}${basepath !== '' ? '/' : ''}api-docs`;
-    SwaggerModule.setup(swaggerPath, app, document);
+    swaggerPath = `${basepath}${basepath !== '' ? '/' : ''}api-docs`.replace('//', '/');
+    SwaggerModule.setup(swaggerPath, app, document, {
+      swaggerOptions: { schemes: ['https'] },
+    });
   }
 
   // Validation

@@ -26,6 +26,7 @@
     "clsx": "^2.1.1",
     "framer-motion": "^11.13.1",
     "lucide-react": "^0.408.0",
+    "mercadopago": "^2.3.0",
     "next": "14.2.4",
     "next-auth": "^5.0.0-beta.19",
     "next-themes": "^0.3.0",
