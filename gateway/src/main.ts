@@ -23,8 +23,8 @@ async function bootstrap() {
   // });
 
   const httpsOptions = {
-    key: fs.readFileSync('localhost-key.pem'),
-    cert: fs.readFileSync('localhost.pem'),
+    key: fs.readFileSync('./certs/localhost-key.pem'),
+    cert: fs.readFileSync('./certs/localhost.pem'),
   };
   
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -56,13 +56,19 @@ async function bootstrap() {
 
   // CORS
   let configCORS = {
-    origin: ['*'],
+    // origin: ['*'],
+    origin: [
+      'http://localhost:3001', // Frontend URL
+      'https://localhost:3001', // Si usas HTTPS en el frontend
+    ],
     methods: 'GET,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+    allowedHeaders: "Content-Type,Authorization",
   };
   switch (process.env.NODE_ENV) {
     case 'development':
       configCORS.origin = [
-        'http://0.0.0.0:3003',
+        'https://localhost:3001',
         config.get<string>('FRONT_URL'),
       ];
       break;
@@ -77,11 +83,13 @@ async function bootstrap() {
   //   methods: 'GET,PUT,PATCH,POST,DELETE,OPTIONS',
   // });
 
-  app.enableCors({
-    origin: [config.get<string>('FRONT_URL')],
-    credentials: true,
-    methods: 'GET,PUT,PATCH,POST,DELETE,OPTIONS',
-  });
+  // app.enableCors({
+  //   origin: [config.get<string>('FRONT_URL')],
+  //   credentials: true,
+  //   methods: 'GET,PUT,PATCH,POST,DELETE,OPTIONS',
+  // });
+
+  app.enableCors(configCORS);
   
 
   // Swagger Docs

@@ -40,6 +40,8 @@ const useAuthStore = create<AuthState>()(
       login: async (email: string, password: string) => {
         set({ isLoading: true });
         try {
+          console.log('useAuthStore login: ', process.env.NEXT_PUBLIC_BACKEND_URL);
+          console.log('email: ', email, 'password: ', password);
           const response = await fetch(
             `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`,
             {

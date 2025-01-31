@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Req } from '@nestjs/common';
+import { Controller, Post, Body, Get, Req, Header } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Auth } from './auth.decorator';
 import { ApiOperation } from '@nestjs/swagger';
@@ -11,6 +11,7 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() loginDto: { email: string; password: string }) {
+    console.log('loginDto: ', loginDto);
     const user = await this.authService.validateUser(
       loginDto.email,
       loginDto.password,
