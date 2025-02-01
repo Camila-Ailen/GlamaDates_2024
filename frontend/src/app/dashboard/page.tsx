@@ -15,7 +15,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { MainGraph } from "@/components/dashboard/main-graph";
-import { MonthGraph, TodayGraph } from "@/components/dashboard/countercard";
+import { MonthGraph, TodayGraph, WeekGraph } from "@/components/dashboard/countercard";
 import React from "react";
 import router from "next/router";
 import Link from "next/link";
@@ -159,12 +159,19 @@ export default function Component() {
               </Card>
             </AnimatedCard>
           </div>
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <div className="mt-4 grid gap-4 md:grid-cols-3">
             <AnimatedCard
               className="bg-primary text-primary-foreground"
               index={6}
             >
               <TodayGraph />
+            </AnimatedCard>
+
+            <AnimatedCard
+              className="bg-primary text-primary-foreground"
+              index={6}
+            >
+              <WeekGraph />
             </AnimatedCard>
 
             <AnimatedCard

@@ -840,5 +840,73 @@ export class AppointmentService {
   }
 
 
+  /////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+  async getTodayAppointments(): Promise<number> {
+    // const result = await this.appointmentRepository
+    //   .createQueryBuilder('appointments')
+    //   .select('DATE_TRUNC(\'day\', "appointments"."datetimeStart")', 'fecha')
+    //   .addSelect('COUNT(*)', 'total_turnos')
+    //   .where('"datetimeStart" = NOW()')
+    //   .groupBy('DATE_TRUNC(\'day\', "appointments"."datetimeStart")')
+    //   .orderBy('fecha')
+    //   .getRawOne();
+    // return result ? result.total_turnos : 0;
+    const result = await this.appointmentRepository
+      .createQueryBuilder('appointments')
+      .select('DATE_TRUNC(\'day\', "appointments"."datetimeStart")', 'fecha')
+      .addSelect('COUNT(*)', 'total_turnos')
+      .where('"datetimeStart" >= CURRENT_DATE')
+      .groupBy('DATE_TRUNC(\'day\', "appointments"."datetimeStart")')
+      .orderBy('fecha')
+      .limit(1)
+      .getRawOne();
+    return result ? result.total_turnos : 0;
+  }
+
+  /////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+  async getThisMonthAppointments(): Promise<number> {
+    const result = await this.appointmentRepository
+      .createQueryBuilder('appointments')
+      .select('EXTRACT(MONTH FROM "appointments"."datetimeStart")', 'mes')
+      .addSelect('COUNT(*)', 'total_turnos')
+      .where('EXTRACT(MONTH FROM "appointments"."datetimeStart") = EXTRACT(MONTH FROM CURRENT_DATE)')
+      .andWhere('EXTRACT(YEAR FROM "appointments"."datetimeStart") = EXTRACT(YEAR FROM CURRENT_DATE)')
+      .groupBy('EXTRACT(MONTH FROM "appointments"."datetimeStart")')
+      .getRawOne();
+    return result ? result.total_turnos : 0;
+  }
+
+  /////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+  async getLastMonthAppointments(): Promise<number> {
+    const result = await this.appointmentRepository
+      .createQueryBuilder('appointments')
+      .select('EXTRACT(MONTH FROM "appointments"."datetimeStart")', 'mes')
+      .addSelect('COUNT(*)', 'total_turnos')
+      .where('EXTRACT(MONTH FROM "appointments"."datetimeStart") = EXTRACT(MONTH FROM CURRENT_DATE) - 1')
+      .andWhere('EXTRACT(YEAR FROM "appointments"."datetimeStart") = EXTRACT(YEAR FROM CURRENT_DATE)')
+      .groupBy('EXTRACT(MONTH FROM "appointments"."datetimeStart")')
+      .getRawOne();
+    return result ? result.total_turnos : 0;
+  }
+
+  /////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+  async getThisWeekAppointments(): Promise<number> {
+    const result = await this.appointmentRepository
+      .createQueryBuilder('appointments')
+      .select('DATE_TRUNC(\'week\', "appointments"."datetimeStart")', 'semana')
+      .addSelect('COUNT(*)', 'total_turnos')
+      .where('"datetimeStart" >= DATE_TRUNC(\'week\', CURRENT_DATE)')
+      .groupBy('DATE_TRUNC(\'week\', "appointments"."datetimeStart")')
+      .orderBy('semana')
+      .limit(1)
+      .getRawOne();
+    return result ? result.total_turnos : 0;
+  }
+
+
 
 }

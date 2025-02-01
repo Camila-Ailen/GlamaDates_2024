@@ -74,4 +74,53 @@ export class AppointmentController extends BaseController {
     const user = request.user;
     return await this.appointmentService.create(appointmentDto, user);
   }
+
+  ////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
+
+  @Get('today')
+  @Auth('read:appointments')
+  async getTodayAppointments(): Promise<{ total_turnos: number }> {
+    const totalTurnos = await this.appointmentService.getTodayAppointments();
+    return { total_turnos: totalTurnos };
+  }
+
+  ////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
+
+  @Get('thisMonth')
+  @Auth('read:appointments')
+  async getThisMonthAppointments(): Promise<{ total_turnos: number }> {
+    const totalTurnos = await this.appointmentService.getThisMonthAppointments();
+    return { total_turnos: totalTurnos };
+  }
+
+  ////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
+
+  // @Get('lastMonth')
+  // @Auth('read:appointments')
+  // async getLastMonthAppointments(): Promise<{ total_turnos: number }> {
+  //   const totalTurnos = await this.appointmentService.getLastMonthAppointments();
+  //   return { total_turnos: totalTurnos };
+  // }
+
+  @Get('lastMonth')
+  @Auth('read:appointments') 
+  async getLastMonthAppointments(): Promise<{ total_turnos: number }> {
+    const totalTurnos = await this.appointmentService.getLastMonthAppointments();
+    return { total_turnos: totalTurnos };
+  }
+
+  ////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
+
+  @Get('week')
+  @Auth('read:appointments')
+  async getThisWeekAppointments(): Promise<{ total_turnos: number }> {
+    const totalTurnos = await this.appointmentService.getThisWeekAppointments();
+    return { total_turnos: totalTurnos };
+  }
+
+  
 }

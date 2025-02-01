@@ -48,7 +48,7 @@ interface Service {
     duration: number;
     description: string;
     category: Category;
-  }
+}
 
 interface AppointmentState {
     appointments: Appointment[]
@@ -61,9 +61,17 @@ interface AppointmentState {
     orderType: 'ASC' | 'DESC'
     filter: string
     selectedServices: Service[]
+    todayAppointments: number
+    thisMonthAppointments: number
+    thisWeekAppointments: number
+    lastMonthAppointments: number
     setSelectedServices: (services: Service[]) => void
-    fetchPackageAvailability: (packageId: number, orderBy:string, orderType: 'ASC' | 'DESC', offset:number, pageSize:number) => Promise<string[]>
+    fetchPackageAvailability: (packageId: number, orderBy: string, orderType: 'ASC' | 'DESC', offset: number, pageSize: number) => Promise<string[]>
     fetchAppointments: (page?: number, token?: string) => Promise<void>
+    fetchTotalAppointmentsToday: () => Promise<{ total_turnos: number }>
+    fetchTotalAppointmentsThisMonth: () => Promise<{ total_turnos: number }>
+    fetchLastMonthAppointments: () => Promise<{ total_turnos: number }>
+    fetchTotalAppointmentsThisWeek: () => Promise<{ total_turnos: number }>
     setOrderBy: (field: string) => void
     setOrderType: (type: 'ASC' | 'DESC') => void
     setFilter: (filter: string) => void
@@ -81,13 +89,17 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
     orderBy: 'id',
     orderType: 'DESC',
     filter: '',
+    todayAppointments: 0,
+    thisWeekAppointments: 0,
+    thisMonthAppointments: 0,
+    lastMonthAppointments: 0,
 
     selectedServices: [],
     setSelectedServices: (services) => set({ selectedServices: services }),
-    
 
 
-    fetchPackageAvailability: async (packageId: number, orderBy:string, orderType: 'ASC' | 'DESC', offset: number, pageSize:number) => {
+
+    fetchPackageAvailability: async (packageId: number, orderBy: string, orderType: 'ASC' | 'DESC', offset: number, pageSize: number) => {
         try {
             console.log('packageId desde AppointmentStore: ', packageId);
             console.log('packageId es de tipo: ', typeof packageId);
@@ -147,7 +159,125 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
         }
     },
 
-    
+
+    fetchTotalAppointmentsToday: async () => {
+        set({ isLoading: true, error: null });
+
+        try {
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/appointment/today`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            if (response.status === 403) {
+                toast.error("Sesión expirada");
+                useAuthStore.getState().logout();
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error('Error al obtener la cantidad de turnos');
+            }
+            const data = await response.json();
+            set({ todayAppointments: data.total_turnos, isLoading: false });
+            return data; // Retorna la cantidad de turnos
+        } catch (error) {
+            console.error(error);
+            return { total_turnos: 0 };
+        }
+    },
+
+    fetchTotalAppointmentsThisMonth: async () => {
+        set({ isLoading: true, error: null });
+
+        try {
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/appointment/thisMonth`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            if (response.status === 403) {
+                toast.error("Sesión expirada");
+                useAuthStore.getState().logout();
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error('Error al obtener la cantidad de turnos');
+            }
+            const data = await response.json();
+            set({ thisMonthAppointments: data.total_turnos, isLoading: false });
+            return data; // Retorna la cantidad de turnos
+        } catch (error) {
+            console.error(error);
+            return { total_turnos: 0 };
+        }
+    },
+
+    fetchLastMonthAppointments: async () => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await fetch(`
+            ${process.env.NEXT_PUBLIC_BACKEND_URL}/api/appointment/lastMonth`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+            if (response.status === 403) {
+                toast.error("Sesión expirada");
+                useAuthStore.getState().logout();
+                return;
+            }
+            if (!response.ok) throw new Error('Error al obtener turnos del mes pasado');
+            const data = await response.json();
+            set({ lastMonthAppointments: data.total_turnos, isLoading: false });
+            return data;
+        } catch (error) {
+            console.error(error);
+            return { total_turnos: 0 };
+        }
+    },
+
+    fetchTotalAppointmentsThisWeek: async () => {
+        set({ isLoading: true, error: null });
+
+        try {
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/appointment/week`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            if (response.status === 403) {
+                toast.error("Sesión expirada");
+                useAuthStore.getState().logout();
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error('Error al obtener la cantidad de turnos');
+            }
+            const data = await response.json();
+            set({ thisWeekAppointments: data.total_turnos, isLoading: false });
+            return data; // Retorna la cantidad de turnos
+        } catch (error) {
+            console.error(error);
+            return { total_turnos: 0 };
+        }
+    },
+
+
+
+
 
 
     setOrderBy: (field) => set({ orderBy: field }),
