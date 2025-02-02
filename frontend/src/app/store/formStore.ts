@@ -7,6 +7,7 @@ interface FormData {
   step1: { date: Date | null; availableTimes: string[] }
   step2: { time: string }
   step3: { packageId: number }
+  step4: { paymentMethod: string }
   selectedPackage: Package | null
 }
 
@@ -31,6 +32,7 @@ export const useFormStore = create<FormStore>()((set, get) => ({
     step1: { date: null, availableTimes: [] },
     step2: { time: "" },
     step3: { packageId: 0 },
+    step4: { paymentMethod: "" },
     selectedPackage: null,
   },
   
@@ -54,15 +56,15 @@ export const useFormStore = create<FormStore>()((set, get) => ({
         return formData.step2.time !== ""
       case 3:
         return true
+      case 4:
+        return formData.step4.paymentMethod !== ""
       default:
         return false
     }
   },
   submitForm: async () => {
     const convertTo24HourFormat = (time: string) => {
-      console.log(`Time: "${time}"`)
       const [timePart, modifier] = time.split(' ');
-      console.log(`Time part: "${timePart}" Modifier: "${modifier}"`)
       let [hours, minutes] = timePart.split(':').map(Number);
     
       if (modifier.replace(/\s+/g, '').trim() === 'p.m.') {
@@ -76,6 +78,8 @@ export const useFormStore = create<FormStore>()((set, get) => ({
     const date = formData.step1.date
     const time = formData.step2.time
 
+    // const paymentMethod = formData.step4.paymentMethod
+
     if (!date) {
       throw new Error("Date is null")
     }
@@ -88,8 +92,6 @@ export const useFormStore = create<FormStore>()((set, get) => ({
 
     const datetimeStart = datetime.toISOString()
 
-    console.log("Date:", datetimeStart)
-    console.log("Package ID:", _package)
 
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/appointment`, {
@@ -126,6 +128,7 @@ export const useFormStore = create<FormStore>()((set, get) => ({
         step1: { date: null, availableTimes: [] },
         step2: { time: "" },
         step3: { packageId: 0 },
+        step4: { paymentMethod: "" },
         selectedPackage: null,
       },
     }),

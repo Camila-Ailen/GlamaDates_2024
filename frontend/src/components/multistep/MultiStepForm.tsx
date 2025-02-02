@@ -3,6 +3,7 @@ import { useFormStore } from "@/app/store/formStore"
 import Step1 from "./Step1"
 import Step2 from "./Step2"
 import Step3 from "./Step3"
+import Step4 from "./Step4"
 import ProgressBar from "./ProgressBar"
 import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog"
@@ -22,12 +23,6 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
   const { currentStep, setStep, isStepValid, submitForm, isOpen, openForm, closeForm, updateFormData, formData } =
     useFormStore()
 
-  // useEffect(() => {
-  //   if (isOpen) {
-  //     updateFormData("selectedPackage", selectedPackage)
-  //   }
-  // }, [isOpen, selectedPackage, updateFormData])
-
   useEffect(() => {
     console.log('Availability:', availability.length)
   }, [availability])
@@ -41,13 +36,15 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
         return <Step2 />
       case 3:
         return formData.selectedPackage ? <Step3 selectedPackage={formData.selectedPackage} /> : null
+      case 4:
+        return <Step4 />
       default:
         return null
     }
   }
 
   const handleNext = () => {
-    if (currentStep < 3 && isStepValid(currentStep)) {
+    if (currentStep < 4 && isStepValid(currentStep)) {
       setStep(currentStep + 1)
     }
   }
@@ -59,7 +56,7 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
   }
 
   const handleSubmit = async () => {
-    if (isStepValid(3)) {
+    if (isStepValid(4)) {
       await submitForm()
       closeForm()
       onClose()
@@ -93,7 +90,7 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
           <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-xl">
             {availability.length > 0 ? (
               <>
-                <ProgressBar currentStep={currentStep} totalSteps={3} />
+                <ProgressBar currentStep={currentStep} totalSteps={4} />
                 {renderStep()}
                 <div className="mt-6 flex justify-between">
                   <button
@@ -103,7 +100,7 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
                   >
                     Anterior
                   </button>
-                  {currentStep < 3 ? (
+                  {currentStep < 4 ? (
                     <button
                       onClick={handleNext}
                       disabled={!isStepValid(currentStep)}
@@ -127,18 +124,18 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
                 <div className="mt-6 flex justify-center">
                   <button
                     onClick={handleCancel}
-                    className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary-dark" 
+                    className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
                   >
-                  Volver al Catalogo
-                </button>
-              </div>
-          </>
+                    Volver al Catalogo
+                  </button>
+                </div>
+              </>
             )}
 
+          </div>
         </div>
-      </div>
-      {/* </div> */}
-    </DialogContent>
+        {/* </div> */}
+      </DialogContent>
     </Dialog >
   )
 }

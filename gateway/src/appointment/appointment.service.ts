@@ -843,15 +843,6 @@ export class AppointmentService {
   /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
   async getTodayAppointments(): Promise<number> {
-    // const result = await this.appointmentRepository
-    //   .createQueryBuilder('appointments')
-    //   .select('DATE_TRUNC(\'day\', "appointments"."datetimeStart")', 'fecha')
-    //   .addSelect('COUNT(*)', 'total_turnos')
-    //   .where('"datetimeStart" = NOW()')
-    //   .groupBy('DATE_TRUNC(\'day\', "appointments"."datetimeStart")')
-    //   .orderBy('fecha')
-    //   .getRawOne();
-    // return result ? result.total_turnos : 0;
     const result = await this.appointmentRepository
       .createQueryBuilder('appointments')
       .select('DATE_TRUNC(\'day\', "appointments"."datetimeStart")', 'fecha')
@@ -861,6 +852,18 @@ export class AppointmentService {
       .orderBy('fecha')
       .limit(1)
       .getRawOne();
+
+      const result2 = await this.appointmentRepository
+      .createQueryBuilder('appointments')
+      .select('DATE_TRUNC(\'day\', "appointments"."datetimeStart")', 'fecha')
+      // .addSelect('COUNT(*)', 'total_turnos')
+      .where('"datetimeStart" >= CURRENT_DATE')
+      .groupBy('DATE_TRUNC(\'day\', "appointments"."datetimeStart")')
+      .orderBy('fecha')
+      .limit(1)
+      .getRawOne();
+    
+    console.log('result2: ', result2);
     return result ? result.total_turnos : 0;
   }
 

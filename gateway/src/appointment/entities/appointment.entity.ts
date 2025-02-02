@@ -53,7 +53,7 @@ import { Payment } from '@/payment/entities/payment.entity';
     package: Package;
 
     // Relacion con pagos
-    @OneToMany(() => Payment, (payment) => payment.appointment)
+    @OneToMany(() => Payment, payment => payment.appointment)
     payments: Payment[];
 
 
