@@ -56,7 +56,6 @@ const Step3: React.FC<{ selectedPackage: Package }> = ({ selectedPackage }) => {
               <Card>
                 <CardHeader>
                   <CardTitle>{service.name}</CardTitle>
-                  <p>SelectedPackage: {selectedPackage.name}</p>
                   <CardDescription>
                     <li key={index}>
                       <ul>

@@ -2,11 +2,10 @@ import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Appointment } from "./entities/appointment.entity";
 import { Package } from "@/package/entities/package.entity";
-import { Between, In, IsNull, LessThanOrEqual, MoreThanOrEqual, Not, Repository } from "typeorm";
-import { add, addMinutes, isAfter, isBefore, isEqual, subMinutes } from "date-fns";
+import { Between, In, IsNull, Repository } from "typeorm";
+import { addMinutes, isAfter, isBefore, isEqual, subMinutes } from "date-fns";
 import { Service } from "@/service/entities/service.entity";
 import { SystemConfigService } from "@/system-config/system-config.service";
-import { SystemConfigDto } from "@/system-config/dto/system-config.dto";
 import { SystemConfig } from "@/system-config/entities/system-config.entity";
 import { DaysOfWeek } from "@/system-config/entities/DaysOfWeek.enum";
 import { AppointmentDto } from "./dto/appointment.dto";
@@ -15,8 +14,6 @@ import { DetailsAppointment } from "@/details-appointment/entities/details-appoi
 import { AppointmentState } from "./entities/appointment-state.enum";
 import { Workstation } from "@/workstation/entities/workstation.entity";
 import { WorkstationState } from "@/workstation/entities/workstation-state.enum";
-import { last } from "rxjs";
-import { raw } from "express";
 import { PaginationAppointmentDto } from "./dto/pagination-appointment.dto";
 import { PaginationResponseDTO } from "@/base/dto/base.dto";
 
@@ -45,6 +42,15 @@ export class AppointmentService {
 
     private readonly configService: SystemConfigService,
   ) { }
+
+  async getById(id: number): Promise<Appointment> {
+    return this.appointmentRepository.findOne({
+      where: {
+        id,
+      },
+      relations: ['details', 'details.employee', 'details.workstation', 'details.service', 'client', 'package', 'package.services'],
+    });
+  }
 
   async create(body: AppointmentDto, user: User): Promise<Appointment> {
     console.log('ESTOY EN EL SERVICIO DE APPOINTMENT: creacion de turno');
@@ -580,26 +586,7 @@ export class AppointmentService {
   // 2. la duracion del servicio (serviceDuration)
   // 3. la id de la categoria del servicio (category)
   private async colisionAvailable(currentStartTime: Date, serviceDuration: number, category: number) {
-    // pasar a un array las citas de la categoria afectadas en el servicio
-    console.log('Entre a la funcion colisionAvailable');
-    // const existingAppointments = await this.detailsAppointmentRepository.find({
-    //   where: [
-    //     {
-    //       workstation: { categories: { id: category } }
-    //     },
-    //     {
-    //       datetimeStart: 
-    //       (Between(currentStartTime, addMinutes(currentStartTime, serviceDuration))) ||
-
-    //       ((LessThanOrEqual(currentStartTime)) && MoreThanOrEqual(subMinutes(currentStartTime, serviceDuration))) ||
-
-    //       ((MoreThanOrEqual(currentStartTime)) && LessThanOrEqual(addMinutes(currentStartTime, serviceDuration))) ||
-
-    //       ((LessThanOrEqual(currentStartTime)) && MoreThanOrEqual(subMinutes(currentStartTime, serviceDuration)))
-    //     },
-    //   ],
-    //   relations: ['workstation', 'workstation.categories'],
-    // })
+    
 
     const existingAppointments = await this.detailsAppointmentRepository
       .createQueryBuilder('detailsAppointment')

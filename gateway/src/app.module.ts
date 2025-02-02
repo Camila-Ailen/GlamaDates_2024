@@ -13,6 +13,7 @@ import { AppointmentModule } from './appointment/appointment.module';
 import { SystemConfigModule } from './system-config/system-config.module';
 import { DetailsAppointmentModule } from './details-appointment/details-appointment.module';
 import { PaymentModule } from './payment/payment.module';
+import { MercadopagoModule } from './mercadopago/mercadopago.module';
 
 @Module({
     imports: [
@@ -32,6 +33,7 @@ import { PaymentModule } from './payment/payment.module';
         SystemConfigModule,
         DetailsAppointmentModule,
         PaymentModule,
+        MercadopagoModule,
     ]
 })
 export class AppModule {
