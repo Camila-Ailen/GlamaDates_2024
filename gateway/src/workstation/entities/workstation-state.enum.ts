@@ -1,5 +1,5 @@
 export enum WorkstationState {
-    ACTIVE = 'ACTIVE',
-    INACTIVE = 'INACTIVE',
-    DELETED = 'DELETED',
+    ACTIVE = 'ACTIVO',
+    INACTIVE = 'INACTIVO',
+    DELETED = 'ELIMINADO',
 }
