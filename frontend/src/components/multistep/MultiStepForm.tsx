@@ -23,9 +23,9 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
   const { currentStep, setStep, isStepValid, submitForm, isOpen, openForm, closeForm, updateFormData, formData } =
     useFormStore()
 
-  useEffect(() => {
-    console.log('Availability:', availability.length)
-  }, [availability])
+  // useEffect(() => {
+  //   console.log('Availability:', availability.length)
+  // }, [availability])
 
 
   const renderStep = () => {
@@ -58,8 +58,22 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
   const handleSubmit = async () => {
     if (isStepValid(3)) {
       await submitForm()
+      // closeForm()
+      // onClose()
+      setStep(currentStep + 1)
+    }
+  }
+
+  const handlePay = async () => {
+    if (isStepValid(4)) {
+      // await submitForm()
+      if (formData.step4.paymentMethod === "mercadopago") {
+        // AQUI DEBERIA IR EL CODIGO PARA PAGAR CON MERCADO PAGO
+        toast("Pago con Mercado Pago no disponible")
+      } 
       closeForm()
       onClose()
+      setStep(currentStep)
     }
   }
 
@@ -108,12 +122,19 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
                     >
                       Siguiente
                     </button>
-                  ) : (
+                  ) : currentStep === 3 ? (
                     <button
                       onClick={handleSubmit}
                       className="px-4 py-2 bg-green-500 text-white rounded disabled:opacity-50"
                     >
                       Confirmar
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handlePay}
+                      className="px-4 py-2 bg-green-500 text-white rounded disabled:opacity-50"
+                    >
+                      Confirmar Metodo
                     </button>
                   )}
                 </div>

@@ -64,7 +64,7 @@ export class AppointmentService {
       where: {
         id,
       },
-      relations: ['details', 'details.employee', 'details.workstation', 'details.service', 'client', 'package', 'package.services'],
+      relations: ['details', 'details.employee', 'details.workstation', 'details.service', 'client', 'package', 'package.services', 'payments'],
     });
     return appointment;
   }
@@ -292,9 +292,11 @@ export class AppointmentService {
     payment.appointment = savedAppointment;
     payment.created_at = new Date();
 
-    const savedPayment = await this.paymentService.create({ body: payment });
-    savedAppointment.payments = [savedPayment];
-    return savedAppointment;
+    await this.paymentService.create({ body: payment });
+
+    
+    console.log('savedAppointment: ', savedAppointment);
+    return await this.getById(savedAppointment.id);
   }
 
 

@@ -20,7 +20,8 @@ export class MercadopagoService {
     const configService = new ConfigService();
     const client = new MercadoPagoConfig({ accessToken: configService.get('MERCADOPAGO_ACCESS_TOKEN') });
     const preference = new Preference(client);
-    const appointment = await this.appointmentService.getById(parseInt(id));
+    console.log("id desde mp:", id);
+    const appointment = await this.appointmentService.getById(id);
     console.log("appointment desde mp:", appointment.id.toString());
     if (!appointment) {
       throw new Error("Appointment not found");
@@ -38,7 +39,8 @@ export class MercadopagoService {
             }
           ],
           back_urls: {
-            success: 'https://michigram.vercel.app/',
+            // success: 'https://michigram.vercel.app/',
+            success: 'https://192.168.18.78:3001/myDate',
             failure: 'https://michigram.vercel.app/',
             pending: 'https://michigram.vercel.app/',
           },

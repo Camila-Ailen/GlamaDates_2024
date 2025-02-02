@@ -22,11 +22,13 @@ interface FormStore {
   isOpen: boolean
   openForm: () => void
   closeForm: () => void
+  paymentURL: string
 }
 
 const token = useAuthStore.getState().token
 
 export const useFormStore = create<FormStore>()((set, get) => ({
+  paymentURL: "",
   currentStep: 1,
   formData: {
     step1: { date: null, availableTimes: [] },
@@ -109,7 +111,7 @@ export const useFormStore = create<FormStore>()((set, get) => ({
         return
       }
 
-      console.log("response desde formStore", response)
+      console.log("response desde formStore", await response.json())
 
       if (response.ok) {
         toast.success("Turno agendado exitosamente 🎉")
