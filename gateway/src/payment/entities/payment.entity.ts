@@ -3,6 +3,7 @@ import { PaymentMethod } from "./payment-method.enum";
 import { PaymentType } from "./payment-type.enum";
 import { Exclude, instanceToPlain } from "class-transformer";
 import { Appointment } from "@/appointment/entities/appointment.entity";
+import { PaymentStatus } from "./payment-status.enum";
 
 
 
@@ -23,11 +24,17 @@ export class Payment {
     @Column({ name: 'payment_type', type: 'enum', enum: PaymentType, default: PaymentType.TOTAL })
     paymentType: PaymentType;
 
+    @Column({name: 'status', type: 'enum', enum: PaymentStatus, default: PaymentStatus.PENDING})
+    status: PaymentStatus;
+
     @Column({ name: 'observation', type: 'varchar', length: 255 })
     observation: string;
 
     @Column({ name: 'transaction_id', type: 'varchar', length: 255 })
     transactionId: string;
+
+    @Column({ name: 'paymentURL', type: 'varchar', length: 255 })
+    paymentURL: string;
 
     // Relacion con turno
     @ManyToOne(() => Appointment, (appointment) => appointment.payments, { 

@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { CreateMercadopagoDto } from './dto/create-mercadopago.dto';
 import { UpdateMercadopagoDto } from './dto/update-mercadopago.dto';
 import { config } from 'dotenv';
@@ -8,19 +8,20 @@ import { MercadoPagoConfig, Preference } from 'mercadopago';
 import { ConfigService } from '@nestjs/config';
 import { AppointmentService } from '@/appointment/appointment.service';
 import { Appointment } from '@/appointment/entities/appointment.entity';
+import { doesNotMatch } from 'assert';
 // Agrega credenciales
-
-
+  
 @Injectable()
 export class MercadopagoService {
-  @Inject(AppointmentService)
+  @Inject((forwardRef(() => AppointmentService)))
   private appointmentService: AppointmentService;
-  async create(body) {
+  async create(id) {
     config();
     const configService = new ConfigService();
     const client = new MercadoPagoConfig({ accessToken: configService.get('MERCADOPAGO_ACCESS_TOKEN') });
     const preference = new Preference(client);
-    const appointment = await this.appointmentService.getById(body.id);
+    const appointment = await this.appointmentService.getById(parseInt(id));
+    console.log("appointment desde mp:", appointment.id.toString());
     if (!appointment) {
       throw new Error("Appointment not found");
     }
@@ -43,6 +44,7 @@ export class MercadopagoService {
           },
         }
       });
+      console.log(response);
       return response;
     } catch (error) {
       console.log(error);

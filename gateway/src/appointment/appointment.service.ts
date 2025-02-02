@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Appointment } from "./entities/appointment.entity";
 import { Package } from "@/package/entities/package.entity";
@@ -16,12 +16,27 @@ import { Workstation } from "@/workstation/entities/workstation.entity";
 import { WorkstationState } from "@/workstation/entities/workstation-state.enum";
 import { PaginationAppointmentDto } from "./dto/pagination-appointment.dto";
 import { PaginationResponseDTO } from "@/base/dto/base.dto";
+import { MercadopagoService } from "@/mercadopago/mercadopago.service";
+import { PaymentMethod } from "@/payment/entities/payment-method.enum";
+import { PaymentType } from "@/payment/entities/payment-type.enum";
+import { PaymentStatus } from "@/payment/entities/payment-status.enum";
+import { PaymentService } from "@/payment/payment.service";
+import { PaymentDto } from "@/payment/dto/payment.dto";
 
 @Injectable()
 export class AppointmentService {
+  @Inject((forwardRef(() => MercadopagoService)))
+  private mercadopagoService: MercadopagoService;
+
+  @Inject(PaymentService)
+  private paymentService: PaymentService;
+
   employeeRepository: any;
   usersRepository: any;
+
   constructor(
+
+
     @InjectRepository(Appointment)
     private readonly appointmentRepository: Repository<Appointment>,
 
@@ -44,16 +59,17 @@ export class AppointmentService {
   ) { }
 
   async getById(id: number): Promise<Appointment> {
-    return this.appointmentRepository.findOne({
+    console.log("get ONE ID desde appint: ", id);
+    const appointment = await this.appointmentRepository.findOne({
       where: {
         id,
       },
       relations: ['details', 'details.employee', 'details.workstation', 'details.service', 'client', 'package', 'package.services'],
     });
+    return appointment;
   }
 
   async create(body: AppointmentDto, user: User): Promise<Appointment> {
-    console.log('ESTOY EN EL SERVICIO DE APPOINTMENT: creacion de turno');
     // Se pasa a tipo unknown porque sino toma solo al paquete 5
     const pkg = await this.packageRepository.findOne({ where: { id: body.package as unknown as number }, relations: ['services'] });
     body.package = pkg;
@@ -72,7 +88,7 @@ export class AppointmentService {
 
     // Guardo la fecha y horario de la cita
     const appointmentDate = new Date(body.datetimeStart);
-    console.log('appointmentDate: ', appointmentDate);
+    // console.log('appointmentDate: ', appointmentDate);
 
     // Primero traigo los datos globales
 
@@ -260,6 +276,24 @@ export class AppointmentService {
       await this.detailsAppointmentRepository.save(detail);
     }
 
+
+    const prefId = await this.mercadopagoService.create(savedAppointment.id.toString());
+
+    // Creo el pago
+    const payment = new PaymentDto();
+    payment.datetime = null;
+    payment.amount = 0;
+    payment.paymentMethod = PaymentMethod.MERCADOPAGO;
+    payment.paymentType = PaymentType.TOTAL;
+    payment.status = PaymentStatus.PENDING;
+    payment.observation = '';
+    payment.transactionId = '';
+    payment.paymentURL = prefId.sandbox_init_point;
+    payment.appointment = savedAppointment;
+    payment.created_at = new Date();
+
+    const savedPayment = await this.paymentService.create({ body: payment });
+    savedAppointment.payments = [savedPayment];
     return savedAppointment;
   }
 
@@ -384,7 +418,7 @@ export class AppointmentService {
 
 
   async findProffesionals(serviceId: number, userRepository: Repository<User>) {
-    console.log('desde la funcion: serviceId: ', serviceId);
+    // console.log('desde la funcion: serviceId: ', serviceId);
     const service = await this.serviceRepository.findOne({ where: { id: serviceId }, relations: ['category'] });
     if (!service) {
       throw new HttpException('Service not found', HttpStatus.NOT_FOUND);
@@ -496,11 +530,9 @@ export class AppointmentService {
 
     // Obtener profesionales de la categoria
     const professionals = await this.findProffesionalsByCategory(categoryId, this.userRepository)
-    // console.log('Profesionales: ', professionals);
 
     // Obtener estaciones de trabajo de la categoria
     const workstations = await this.findWorkstationsByCategory(categoryId, this.workstationRepository);
-    // console.log('Estaciones de trabajo: ', workstations);
 
     let lastStartTimeHour = closingHour1Hour;
     let lastStartTimeMinute = closingHour1Minute - serviceDuration;
@@ -511,10 +543,6 @@ export class AppointmentService {
     }
 
     const lastStartTime = `${lastStartTimeHour.toString().padStart(2, '0')}:${lastStartTimeMinute.toString().padStart(2, '0')}:00`;
-    console.log('lastStartTime: ', lastStartTime);
-    console.log('maxDateUTC: ', maxDateUTC);
-    console.log('currentStartUTC: ', currentStartUTC);
-
 
     while ((currentStartUTC < maxDateUTC)) {
       if (this.isValidDayAndTime(currentStartUTC, config, lastStartTime)) {
@@ -534,8 +562,7 @@ export class AppointmentService {
             }
 
           } else {
-            console.log(' ');
-            console.log('Colisiono a futuro en: ', currentStartUTC);
+
 
             if (currentStartUTC.getMinutes() % intervalMinutes === 0) {
 
@@ -545,30 +572,24 @@ export class AppointmentService {
                 // Como aqui todavia no se deben asignar, con saber que hay disponibles es suficiente
                 availableStartTimes.push(new Date(currentStartUTC));
               } else {
-                console.log('No hay suficientes turnos disponibles (colision futura)');
+                // console.log('No hay suficientes turnos disponibles (colision futura)');
               }
 
             }
           }
         } else {
-          console.log(' ');
-          console.log('Hay colisión en el horario: ', currentStartUTC);
 
           if (currentStartUTC.getMinutes() % intervalMinutes === 0) {
 
             // turnos en colision con el horario actual
             const colisionAppointments = await this.colisionAvailable(currentStartUTC, serviceDuration, categoryId);
 
-            // console.log('colisionAppointments cantidad: ', colisionAppointments.length);
-            // console.log('profesionales cantidad: ', professionals.length);
-            // console.log('estaciones de trabajo cantidad: ', workstations.length);
-
             // Evaluo si hay cantidad de profesionales y estaciones de trabajo suficientes disponibles
             if (colisionAppointments.length < professionals.length && colisionAppointments.length < workstations.length) {
               // Como aqui todavia no se deben asignar, con saber que hay disponibles es suficiente
               availableStartTimes.push(new Date(currentStartUTC));
             } else {
-              console.log('No hay suficientes turnos disponibles (colision presente)');
+              // console.log('No hay suficientes turnos disponibles (colision presente)');
             }
           }
         }
@@ -586,7 +607,7 @@ export class AppointmentService {
   // 2. la duracion del servicio (serviceDuration)
   // 3. la id de la categoria del servicio (category)
   private async colisionAvailable(currentStartTime: Date, serviceDuration: number, category: number) {
-    
+
 
     const existingAppointments = await this.detailsAppointmentRepository
       .createQueryBuilder('detailsAppointment')
@@ -604,7 +625,6 @@ export class AppointmentService {
 
   private async colisionAvailableFuture(currentStartTime: Date, serviceDuration: number, category: number) {
     // pasar a un array las citas de la categoria afectadas en el servicio
-    console.log('Entre a la funcion colisionAvailableFuture');
 
     const existingAppointments = await this.detailsAppointmentRepository
       .createQueryBuilder('detailsAppointment')
@@ -706,9 +726,7 @@ export class AppointmentService {
   }
 
   private paginateResults(data: Date[], page: number, pageSize: number): Date[] {
-    console.log('Entre al paginador');
     if (page < 1 || pageSize < 1) {
-      console.log('Entre al if');
       throw new HttpException('Invalid pagination parameters', HttpStatus.BAD_REQUEST);
     }
     const start = (page - 1) * pageSize;
@@ -840,7 +858,7 @@ export class AppointmentService {
       .limit(1)
       .getRawOne();
 
-      const result2 = await this.appointmentRepository
+    const result2 = await this.appointmentRepository
       .createQueryBuilder('appointments')
       .select('DATE_TRUNC(\'day\', "appointments"."datetimeStart")', 'fecha')
       // .addSelect('COUNT(*)', 'total_turnos')
@@ -849,8 +867,7 @@ export class AppointmentService {
       .orderBy('fecha')
       .limit(1)
       .getRawOne();
-    
-    console.log('result2: ', result2);
+
     return result ? result.total_turnos : 0;
   }
 
@@ -903,26 +920,26 @@ export class AppointmentService {
   async getAppointmentHistory(range: string): Promise<any> {
     let days;
     if (range === '90d') {
-        days = 90;
+      days = 90;
     } else if (range === '30d') {
-        days = 30;
+      days = 30;
     } else if (range === '7d') {
-        days = 7;
+      days = 7;
     } else {
-        throw new Error('Invalid range');
+      throw new Error('Invalid range');
     }
 
     const result = await this.appointmentRepository
-        .createQueryBuilder('appointments')
-        .select('DATE_TRUNC(\'day\', "appointments"."datetimeStart")', 'fecha')
-        .addSelect('COUNT(*)::int', 'total_turnos')
-        .where(`"datetimeStart" BETWEEN (NOW() AT TIME ZONE 'UTC') - INTERVAL '${days} days' AND NOW()`)
-        .groupBy('DATE_TRUNC(\'day\', "appointments"."datetimeStart")')
-        .orderBy('fecha')
-        .getRawMany();
+      .createQueryBuilder('appointments')
+      .select('DATE_TRUNC(\'day\', "appointments"."datetimeStart")', 'fecha')
+      .addSelect('COUNT(*)::int', 'total_turnos')
+      .where(`"datetimeStart" BETWEEN (NOW() AT TIME ZONE 'UTC') - INTERVAL '${days} days' AND NOW()`)
+      .groupBy('DATE_TRUNC(\'day\', "appointments"."datetimeStart")')
+      .orderBy('fecha')
+      .getRawMany();
 
     return result;
-}
+  }
 
 
 

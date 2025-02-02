@@ -18,7 +18,7 @@ const Step4: React.FC = () => {
             <div className="flex flex-col space-y-4 mt-4">
                 <Button
                     onClick={() => handlePaymentMethodChange("local")}
-                    variant={formData.step4?.paymentMethod === "local" ? "default" : "outline"}
+                    variant={formData.step4?.paymentMethod === "efectivo" ? "default" : "outline"}
                     className="w-full justify-start"
                 >
                     <Wallet className="mr-2 h-4 w-4" />

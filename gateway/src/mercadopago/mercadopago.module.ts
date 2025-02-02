@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MercadopagoService } from './mercadopago.service';
 import { MercadopagoController } from './mercadopago.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -11,7 +11,8 @@ import { AppointmentModule } from '@/appointment/appointment.module';
 @Module({
   imports: [
     UsersModule,
-    AppointmentModule,
+        forwardRef(() => AppointmentModule),
+
       TypeOrmModule.forFeature([Mercadopago, User]),
       JwtModule.register({
           secret: 'your_jwt_secret', // Usa un secreto seguro en producción

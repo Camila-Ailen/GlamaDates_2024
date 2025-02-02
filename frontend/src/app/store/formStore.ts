@@ -109,6 +109,8 @@ export const useFormStore = create<FormStore>()((set, get) => ({
         return
       }
 
+      console.log("response desde formStore", response)
+
       if (response.ok) {
         toast.success("Turno agendado exitosamente 🎉")
       } else {

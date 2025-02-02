@@ -4,6 +4,7 @@ import { PaymentMethod } from "../entities/payment-method.enum";
 import { PaymentType } from "../entities/payment-type.enum";
 import { ApiProperty } from "@nestjs/swagger";
 import { Appointment } from "@/appointment/entities/appointment.entity";
+import { PaymentStatus } from "../entities/payment-status.enum";
 
 
 export class PaymentDto {
@@ -27,12 +28,20 @@ export class PaymentDto {
     paymentType: PaymentType;
 
     @IsOptional()
+    @IsEnum(PaymentStatus)
+    status: PaymentStatus;
+
+    @IsOptional()
     @IsString()
     observation: string;
 
     @IsOptional()
     @IsString()
     transactionId: string;
+
+    @IsOptional()
+    @IsString()
+    paymentURL: string;
 
     @ApiProperty({ required: false, type: 'string' })
     @IsOptional()

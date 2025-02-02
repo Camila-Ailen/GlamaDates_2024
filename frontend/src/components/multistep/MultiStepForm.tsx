@@ -56,7 +56,7 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
   }
 
   const handleSubmit = async () => {
-    if (isStepValid(4)) {
+    if (isStepValid(3)) {
       await submitForm()
       closeForm()
       onClose()
@@ -100,7 +100,7 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
                   >
                     Anterior
                   </button>
-                  {currentStep < 4 ? (
+                  {currentStep < 3 ? (
                     <button
                       onClick={handleNext}
                       disabled={!isStepValid(currentStep)}
