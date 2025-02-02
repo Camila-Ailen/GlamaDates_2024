@@ -16,6 +16,7 @@ import { User } from '@/users/entities/user.entity';
 import { Package } from '@/package/entities/package.entity';
 import { Workstation } from '@/workstation/entities/workstation.entity';
 import { DetailsAppointment } from '@/details-appointment/entities/details-appointment.entity';
+import { Payment } from '@/payment/entities/payment.entity';
   
   @Entity({ name: 'appointments' })
   export class Appointment {
@@ -31,6 +32,14 @@ import { DetailsAppointment } from '@/details-appointment/entities/details-appoi
     @Column({ type: 'enum', enum: AppointmentState, default: AppointmentState.ACTIVE })
     state: AppointmentState;
 
+    //costo total
+    @Column({ type: 'float', default: 0, nullable: true })
+    total: number;
+
+    //costo pendiente
+    @Column({ type: 'float', default: 0, nullable: true })
+    pending: number;
+
     // Relacion con cliente
     @ManyToOne(() => User, (client) => client.appointmentClient, {
         nullable: false,
@@ -42,6 +51,10 @@ import { DetailsAppointment } from '@/details-appointment/entities/details-appoi
         nullable: false,
     })
     package: Package;
+
+    // Relacion con pagos
+    @OneToMany(() => Payment, (payment) => payment.appointment)
+    payments: Payment[];
 
 
     // Relacion con detalles de turnos

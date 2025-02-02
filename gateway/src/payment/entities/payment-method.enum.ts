@@ -1,0 +1,6 @@
+export enum PaymentMethod {
+    CASH = 'EFECTIVO',
+    TRANSFER = 'TRANSFERENCIA',
+    DEBIT_CARD = 'TARJETA DEBITO',
+    CREDIT_CARD = 'TARJETA CREDITO',
+}
