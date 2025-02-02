@@ -50,6 +50,11 @@ interface Service {
     category: Category;
 }
 
+interface AppointmentHistoryItem {
+  fecha: string;
+  total_turnos: number;
+}
+
 interface AppointmentState {
     appointments: Appointment[]
     total: number
@@ -65,6 +70,7 @@ interface AppointmentState {
     thisMonthAppointments: number
     thisWeekAppointments: number
     lastMonthAppointments: number
+    appointmentHistory: [] 
     setSelectedServices: (services: Service[]) => void
     fetchPackageAvailability: (packageId: number, orderBy: string, orderType: 'ASC' | 'DESC', offset: number, pageSize: number) => Promise<string[]>
     fetchAppointments: (page?: number, token?: string) => Promise<void>
@@ -72,6 +78,7 @@ interface AppointmentState {
     fetchTotalAppointmentsThisMonth: () => Promise<{ total_turnos: number }>
     fetchLastMonthAppointments: () => Promise<{ total_turnos: number }>
     fetchTotalAppointmentsThisWeek: () => Promise<{ total_turnos: number }>
+    fetchAppointmentHistory: (timeRange: string) => Promise<void>
     setOrderBy: (field: string) => void
     setOrderType: (type: 'ASC' | 'DESC') => void
     setFilter: (filter: string) => void
@@ -93,6 +100,7 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
     thisWeekAppointments: 0,
     thisMonthAppointments: 0,
     lastMonthAppointments: 0,
+    appointmentHistory: [],
 
     selectedServices: [],
     setSelectedServices: (services) => set({ selectedServices: services }),
@@ -275,7 +283,28 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
         }
     },
 
-
+    fetchAppointmentHistory: async (timeRange) => {
+        set({ isLoading: true, error: null });
+        try {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/appointment/history?range=${timeRange}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (response.status === 403) {
+            toast.error("Sesión expirada");
+            useAuthStore.getState().logout();
+            return;
+          }
+          if (!response.ok) throw new Error('Error al obtener el historial de turnos');
+          const data = await response.json();
+          console.log(data);
+          set({ appointmentHistory: data, isLoading: false });
+        } catch (error) {
+          console.error(error);
+        //   set({ isLoading: false, error: error.message });
+        }
+      },
 
 
 

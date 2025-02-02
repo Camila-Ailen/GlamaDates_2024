@@ -65,29 +65,6 @@ function CounterGraph({
   );
 }
 
-// export function MonthGraph() {
-//   return (
-//     <CounterGraph
-//       targetCount={572}
-//       title="Turnos para este mes"
-//       description={`Global cargado del mes de ${new Date().toLocaleDateString("es-AR", { month: "long" })}`}
-//       icon={CalendarDays}
-//       ptag="+15 desde la semana pasada"
-//     />
-//   );
-// }
-
-// export function WeekGraph() {
-//   return (
-//     <CounterGraph
-//       targetCount={572}
-//       title="Turnos para este mes"
-//       description={`Global cargado del mes de ${new Date().toLocaleDateString("es-AR", { month: "long" })}`}
-//       icon={CalendarDays}
-//       ptag="+15 desde la semana pasada"
-//     />
-//   );
-// }
 
 export function MonthGraph() {
   const { thisMonthAppointments, lastMonthAppointments, fetchTotalAppointmentsThisMonth, fetchLastMonthAppointments } = useAppointmentStore();
@@ -130,8 +107,6 @@ export function WeekGraph() {
     fetchTotalAppointmentsThisWeek,
   } = useAppointmentStore();
   const [percentage, setPercentage] = useState(0);
-
-  const [totalTurnos, setTotalTurnos] = useState<number | null>(null);
 
   useEffect(() => {
     async function fetchData() {

@@ -907,6 +907,38 @@ export class AppointmentService {
     return result ? result.total_turnos : 0;
   }
 
+  /////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+
+  async getAppointmentHistory(range: string): Promise<any> {
+    let days;
+    if (range === '90d') {
+        days = 90;
+    } else if (range === '30d') {
+        days = 30;
+    } else if (range === '7d') {
+        days = 7;
+    } else {
+        throw new Error('Invalid range');
+    }
+
+    const result = await this.appointmentRepository
+        .createQueryBuilder('appointments')
+        .select('DATE_TRUNC(\'day\', "appointments"."datetimeStart")', 'fecha')
+        .addSelect('COUNT(*)::int', 'total_turnos')
+        .where(`"datetimeStart" BETWEEN (NOW() AT TIME ZONE 'UTC') - INTERVAL '${days} days' AND NOW()`)
+        .groupBy('DATE_TRUNC(\'day\', "appointments"."datetimeStart")')
+        .orderBy('fecha')
+        .getRawMany();
+
+    return result;
+}
+
+
+
+
+
+
 
 
 }

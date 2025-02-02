@@ -98,13 +98,6 @@ export class AppointmentController extends BaseController {
   ////////////////////////////////////////////////////
   ////////////////////////////////////////////////////
 
-  // @Get('lastMonth')
-  // @Auth('read:appointments')
-  // async getLastMonthAppointments(): Promise<{ total_turnos: number }> {
-  //   const totalTurnos = await this.appointmentService.getLastMonthAppointments();
-  //   return { total_turnos: totalTurnos };
-  // }
-
   @Get('lastMonth')
   @Auth('read:appointments') 
   async getLastMonthAppointments(): Promise<{ total_turnos: number }> {
@@ -120,6 +113,15 @@ export class AppointmentController extends BaseController {
   async getThisWeekAppointments(): Promise<{ total_turnos: number }> {
     const totalTurnos = await this.appointmentService.getThisWeekAppointments();
     return { total_turnos: totalTurnos };
+  }
+
+  ////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
+  @Get('history')
+  @Auth('read:appointments')
+  async getAppointmentHistory(@Query('range') range: string): Promise<any> {
+    const history = await this.appointmentService.getAppointmentHistory(range);
+    return history;
   }
 
   
