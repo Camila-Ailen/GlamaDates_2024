@@ -639,13 +639,13 @@ export class AppointmentService {
     const { openDays, openingHour1, closingHour1, openingHour2, closingHour2 } = config;
 
     const daysOfWeekArray = [
-      DaysOfWeek.DOMINGO,
-      DaysOfWeek.LUNES,
-      DaysOfWeek.MARTES,
-      DaysOfWeek.MIERCOLES,
-      DaysOfWeek.JUEVES,
-      DaysOfWeek.VIERNES,
-      DaysOfWeek.SABADO,
+      DaysOfWeek.SUNDAY,
+      DaysOfWeek.MONDAY,
+      DaysOfWeek.TUESDAY,
+      DaysOfWeek.WEDNESDAY,
+      DaysOfWeek.THURSDAY,
+      DaysOfWeek.FRIDAY,
+      DaysOfWeek.SATURDAY,
     ];
 
     // Obtenemos el día de la semana como un valor del enum

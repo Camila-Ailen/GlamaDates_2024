@@ -36,7 +36,7 @@ export class SystemConfig {
     type: 'enum',
     enum: DaysOfWeek,
     array: true,
-    default: [DaysOfWeek.LUNES, DaysOfWeek.MARTES, DaysOfWeek.MIERCOLES, DaysOfWeek.JUEVES, DaysOfWeek.VIERNES]
+    default: [DaysOfWeek.MONDAY, DaysOfWeek.TUESDAY, DaysOfWeek.WEDNESDAY, DaysOfWeek.THURSDAY, DaysOfWeek.FRIDAY]
   })
   openDays: DaysOfWeek[];
 
