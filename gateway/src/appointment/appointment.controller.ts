@@ -33,7 +33,7 @@ export class AppointmentController extends BaseController {
 
   // Trae los horarios disponibles para un paquete
   @Get('availability2/:packageId')
-  @Auth('read:appointments')
+  @Auth('read:availableappointments')
   async getAvailability2(@Param('packageId') packageId: number, @Query('offset') offset: number, @Query('pageSize') pageSize: number): Promise<Date[]> {
     return this.appointmentService.getAvailableAppointments3(packageId, offset, pageSize);
   }

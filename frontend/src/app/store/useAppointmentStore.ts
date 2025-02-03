@@ -109,8 +109,6 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
 
     fetchPackageAvailability: async (packageId: number, orderBy: string, orderType: 'ASC' | 'DESC', offset: number, pageSize: number) => {
         try {
-            console.log('packageId desde AppointmentStore: ', packageId);
-            console.log('packageId es de tipo: ', typeof packageId);
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/appointment/availability2/${packageId}?orderBy=${orderBy}&orderType=${orderType}&offset=${offset}&pageSize=${pageSize}`,
                 {

@@ -9,7 +9,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import { CreditCard, Eye, Link, UserPen, View } from 'lucide-react'
+import { CreditCard, Eye, Link, Trash, UserPen, View } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { format } from 'date-fns/format'
 
@@ -17,6 +17,8 @@ import { format } from 'date-fns/format'
 
 export function ViewMydateDialog({ appointment }) {
     // const [isOpen, setIsOpen] = useState(false)
+
+    
 
     return (
 
@@ -71,6 +73,14 @@ export function ViewMydateDialog({ appointment }) {
                                 Pagar con Mercado Pago
                             </Button>
                         )}
+                        {/* {appointment.state === "PENDIENTE" && (
+                            <Button
+                                className="w-full justify-start"
+                            >
+                                <Trash className="mr-2 h-4 w-4" />
+                                Cancelar cita
+                            </Button>
+                        )} */}
                         {/* </Link> */}
                     </div>
                 </div>

@@ -52,7 +52,7 @@ const useAuthStore = create<AuthState>()(
               body: JSON.stringify({ email, password }),
             },
           );
-          console.log(response);
+          // console.log(response);
           if (!response.ok) {
             toast.error("Credenciales incorrectas");
             throw new Error("Credenciales incorrectas");

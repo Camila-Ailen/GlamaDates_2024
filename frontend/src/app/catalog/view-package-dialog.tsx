@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 export function ViewMydateDialog({ _package }) {
 
-    return (
+    return ( 
         <DialogContent>
             <DialogHeader>
                 <DialogTitle>PAQUETE NUMERO <strong>{_package.id}</strong></DialogTitle>
@@ -19,6 +19,7 @@ export function ViewMydateDialog({ _package }) {
                     <div className="custom-dialog-content">
                         <div className="appointment-details">
                             <p><strong>Paquete:</strong> {_package.name.toUpperCase()}</p>
+                            <p>{_package.description}</p>
                             <p><strong>Servicios:</strong></p>
                             <ul>
                                 {_package &&

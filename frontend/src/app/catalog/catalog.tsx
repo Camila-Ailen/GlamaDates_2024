@@ -54,6 +54,7 @@ const AppointmentCatalog = () => {
     const orderType = "DESC"
     setSelectedPackage(pkg)
     updateFormData("selectedPackage", pkg)
+    console.log("Desde catalogo de paquetes, el selectedPackage: ", pkg)
     const availabilityData = await fetchPackageAvailability(pkg.id, orderBy, orderType, offset, pageSize)
     if (availabilityData) {
       console.log("Desde catalogo de paquetes, el selectedPackage: ", pkg)
