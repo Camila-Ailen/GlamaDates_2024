@@ -56,12 +56,15 @@ export const useMyDatesStore = create<MyDatesState>((set, get) => ({
                 },
             );
             
-            if (response.status === 403) {
-                toast.error("Sesión expirada");
+            if (response.status === 403 || response.status === 500) {
+                
                 useAuthStore.getState().logout();
+                toast.error("Sesión expirada");
                 return;
             } 
 
+            console.log('response.status: ', response);
+            
             if (!response.ok) throw new Error("Error al obtener mis citas");
             const data = await response.json();
             set({

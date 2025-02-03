@@ -35,15 +35,11 @@ export function MyDates() {
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [myDate, setMyDate] = useState(null)
 
-    const handleCardClick = (myDate) => {
-        setMyDate(myDate)
+    const handleCardClick = (date) => {
+        setMyDate(date)
         setIsDialogOpen(true)
     }
 
-
-    // useEffect(() => {
-    //     fetchMyDates()
-    // }, [fetchMyDates])
 
     useEffect(() => {
         if (token) {
@@ -73,31 +69,46 @@ export function MyDates() {
         )
     }
 
+    const getStatusColor = (state) => {
+        switch (state) {
+            case "COMPLETADO":
+                return "bg-green-100 hover:bg-green-200 text-green-700";
+            case "INACTIVO":
+            case "CANCELADO":
+                return "bg-gray-100 hover:bg-gray-200 text-gray-700";
+            case "MOROSO":
+                return "bg-red-300 hover:bg-red-500 text-red-700";
+            default:
+                return "bg-pink-100 hover:bg-pink-200 text-pink-700";
+        }
+    };
+
     return (
         <div className="flex flex-1 flex-col gap-4 p-4">
             <h1 className="text-3xl font-bold text-center text-pink-700 mb-6">Mis Citas</h1>
             <div className="flex flex-wrap justify-center gap-6">
-                {myDates.map((myDate) => (
-                    <Dialog key={myDate.id} open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                {myDates.map((date) => (
+                    <Dialog key={date.id} open={isDialogOpen && myDate.id === date.id} onOpenChange={setIsDialogOpen}>
                         <DialogTrigger asChild>
-                            <div key={myDate.id} className="p-6 bg-pink-100 rounded-2xl shadow-lg cursor-pointer hover:bg-pink-200 transition flex flex-col"
+                            <div
+                                className={`p-6 rounded-2xl shadow-lg cursor-pointer transition flex flex-col ${getStatusColor(date.state)}`}
                                 style={{ minWidth: '250px', minHeight: '250px' }}
-                                onClick={() => handleCardClick(myDate)}>
+                                onClick={() => handleCardClick(date)}>
                                 <Card className="h-full flex flex-col justify-center items-center text-center">
                                     <CardHeader>
                                         <CardTitle className="text-lg font-semibold text-pink-700">
-                                            <div>{format(new Date(myDate.datetimeStart), 'dd/MM/yyyy')}  </div>
-                                            <div>{format(new Date(myDate.datetimeStart), 'HH:mm')}hs</div>
-                                            <p className="text-pink-600"> {myDate.package.name.toUpperCase()}</p>
+                                            <div>{format(new Date(date.datetimeStart), 'dd/MM/yyyy')}  </div>
+                                            <div>{format(new Date(date.datetimeStart), 'HH:mm')}hs</div>
+                                            <p className="text-pink-600"> {date.package.name.toUpperCase()}</p>
                                         </CardTitle>
                                         <CardDescription className="text-pink-500">
-                                            {myDate.package.description}
+                                            {date.package.description}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent>
-                                        {myDate.package && myDate.package.services && myDate.package.services.length >= 1 && (
+                                        {date.package && date.package.services && date.package.services.length >= 1 && (
                                             <ul className="list-disc list-inside text-pink-500">
-                                                {myDate.package.services.map((service) => (
+                                                {date.package.services.map((service) => (
                                                     <li key={service.id}>{service.name}</li>
                                                 ))}
                                             </ul>
@@ -109,7 +120,9 @@ export function MyDates() {
                                 </Card>
                             </div>
                         </DialogTrigger>
+                        {myDate && myDate.id === date.id && (
                         <ViewMydateDialog appointment={myDate} />
+                        )}
                     </Dialog>
                 ))}
             </div>

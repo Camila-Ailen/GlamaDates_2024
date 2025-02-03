@@ -9,18 +9,14 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import useAppointmentStore from '../store/useAppointmentStore'
-import { Eye, UserPen, View } from 'lucide-react'
+import { CreditCard, Eye, Link, UserPen, View } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { format } from 'date-fns/format'
-import { User } from '../store/useUserStore'
+
 // import { DetailsAppointment } from '../store/useAppointmentStore'
 
 export function ViewMydateDialog({ appointment }) {
     // const [isOpen, setIsOpen] = useState(false)
-
 
     return (
 
@@ -37,6 +33,7 @@ export function ViewMydateDialog({ appointment }) {
                             <p><strong>Fecha:</strong> {format(new Date(appointment.datetimeStart), 'dd/MM/yyyy')}</p>
                             <p><strong>Hora:</strong> {format(new Date(appointment.datetimeStart), 'HH:mm')}hs</p>
                             <p><strong>Estado:</strong> {appointment.state}</p>
+                            {/* <p><strong>Estado pago:</strong> {appointment.payment.status}</p> */}
                             <p><strong>Servicios:</strong></p>
                             <ul>
                                 {appointment &&
@@ -65,6 +62,16 @@ export function ViewMydateDialog({ appointment }) {
                                     ))}
                             </ul>
                         </div>
+                        {/* <Link href="#"> */}
+                        {appointment.state !== "COMPLETADO" && appointment.state !== "ACTIVO" && (
+                            <Button
+                                className="w-full justify-start"
+                            >
+                                <CreditCard className="mr-2 h-4 w-4" />
+                                Pagar con Mercado Pago
+                            </Button>
+                        )}
+                        {/* </Link> */}
                     </div>
                 </div>
             </div>

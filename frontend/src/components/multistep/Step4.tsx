@@ -13,9 +13,9 @@ const Step4: React.FC = () => {
     const handlePaymentMethodChange = (value: string) => {
         updateFormData("step4", { paymentMethod: value })
     }
-const baseURL = "https://sandbox.mercadopago.com.ar/checkout/v1/redirect?pref_id=";
-const preferenceId = useFormStore((state) => state.paymentURL);
-const fullURL = `${baseURL}${preferenceId}`;
+    const baseURL = "https://sandbox.mercadopago.com.ar/checkout/v1/redirect?pref_id=";
+    const preferenceId = useFormStore((state) => state.paymentURL);
+    const fullURL = `${baseURL}${preferenceId}`;
 
     return (
         <div className="custom-dialog-content">
@@ -32,13 +32,13 @@ const fullURL = `${baseURL}${preferenceId}`;
                 </Button>
                 <PaymentButton />
                 <Link href={fullURL}>
-                <Button
-                    // onClick={() => handlePaymentMethodChange("mercadopago")}
-                    variant={formData.step4?.paymentMethod === "mercadopago" ? "default" : "outline"}
-                    className="w-full justify-start"
-                >
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    Pagar con Mercado Pago
+                    <Button
+                        // onClick={() => handlePaymentMethodChange("mercadopago")}
+                        variant={formData.step4?.paymentMethod === "mercadopago" ? "default" : "outline"}
+                        className="w-full justify-start"
+                    >
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        Pagar con Mercado Pago
                     </Button>
                 </Link>
             </div>

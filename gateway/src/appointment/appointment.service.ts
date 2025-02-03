@@ -828,7 +828,7 @@ export class AppointmentService {
           deletedAt: IsNull(),
           client: { id: user.id },
         },
-        relations: ['details', 'details.employee', 'details.workstation', 'details.service', 'client', 'package'],
+        relations: ['details', 'details.employee', 'details.workstation', 'details.service', 'client', 'package', 'package.services', 'package.services.category', 'payments'],
         order,
         take: forPage,
         skip,

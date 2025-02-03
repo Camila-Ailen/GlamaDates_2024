@@ -4,6 +4,7 @@ import {
   FileText,
   Folder,
   Package,
+  PackagePlus,
   Settings,
   Users,
 } from "lucide-react";
@@ -19,6 +20,7 @@ import { MonthGraph, TodayGraph, WeekGraph } from "@/components/dashboard/counte
 import React from "react";
 import router from "next/router";
 import Link from "next/link";
+import { toast } from "sonner";
 
 interface AnimatedCardProps extends React.ComponentProps<typeof Card> {
   index: number;
@@ -41,6 +43,10 @@ const AnimatedCard = React.forwardRef<HTMLDivElement, AnimatedCardProps>(
 );
 AnimatedCard.displayName = "AnimatedCard";
 
+const handleCardClick = () => {
+  toast.info("Configuración no disponible");
+};
+
 export default function Component() {
   return (
     <div className="flex min-h-screen flex-col">
@@ -51,75 +57,83 @@ export default function Component() {
               className="bg-primary text-primary-foreground"
               index={0}
             >
+              <Link href="/appointment">
               <Card
                 className="bg-primary text-primary-foreground"
               >
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-base font-medium">
-                    Nueva solicitud
+                    Citas
                   </CardTitle>
                   <FileText className="h-4 w-4" />
                 </CardHeader>
                 <CardContent>
                   <CardDescription className="text-primary-foreground/80">
-                    Vida, casa, autos y más
+                    Administracion de citas
                   </CardDescription>
                 </CardContent>
               </Card>
+              </Link>
             </AnimatedCard>
 
             <AnimatedCard
               className="bg-primary text-primary-foreground"
               index={1}
             >
+              <Link href="/service">
               <Card className="bg-primary text-primary-foreground">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-base font-medium">
-                    Solicitudes
+                    Servicios
                   </CardTitle>
                   <Folder className="h-4 w-4" />
                 </CardHeader>
                 <CardContent>
                   <CardDescription className="text-primary-foreground/80">
-                    Lista de solicitudes
+                    Lista de Servicios
                   </CardDescription>
                 </CardContent>
               </Card>
+              </Link>
             </AnimatedCard>
             <AnimatedCard
               className="bg-primary text-primary-foreground"
               index={2}
             >
+              <Link  href="/package">
               <Card className="bg-primary text-primary-foreground">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-base font-medium">
-                    Reportes
+                    Paquetes
                   </CardTitle>
-                  <BarChart3 className="h-4 w-4" />
+                  <PackagePlus className="h-4 w-4" />
                 </CardHeader>
                 <CardContent>
                   <CardDescription className="text-primary-foreground/80">
-                    Reportes customizados
+                    Administracion de Paquetes
                   </CardDescription>
                 </CardContent>
               </Card>
+              </Link>
             </AnimatedCard>
 
             <AnimatedCard
               className="bg-primary text-primary-foreground"
               index={3}
             >
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-base font-medium">
-                    Productos
-                  </CardTitle>
-                  <Package className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <CardDescription>Administración de productos</CardDescription>
-                </CardContent>
-              </Card>
+              <Link href="/category">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-base font-medium">
+                      Categorias
+                    </CardTitle>
+                    <Package className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription>Administración de categorias</CardDescription>
+                  </CardContent>
+                </Card>
+              </Link>
             </AnimatedCard>
             <AnimatedCard
               className="bg-primary text-primary-foreground"
@@ -146,7 +160,8 @@ export default function Component() {
               className="bg-primary text-primary-foreground"
               index={5}
             >
-              <Card>
+              <Link href="/#">
+              <Card onClick={handleCardClick}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-base font-medium">
                     Configuración
@@ -157,6 +172,7 @@ export default function Component() {
                   <CardDescription>Preferencias del sistema</CardDescription>
                 </CardContent>
               </Card>
+              </Link>
             </AnimatedCard>
           </div>
           <div className="mt-4 grid gap-4 md:grid-cols-3">

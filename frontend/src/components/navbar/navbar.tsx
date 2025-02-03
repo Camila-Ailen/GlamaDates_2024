@@ -60,18 +60,41 @@ export function Navbar() {
           </strong>
           <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6"></nav>
           <div className="flex items-center space-x-1">
-            <Link href="/dashboard">
-              <Button variant="ghost" className="px-2">
-                Dashboard
-              </Button>
-            </Link>
+            {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "see:dashboard") && (
+              <Link href="/dashboard">
+                <Button variant="ghost" className="px-2">
+                  Dashboard
+                </Button>
+              </Link>
+            )}
+            {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "see:catalog") && (
+              <Link href="/catalog">
+                <Button variant="ghost" className="px-2">
+                  Catalogo
+                </Button>
+              </Link>
+            )}
             {/* isAutentoicated green dot or red if not */}
             {isAuthenticated ? (
-              <span className="h-2 w-2 rounded-full bg-green-500"></span>
+              <span className="h-2 w-2 rounded-full bg-white-500 dark:bg-black-500"></span>
             ) : (
               <span className="h-2 w-2 rounded-full bg-red-500"></span>
             )}
-            <DropdownMenu>
+            {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "read:appointments") && (
+              <Link href="/appointment">
+                <Button variant="ghost" className="px-2">
+                  Turnos
+                </Button>
+              </Link>
+            )}
+            {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "read:mydate") && (
+              <Link href="/myDate">
+                <Button variant="ghost" className="px-2">
+                  Mis Citas
+                </Button>
+              </Link>
+            )}
+            {/* <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="px-2">
                   Turnos
@@ -91,72 +114,78 @@ export function Navbar() {
                   <span>Subir solicitudes</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
-            </DropdownMenu>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="px-2">
-                  Parametros
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56">
-                <DropdownMenuItem>
-                  <Link href="/category" className="flex items-center">
-                    <Network className="mr-2 h-4 w-4 text-primary" />
-                    <span>Categorias</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link href="/service" className="flex items-center">
-                    <Box className="mr-2 h-4 w-4 text-primary" />
-                    <span>Servicios</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link href="/package" className="flex items-center">
-                    <Grid className="mr-2 h-4 w-4 text-primary" />
-                    <span>Paquetes</span>
-                  </Link>
-                </DropdownMenuItem>
-
-                <DropdownMenuItem>
-                  <Link href="/users" className="flex items-center">
-                    <Users className="mr-2 h-4 w-4 text-primary" />
-                    <span>Usuarios</span>
-                  </Link>
-                </DropdownMenuItem>
-
-                {/* <DropdownMenuItem>
-                  <Users className="mr-2 h-4 w-4 text-primary" />
-                  <span>Roles</span>
-                </DropdownMenuItem> */}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="px-2">
-                  Reportes
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56">
-                <DropdownMenuItem>
-                  <BarChart3 className="mr-2 h-4 w-4 text-primary" />
-                  <span>Reportes</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <LineChart className="mr-2 h-4 w-4 text-primary" />
-                  <span>Reporte de ventas</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <BarChart className="mr-2 h-4 w-4 text-primary" />
-                  <span>Reporte de análisis</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <PieChart className="mr-2 h-4 w-4 text-primary" />
-                  <span>Reporte de estados</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <DropdownMenu>
+            </DropdownMenu> */}
+            {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "see:reports") && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="px-2">
+                    Parametros
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56">
+                  {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "read:categories") && (
+                    <DropdownMenuItem>
+                      <Link href="/category" className="flex items-center">
+                        <Network className="mr-2 h-4 w-4 text-primary" />
+                        <span>Categorias</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "read:services") && (
+                    <DropdownMenuItem>
+                      <Link href="/service" className="flex items-center">
+                        <Box className="mr-2 h-4 w-4 text-primary" />
+                        <span>Servicios</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "read:packages") && (
+                    <DropdownMenuItem>
+                      <Link href="/package" className="flex items-center">
+                        <Grid className="mr-2 h-4 w-4 text-primary" />
+                        <span>Paquetes</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "read:users") && (
+                    <DropdownMenuItem>
+                      <Link href="/users" className="flex items-center">
+                        <Users className="mr-2 h-4 w-4 text-primary" />
+                        <span>Usuarios</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "read:reports") && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="px-2">
+                    Reportes
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56">
+                  <DropdownMenuItem>
+                    <BarChart3 className="mr-2 h-4 w-4 text-primary" />
+                    <span>Reportes</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <LineChart className="mr-2 h-4 w-4 text-primary" />
+                    <span>Reporte de ventas</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <BarChart className="mr-2 h-4 w-4 text-primary" />
+                    <span>Reporte de análisis</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <PieChart className="mr-2 h-4 w-4 text-primary" />
+                    <span>Reporte de estados</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            {/* <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="px-2">
                   Administración
@@ -169,12 +198,12 @@ export function Navbar() {
                     <span>Usuarios</span>
                   </Link>
                 </DropdownMenuItem>
-                {/* <DropdownMenuItem>
+                <DropdownMenuItem>
                   <Building2 className="mr-2 h-4 w-4 text-primary" />
                   <span>Sucursales</span>
-                </DropdownMenuItem> */}
+                </DropdownMenuItem>
               </DropdownMenuContent>
-            </DropdownMenu>
+            </DropdownMenu> */}
           </div>
           <Sheet>
             <SheetTrigger asChild>
@@ -217,14 +246,17 @@ export function Navbar() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuLabel>Mi cuenta</DropdownMenuLabel>
                 {/* user data */}
                 <DropdownMenuItem>
                   <span>{user.email}</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Settings</DropdownMenuItem>
-                <DropdownMenuItem>Support</DropdownMenuItem>
+                {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "read:mydate") && (
+                  <Link href="/myDate">
+                    <DropdownMenuItem>Mis citas</DropdownMenuItem>
+                  </Link>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout}>
                   Cerrar Sesión
