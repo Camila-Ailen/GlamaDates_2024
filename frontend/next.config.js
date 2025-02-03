@@ -1,10 +1,8 @@
-const https = require('https-localhost')();
-
 module.exports = {
   output: "standalone",
-  
+
   // Redirecciones
-  redirects: async () => {
+  async redirects() {
     return [
       {
         source: "/",
@@ -15,11 +13,11 @@ module.exports = {
   },
 
   // Reescrituras para manejar las rutas y asegurarse de que la API esté en el lugar correcto
-  rewrites: async () => {
+  async rewrites() {
     return [
       {
-        source: '/api/:path*',  // Redirige las llamadas a /api a tu backend
-        destination: 'https://localhost:3000/api/:path*',  // Suponiendo que tu backend está en HTTPS
+        source: '/api/:path*',
+        destination: 'https://localhost:3000/api/:path*', // Backend API
       },
     ];
   },
@@ -27,6 +25,7 @@ module.exports = {
   // Configuración de cabeceras y políticas de seguridad
   async headers() {
     return [
+      // Puedes descomentar y ajustar según sea necesario
       // {
       //   source: '/:path*',
       //   headers: [
@@ -38,11 +37,4 @@ module.exports = {
       // },
     ];
   },
-
-  devServer: {
-    https: {
-      key: './localhost-key.pem',
-      cert: './localhost.pem',
-    }
-  }
 };

@@ -28,8 +28,17 @@ export function LoginForm() {
     e.preventDefault();
     setError("");
     try {
-      await login(email, password);
-      router.push("/catalog");
+      const user = await login(email, password);
+      if (user.role === "ADMIN" || user.role === "SECRETARIO") {
+        router.push("/dashboard");
+      } else if (user.role === "CLIENTE"){
+        router.push("/catalog");
+      } else if (user.role === "PROFESIONAL"){
+        router.push("/myDate");
+      } else {
+        router.push("/catalog");
+      }
+      // router.push("/catalog");
     } catch (err) {
       setError("Error de autenticación. Por favor, intente de nuevo.");
     }

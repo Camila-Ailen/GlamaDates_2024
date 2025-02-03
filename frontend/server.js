@@ -1,10 +1,9 @@
-const { createServer } = require('https');
-const { parse } = require('url');
-const next = require('next');
 const fs = require('fs');
 const path = require('path');
-const cors = require('cors'); // Importa el paquete cors
-
+const https = require('https');
+const express = require('express');
+const next = require('next');
+const cors = require('cors');
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
@@ -16,16 +15,21 @@ const httpsOptions = {
 };
 
 app.prepare().then(() => {
-  const server = createServer(httpsOptions, (req, res) => {
-    const parsedUrl = parse(req.url, true);
-    handle(req, res, parsedUrl);
+  const server = express();
+
+  // Habilita CORS
+  server.use(cors());
+
+  // Maneja todas las rutas con Next.js
+  server.all('*', (req, res) => {
+    return handle(req, res);
   });
 
-  // Usa cors como middleware
-  server.on('request', cors());
-
-  server.listen(3001, (err) => {
+  // Crea el servidor HTTPS con Express
+  https.createServer(httpsOptions, server).listen(3001, (err) => {
     if (err) throw err;
     console.log('> Server started on https://localhost:3001');
   });
+}).catch((err) => {
+  console.error('Error initializing server:', err);
 });

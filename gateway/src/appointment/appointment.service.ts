@@ -295,7 +295,7 @@ export class AppointmentService {
     await this.paymentService.create({ body: payment });
 
     
-    console.log('savedAppointment: ', savedAppointment);
+    // console.log('savedAppointment: ', savedAppointment);
     return await this.getById(savedAppointment.id);
   }
 

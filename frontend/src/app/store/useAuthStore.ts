@@ -24,7 +24,7 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{role: string}>;
   logout: () => void;
   hasPermission: (permission: string) => boolean;
   setIsLoading: (isLoading: boolean) => void;
@@ -58,12 +58,14 @@ const useAuthStore = create<AuthState>()(
             throw new Error("Credenciales incorrectas");
           }
           const data = await response.json();
+          console.log('data: ', data);
           set({
             user: data.user,
             token: data.access_token,
             isAuthenticated: true,
             isLoading: false,
           });
+          return data.user.role;
         } catch (error) {
           const errorMessage =
             error instanceof Error ? error.message : "Error desconocido";
