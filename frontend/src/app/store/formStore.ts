@@ -111,7 +111,9 @@ export const useFormStore = create<FormStore>()((set, get) => ({
         return
       }
 
-      console.log("response desde formStore", await response.json())
+      const appointment = await response.json();
+
+      set({ paymentURL: appointment.payments[0].paymentURL });
 
       if (response.ok) {
         toast.success("Turno agendado exitosamente 🎉")
@@ -127,6 +129,7 @@ export const useFormStore = create<FormStore>()((set, get) => ({
   
   resetForm: () =>
     set({
+      paymentURL: "",
       currentStep: 1,
       formData: {
         step1: { date: null, availableTimes: [] },

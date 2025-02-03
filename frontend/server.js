@@ -3,6 +3,8 @@ const { parse } = require('url');
 const next = require('next');
 const fs = require('fs');
 const path = require('path');
+const cors = require('cors'); // Importa el paquete cors
+
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
@@ -14,10 +16,15 @@ const httpsOptions = {
 };
 
 app.prepare().then(() => {
-  createServer(httpsOptions, (req, res) => {
+  const server = createServer(httpsOptions, (req, res) => {
     const parsedUrl = parse(req.url, true);
     handle(req, res, parsedUrl);
-  }).listen(3001, (err) => {
+  });
+
+  // Usa cors como middleware
+  server.on('request', cors());
+
+  server.listen(3001, (err) => {
     if (err) throw err;
     console.log('> Server started on https://localhost:3001');
   });

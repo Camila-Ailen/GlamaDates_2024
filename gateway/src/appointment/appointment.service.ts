@@ -288,7 +288,7 @@ export class AppointmentService {
     payment.status = PaymentStatus.PENDING;
     payment.observation = '';
     payment.transactionId = '';
-    payment.paymentURL = prefId.sandbox_init_point;
+    payment.paymentURL = prefId.id;
     payment.appointment = savedAppointment;
     payment.created_at = new Date();
 
