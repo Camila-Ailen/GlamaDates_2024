@@ -125,7 +125,7 @@ const AppointmentCatalog = () => {
                   </CardContent>
                   <CardFooter className="mt-auto">
                     <div onClick={(e) => e.stopPropagation()} className="w-full">
-                      
+                      {hasPermission("read:mydate") && (
                         <MultiStepForm
                         availability={availability}
                         selectedPackage={pkg}
@@ -135,6 +135,7 @@ const AppointmentCatalog = () => {
                         }}
                         onPackageSelect={() => handlePackageSelect(pkg)}
                       />
+                      )}
                        
                     </div>
                   </CardFooter>

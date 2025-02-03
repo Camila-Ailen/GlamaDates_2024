@@ -94,6 +94,13 @@ export function Navbar() {
                 </Button>
               </Link>
             )}
+            {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "read:mycalendar") && (
+              <Link href="/myCalendar">
+                <Button variant="ghost" className="px-2">
+                  Mi Agenda
+                </Button>
+              </Link>
+            )}
             {/* <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="px-2">
@@ -255,6 +262,11 @@ export function Navbar() {
                 {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "read:mydate") && (
                   <Link href="/myDate">
                     <DropdownMenuItem>Mis citas</DropdownMenuItem>
+                  </Link>
+                )}
+                {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "read:mycalendar") && (
+                  <Link href="/myCalendar">
+                    <DropdownMenuItem>Mi Agenda</DropdownMenuItem>
                   </Link>
                 )}
                 <DropdownMenuSeparator />

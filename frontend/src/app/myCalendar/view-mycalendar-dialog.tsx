@@ -15,8 +15,9 @@ import { format } from 'date-fns/format'
 
 // import { DetailsAppointment } from '../store/useAppointmentStore'
 
-export function ViewMydateDialog({ appointment }) {
+export function ViewMycalendarDialog({ appointment }) {
     // const [isOpen, setIsOpen] = useState(false)
+
 
     return (
 
@@ -33,6 +34,7 @@ export function ViewMydateDialog({ appointment }) {
                             <p><strong>Fecha:</strong> {format(new Date(appointment.datetimeStart), 'dd/MM/yyyy')}</p>
                             <p><strong>Hora:</strong> {format(new Date(appointment.datetimeStart), 'HH:mm')}hs</p>
                             <p><strong>Estado:</strong> {appointment.state}</p>
+                            <p><strong>Cliente:</strong> {appointment.client.firstName.toUpperCase()} {appointment.client.lastName.toUpperCase()}</p>
                             {/* <p><strong>Estado pago:</strong> {appointment.payment.status}</p> */}
                             <p><strong>Servicios:</strong></p>
                             <ul>
@@ -52,7 +54,7 @@ export function ViewMydateDialog({ appointment }) {
                                                             <li>Inicio: {format(new Date(detail.datetimeStart), 'HH:mm')}hs</li>
                                                             <li>Duracion: {detail.service.duration} minutos</li>
                                                             <li>Descripcion: {detail.service.description}</li>
-                                                            <li>Empleado: {detail.employee.firstName} {detail.employee.lastName}</li>
+                                                            {/* <li>Empleado: {detail.employee.firstName} {detail.employee.lastName}</li> */}
                                                             <li>Estacion de trabajo: {detail.workstation.id}, {detail.workstation.description}</li>
                                                         </ul>
                                                     </li>
@@ -62,15 +64,7 @@ export function ViewMydateDialog({ appointment }) {
                                     ))}
                             </ul>
                         </div>
-                        {/* <Link href="#"> */}
-                        {appointment.state !== "COMPLETADO" && appointment.state !== "ACTIVO" && (
-                            <Button
-                                className="w-full justify-start"
-                            >
-                                <CreditCard className="mr-2 h-4 w-4" />
-                                Pagar con Mercado Pago
-                            </Button>
-                        )}
+                        
                         {/* {appointment.state === "PENDIENTE" && (
                             <Button
                                 className="w-full justify-start"

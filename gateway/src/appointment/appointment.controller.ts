@@ -53,11 +53,24 @@ export class AppointmentController extends BaseController {
   ////////////////////////////////////////////////////
   // Trae los turnos de un usuario
   @Get('user')
-  @Auth('read:mydate')
+  @Auth('read:mydate-calendar')
   async allByUser(@Req() request: { user: User }, @Query() query: PaginationAppointmentDto): Promise<ResposeDTO> {
     const user = request.user;
     const appointments = await this.appointmentService.allByUser(user, { query });
-    console.log('data: ', appointments);
+    // console.log('data: ', appointments);
+    return { status: 'success', data: appointments };
+  }
+
+   ////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
+  // Trae los turnos de un profesional
+  @Get('professional')
+  @Auth('read:mycalendar')
+  async allByProfesional(@Req() request: { user: User }, @Query() query: PaginationAppointmentDto): Promise<ResposeDTO> {
+    const user = request.user;
+    console.log('user: ', user.id);
+    const appointments = await this.appointmentService.allByProfessional(user, { query });
+    console.log('data: ', appointments); 
     return { status: 'success', data: appointments };
   }
 

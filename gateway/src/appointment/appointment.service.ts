@@ -2,7 +2,7 @@ import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from "@nest
 import { InjectRepository } from "@nestjs/typeorm";
 import { Appointment } from "./entities/appointment.entity";
 import { Package } from "@/package/entities/package.entity";
-import { Between, In, IsNull, Repository } from "typeorm";
+import { Between, In, IsNull, Not, Repository } from "typeorm";
 import { addMinutes, isAfter, isBefore, isEqual, subMinutes } from "date-fns";
 import { Service } from "@/service/entities/service.entity";
 import { SystemConfigService } from "@/system-config/system-config.service";
@@ -833,6 +833,66 @@ export class AppointmentService {
         take: forPage,
         skip,
       });
+
+      return {
+        total: total,
+        pageSize: forPage,
+        offset: params.query.offset,
+        results: appointments,
+      };
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+
+  //////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+
+  async allByProfessional(user: User, params: {
+    query: PaginationAppointmentDto;
+  }): Promise<PaginationResponseDTO> {
+    const emptyResponse = {
+      total: 0,
+      pageSize: 0,
+      offset: params.query.offset,
+      results: [],
+    };
+
+    try {
+      if (Object.keys(params.query).length === 0) {
+        return emptyResponse;
+      }
+      if (params.query.pageSize?.toString() === '0') {
+        return emptyResponse;
+      }
+
+      const order = {};
+      if (params.query.orderBy && params.query.orderType) {
+        order[params.query.orderBy] = params.query.orderType;
+      }
+
+      const forPage = params.query.pageSize
+        ? parseInt(params.query.pageSize.toString(), 10) || 10
+        : 10;
+      const skip = params.query.offset;
+
+      const [appointments, total] = await this.appointmentRepository.findAndCount({
+        where: {
+          deletedAt: IsNull(),
+          // client: { id: user.id },
+          details: {
+            employee: { id: user.id }
+          },
+          state: Not(AppointmentState.CANCELLED),
+        },
+        relations: ['details', 'details.employee', 'details.workstation', 'details.service', 'client', 'package', 'package.services', 'package.services.category', 'payments'],
+        order,
+        take: forPage,
+        skip,
+      });
+      console.log('appointments: ', appointments);
 
       return {
         total: total,

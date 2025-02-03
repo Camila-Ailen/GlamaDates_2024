@@ -34,7 +34,7 @@ export function LoginForm() {
       } else if (user.role === "CLIENTE"){
         router.push("/catalog");
       } else if (user.role === "PROFESIONAL"){
-        router.push("/myDate");
+        router.push("/myCalendar");
       } else {
         router.push("/catalog");
       }
