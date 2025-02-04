@@ -283,7 +283,7 @@ export class AppointmentService {
     const payment = new PaymentDto();
     payment.datetime = null;
     payment.amount = 0;
-    payment.paymentMethod = PaymentMethod.MERCADOPAGO;
+    payment.paymentMethod = PaymentMethod.CASH;
     payment.paymentType = PaymentType.TOTAL;
     payment.status = PaymentStatus.PENDING;
     payment.observation = '';
@@ -295,7 +295,6 @@ export class AppointmentService {
     await this.paymentService.create({ body: payment });
 
     
-    // console.log('savedAppointment: ', savedAppointment);
     return await this.getById(savedAppointment.id);
   }
 

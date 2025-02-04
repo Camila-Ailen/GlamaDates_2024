@@ -8,11 +8,17 @@ import { PaymentButton } from "@/components/mercadopago/PaymentButton"
 import Link from "next/link"
 
 const Step4: React.FC = () => {
-    const { formData, updateFormData } = useFormStore()
+    const { formData, updateFormData, closeForm, resetForm } = useFormStore()
 
     const handlePaymentMethodChange = (value: string) => {
         updateFormData("step4", { paymentMethod: value })
     }
+
+    const handlePayCash = async () => {
+        closeForm()
+        resetForm() 
+      }
+
     const baseURL = "https://sandbox.mercadopago.com.ar/checkout/v1/redirect?pref_id=";
     const preferenceId = useFormStore((state) => state.paymentURL);
     const fullURL = `${baseURL}${preferenceId}`;
@@ -23,9 +29,10 @@ const Step4: React.FC = () => {
             <div className="flex flex-col space-y-4 mt-4">
                 <p>Su turno ya ha sido reservado. Por favor, seleccione el medio de pago preferido:</p>
                 <Button
-                    onClick={() => handlePaymentMethodChange("local")}
-                    variant={formData.step4?.paymentMethod === "efectivo" ? "default" : "outline"}
-                    className="w-full justify-start"
+                    onClick={() => handlePayCash()}
+                    
+                    // variant={formData.step4?.paymentMethod === "efectivo" ? "default" : "outline"}
+                    className="w-full justify-start cursor-pointer border border-primary hover:border-primary hover:bg-white hover:text-primary transition-colors duration-300"
                 >
                     <Wallet className="mr-2 h-4 w-4" />
                     Pagar en el local
@@ -34,8 +41,8 @@ const Step4: React.FC = () => {
                 <Link href={fullURL}>
                     <Button
                         // onClick={() => handlePaymentMethodChange("mercadopago")}
-                        variant={formData.step4?.paymentMethod === "mercadopago" ? "default" : "outline"}
-                        className="w-full justify-start"
+                        // variant={formData.step4?.paymentMethod === "mercadopago" ? "default" : "outline"}
+                        className="w-full justify-start cursor-pointer hover:bg-blue-600 hover:text-white transition-colors duration-300"
                     >
                         <CreditCard className="mr-2 h-4 w-4" />
                         Pagar con Mercado Pago

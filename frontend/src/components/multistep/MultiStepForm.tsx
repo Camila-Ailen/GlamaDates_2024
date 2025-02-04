@@ -64,6 +64,8 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
     }
   }
 
+  
+
   const handlePay = async () => {
     if (isStepValid(4)) {
       // await submitForm()
@@ -107,13 +109,15 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
                 <ProgressBar currentStep={currentStep} totalSteps={4} />
                 {renderStep()}
                 <div className="mt-6 flex justify-between">
-                  <button
+                  {currentStep < 4 && (
+                    <button
                     onClick={handlePrevious}
                     disabled={currentStep === 1}
                     className="px-4 py-2 bg-gray-300 text-gray-700 rounded disabled:opacity-50"
                   >
                     Anterior
                   </button>
+                  )}
                   {currentStep < 3 ? (
                     <button
                       onClick={handleNext}
@@ -130,12 +134,7 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
                       Confirmar
                     </button>
                   ) : (
-                    <button
-                      onClick={handlePay}
-                      className="px-4 py-2 bg-green-500 text-white rounded disabled:opacity-50"
-                    >
-                      Confirmar Metodo
-                    </button>
+                    <div></div>
                   )}
                 </div>
               </>
@@ -155,7 +154,6 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
 
           </div>
         </div>
-        {/* </div> */}
       </DialogContent>
     </Dialog >
   )

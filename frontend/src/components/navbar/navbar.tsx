@@ -122,7 +122,7 @@ export function Navbar() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu> */}
-            {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "see:reports") && (
+            {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "see:parameters") && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="px-2">
