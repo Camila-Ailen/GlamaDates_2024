@@ -48,6 +48,17 @@ export class AppointmentController extends BaseController {
     return { status: 'success', data: appointments };
   }
 
+  ////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
+  // Trae los turnos, todos
+  @Get('today')
+  @Auth('read:appointments')
+  async allToday(@Query() query: PaginationAppointmentDto): Promise<ResposeDTO> {
+    const appointments = await this.appointmentService.allToday({ query });
+    console.log('data: ', appointments);
+    return { status: 'success', data: appointments };
+  }
+
 
   ////////////////////////////////////////////////////
   ////////////////////////////////////////////////////

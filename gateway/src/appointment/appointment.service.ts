@@ -3,7 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Appointment } from "./entities/appointment.entity";
 import { Package } from "@/package/entities/package.entity";
 import { Between, In, IsNull, Not, Repository } from "typeorm";
-import { addMinutes, isAfter, isBefore, isEqual, subMinutes } from "date-fns";
+import { addMinutes, endOfDay, isAfter, isBefore, isEqual, startOfDay, subMinutes } from "date-fns";
 import { Service } from "@/service/entities/service.entity";
 import { SystemConfigService } from "@/system-config/system-config.service";
 import { SystemConfig } from "@/system-config/entities/system-config.entity";
@@ -69,6 +69,8 @@ export class AppointmentService {
     return appointment;
   }
 
+  ////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////
   async create(body: AppointmentDto, user: User): Promise<Appointment> {
     // Se pasa a tipo unknown porque sino toma solo al paquete 5
     const pkg = await this.packageRepository.findOne({ where: { id: body.package as unknown as number }, relations: ['services'] });
@@ -260,8 +262,6 @@ export class AppointmentService {
         throw new Error('La estación de trabajo seleccionada no tiene un ID válido.');
       }
 
-
-
       const detail = this.detailsAppointmentRepository.create({
         appointment: savedAppointment,
         service: service,
@@ -275,7 +275,9 @@ export class AppointmentService {
       // Guardo el detalle
       await this.detailsAppointmentRepository.save(detail);
     }
-
+    // Actualizo el appointment con el valor total
+    const total = body.package.services.reduce((total, service) => total + service.price, 0);
+    await this.appointmentRepository.update(savedAppointment.id, { total });
 
     const prefId = await this.mercadopagoService.create(savedAppointment.id.toString());
 
@@ -790,10 +792,63 @@ export class AppointmentService {
     }
   }
 
-
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
 
+  async allToday(params: {
+    query: PaginationAppointmentDto;
+  }): Promise<PaginationResponseDTO> {
+    const emptyResponse = {
+      total: 0,
+      pageSize: 0,
+      offset: params.query.offset,
+      results: [],
+    };
+
+    try {
+      if (Object.keys(params.query).length === 0) {
+        return emptyResponse;
+      }
+      if (params.query.pageSize?.toString() === '0') {
+        return emptyResponse;
+      }
+
+      const order = {};
+      if (params.query.orderBy && params.query.orderType) {
+        order[params.query.orderBy] = params.query.orderType;
+      }
+
+      const forPage = params.query.pageSize
+        ? parseInt(params.query.pageSize.toString(), 10) || 10
+        : 10;
+      const skip = params.query.offset;
+
+      const [appointments, total] = await this.appointmentRepository.findAndCount({
+        where: {
+          deletedAt: IsNull(),
+          datetimeStart: Between(startOfDay(new Date()), endOfDay(new Date())),
+        },
+        relations: ['details', 'details.employee', 'details.workstation', 'details.service', 'client', 'package'],
+        order,
+        take: forPage,
+        skip,
+      });
+
+      return {
+        total: total,
+        pageSize: forPage,
+        offset: params.query.offset,
+        results: appointments,
+      };
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+
+  //////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
   async allByUser(user: User, params: {
     query: PaginationAppointmentDto;
   }): Promise<PaginationResponseDTO> {
@@ -848,7 +903,6 @@ export class AppointmentService {
 
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
-
   async allByProfessional(user: User, params: {
     query: PaginationAppointmentDto;
   }): Promise<PaginationResponseDTO> {
@@ -913,16 +967,6 @@ export class AppointmentService {
       .createQueryBuilder('appointments')
       .select('DATE_TRUNC(\'day\', "appointments"."datetimeStart")', 'fecha')
       .addSelect('COUNT(*)', 'total_turnos')
-      .where('"datetimeStart" >= CURRENT_DATE')
-      .groupBy('DATE_TRUNC(\'day\', "appointments"."datetimeStart")')
-      .orderBy('fecha')
-      .limit(1)
-      .getRawOne();
-
-    const result2 = await this.appointmentRepository
-      .createQueryBuilder('appointments')
-      .select('DATE_TRUNC(\'day\', "appointments"."datetimeStart")', 'fecha')
-      // .addSelect('COUNT(*)', 'total_turnos')
       .where('"datetimeStart" >= CURRENT_DATE')
       .groupBy('DATE_TRUNC(\'day\', "appointments"."datetimeStart")')
       .orderBy('fecha')

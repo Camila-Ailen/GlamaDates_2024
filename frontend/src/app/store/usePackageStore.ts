@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import { off } from 'process'
 
   
-  interface Service {
+  export interface Service {
       id: number;
       name: string;
       description: string;

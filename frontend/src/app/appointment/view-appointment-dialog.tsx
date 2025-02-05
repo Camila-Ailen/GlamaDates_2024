@@ -21,7 +21,7 @@ import { User } from '../store/useUserStore'
 export function ViewAppointmentDialog({ appointment }) {
     const [isOpen, setIsOpen] = useState(false)
 
-    console.log("APPOINTMENT: ", appointment)
+    // console.log("APPOINTMENT: ", appointment)
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>

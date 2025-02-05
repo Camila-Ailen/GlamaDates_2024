@@ -22,7 +22,9 @@ export interface Appointment {
     state: string,
     client: User,
     package: Package,
-    details: DetailsAppointment[]
+    details: DetailsAppointment[],
+    total: number,
+    pending: number,
 }
 
 interface Category {
@@ -74,6 +76,7 @@ interface AppointmentState {
     setSelectedServices: (services: Service[]) => void
     fetchPackageAvailability: (packageId: number, orderBy: string, orderType: 'ASC' | 'DESC', offset: number, pageSize: number) => Promise<string[]>
     fetchAppointments: (page?: number, token?: string) => Promise<void>
+    fetchTodayAppointments: (page?: number, token?: string) => Promise<void>
     fetchTotalAppointmentsToday: () => Promise<{ total_turnos: number }>
     fetchTotalAppointmentsThisMonth: () => Promise<{ total_turnos: number }>
     fetchLastMonthAppointments: () => Promise<{ total_turnos: number }>
@@ -159,6 +162,36 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
 
             if (!response.ok) throw new Error('Error al obtener citas')
             const data = await response.json()
+            set({ appointments: data.data.results, total: data.data.total, currentPage, isLoading: false })
+        } catch (error) {
+            set({ error: (error as any).message, isLoading: false })
+        }
+    },
+
+    fetchTodayAppointments: async (page?: number) => {
+        const { pageSize, orderBy, orderType, filter } = get()
+        const currentPage = page || get().currentPage
+
+        set({ isLoading: true, error: null })
+        try {
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_BACKEND_URL
+                }/api/appointment/today?orderBy=${orderBy}&orderType=${orderType}&offset=${(currentPage - 1) * pageSize
+                }&pageSize=${pageSize}&filter=${filter}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                })
+            if (response.status === 403) {
+                toast.error("Sesión expirada");
+                useAuthStore.getState().logout();
+                return;
+            }
+
+            if (!response.ok) throw new Error('Error al obtener citas')
+            const data = await response.json()
+            console.log('data: ', data);
             set({ appointments: data.data.results, total: data.data.total, currentPage, isLoading: false })
         } catch (error) {
             set({ error: (error as any).message, isLoading: false })
