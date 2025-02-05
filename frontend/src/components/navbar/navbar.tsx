@@ -87,6 +87,13 @@ export function Navbar() {
                 </Button>
               </Link>
             )}
+            {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "read:appointments") && (
+              <Link href="/appointmentToday">
+                <Button variant="ghost" className="px-2">
+                  Turnos HOY
+                </Button>
+              </Link>
+            )}
             {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "read:mydate") && (
               <Link href="/myDate">
                 <Button variant="ghost" className="px-2">

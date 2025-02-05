@@ -102,7 +102,7 @@ export class AppointmentController extends BaseController {
   ////////////////////////////////////////////////////
   ////////////////////////////////////////////////////
 
-  @Get('today')
+  @Get('todayCount')
   @Auth('read:appointments')
   async getTodayAppointments(): Promise<{ total_turnos: number }> {
     const totalTurnos = await this.appointmentService.getTodayAppointments();

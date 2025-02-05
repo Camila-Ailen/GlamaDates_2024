@@ -77,7 +77,7 @@ interface AppointmentState {
     fetchPackageAvailability: (packageId: number, orderBy: string, orderType: 'ASC' | 'DESC', offset: number, pageSize: number) => Promise<string[]>
     fetchAppointments: (page?: number, token?: string) => Promise<void>
     fetchTodayAppointments: (page?: number, token?: string) => Promise<void>
-    fetchTotalAppointmentsToday: () => Promise<{ total_turnos: number }>
+    fetchTodayAppointmentsCount: () => Promise<{ total_turnos: number }>
     fetchTotalAppointmentsThisMonth: () => Promise<{ total_turnos: number }>
     fetchLastMonthAppointments: () => Promise<{ total_turnos: number }>
     fetchTotalAppointmentsThisWeek: () => Promise<{ total_turnos: number }>
@@ -199,12 +199,12 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
     },
 
 
-    fetchTotalAppointmentsToday: async () => {
+    fetchTodayAppointmentsCount: async () => {
         set({ isLoading: true, error: null });
 
         try {
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/appointment/today`,
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/appointment/todayCount`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,

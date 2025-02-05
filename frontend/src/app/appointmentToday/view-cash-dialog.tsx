@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label" // Import the Label component
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Eye } from "lucide-react"
+import { Eye, FileClock } from "lucide-react"
 
 interface PaymentDetailsDialogProps {
     appointment: Appointment
@@ -23,7 +23,7 @@ export function ViewCashDialog({ appointment }) {
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline" className="mr-2"><Eye /></Button>
+                <Button variant="outline" className="mr-2"><FileClock /></Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Eye, EyeOff } from "lucide-react"
+import { Activity, AirVent, AlarmSmoke, CircleDollarSign, Eye, EyeOff, Wallet } from "lucide-react"
 
 interface CashPaymentDialogProps {
     appointment: Appointment
@@ -44,13 +44,12 @@ export function PayCashDialog({ appointment }) {
 
     // Verificar el objeto appointment
     useEffect(() => {
-        console.log('Appointment desde PayCashDialog:', appointment);
     }, [appointment]);
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline" className="mr-2"><EyeOff /></Button>
+                <Button variant="outline" className="mr-2"><Wallet /></Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>

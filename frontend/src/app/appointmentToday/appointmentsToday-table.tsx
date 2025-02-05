@@ -135,12 +135,12 @@ export function AppointmentsTodayTable() {
                                     Hora Inicio <ArrowUpDown className="ml-2 h-4 w-4 inline" />
                                 </TableHead>
 
-                                <TableHead
+                                {/* <TableHead
                                     onClick={() => handleSort("datetimeEnd")}
                                     className="cursor-pointer"
                                 >
                                     Hora Fin <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-                                </TableHead>
+                                </TableHead> */}
 
                                 <TableHead
                                     onClick={() => handleSort("state")}
@@ -184,18 +184,20 @@ export function AppointmentsTodayTable() {
                                     <TableCell>{appointment.package.name.toUpperCase()}</TableCell>
                                     {/* <TableCell>{format(new Date(appointment.datetimeStart), 'dd/MM/yyyy')}</TableCell> */}
                                     <TableCell>{new Date(appointment.datetimeStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
-                                    <TableCell>{new Date(appointment.datetimeEnd).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
+                                    {/* <TableCell>{new Date(appointment.datetimeEnd).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell> */}
                                     <TableCell>{appointment.state}</TableCell>
                                     <TableCell>{appointment.total}</TableCell>
                                     <TableCell>{appointment.pending > 0 ? (
-                                        // <p>COMPLETADO</p>
-                                        <PayCashDialog appointment={appointment} />
-                                    ) : (
-                                        // <p>NO COMPLETADO</p>
-                                        <ViewCashDialog appointment={appointment} />
+                                             <span className="text-red-600 font-bold">PENDIENTE</span>
+                                        ) : (
+                                            <span className="text-green-600 font-bold">COMPLETADO</span>
                                     )}
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell>{appointment.pending > 0 ? (
+                                        <PayCashDialog appointment={appointment} />
+                                    ) : (
+                                        <ViewCashDialog appointment={appointment} />
+                                    )}
                                         {hasPermission("read:appointments") && (
                                             <ViewAppointmentDialog appointment={appointment} />
                                         )}

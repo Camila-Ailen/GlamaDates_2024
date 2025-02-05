@@ -143,7 +143,7 @@ export function TodayGraph() {
     error,
     todayAppointments,
     thisWeekAppointments,
-    fetchTotalAppointmentsToday,
+    fetchTodayAppointmentsCount,
     fetchTotalAppointmentsThisWeek,
   } = useAppointmentStore();
 
@@ -151,7 +151,7 @@ export function TodayGraph() {
 
   useEffect(() => {
     async function fetchData() {
-      const todayData = await fetchTotalAppointmentsToday();
+      const todayData = await fetchTodayAppointmentsCount();
       const weekData = await fetchTotalAppointmentsThisWeek();
       if (weekData.total_turnos > 0) {
         setPercentage((todayData.total_turnos / weekData.total_turnos) * 100);
@@ -160,7 +160,7 @@ export function TodayGraph() {
       }
     }
     fetchData();
-  }, [fetchTotalAppointmentsToday, fetchTotalAppointmentsThisWeek]);
+  }, [fetchTodayAppointmentsCount, fetchTotalAppointmentsThisWeek]);
 
   // if (isLoading) return <div>Cargando...</div>;
   if (error) return <div>Ocurrió un error: {error}</div>;
