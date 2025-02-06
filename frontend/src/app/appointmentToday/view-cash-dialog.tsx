@@ -14,11 +14,6 @@ interface PaymentDetailsDialogProps {
 
 export function ViewCashDialog({ appointment }) {
     const [isOpen, setIsOpen] = useState(false)
-
-    // Verificar el objeto appointment
-    useEffect(() => {
-        console.log('Appointment desde ViewCashDialog:', appointment);
-    }, [appointment]);
     
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>

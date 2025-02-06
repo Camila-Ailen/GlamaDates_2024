@@ -39,10 +39,9 @@ export class MercadopagoService {
             }
           ],
           back_urls: {
-            // success: 'https://michigram.vercel.app/',
-            success: 'https://192.168.18.78:3001/myDate',
-            failure: 'https://192.168.18.78:3001/catalog',
-            pending: 'https://michigram.vercel.app/',
+            success: 'https://localhost:3001/myDate',
+            failure: 'https://localhost:3001/catalog',
+            pending: 'https://localhost:3001/login',
           },
           auto_return: "approved",
         }

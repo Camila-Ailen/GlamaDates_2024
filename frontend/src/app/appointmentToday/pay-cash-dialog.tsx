@@ -42,10 +42,6 @@ export function PayCashDialog({ appointment }) {
         // onSubmit(values.amount)
     }
 
-    // Verificar el objeto appointment
-    useEffect(() => {
-    }, [appointment]);
-
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
