@@ -13,6 +13,8 @@ import { UsersModule } from "@/users/users.module";
 import { JwtModule } from "@nestjs/jwt";
 import { PaymentController } from "./payment.controller";
 import { PaymentService } from "./payment.service";
+import { AppointmentService } from "@/appointment/appointment.service";
+import { MercadopagoModule } from "@/mercadopago/mercadopago.module";
 
 
 @Module({
@@ -20,13 +22,14 @@ import { PaymentService } from "./payment.service";
         TypeOrmModule.forFeature([Payment, Appointment, User, Package, Workstation, SystemConfig, DetailsAppointment, Service]),
         SystemConfigModule,
         UsersModule,
+        MercadopagoModule,
         JwtModule.register({
                 secret: 'your_jwt_secret', // Usa un secreto seguro en producción
                 signOptions: { expiresIn: '1h' },
               }),
     ],
     controllers: [PaymentController],
-    providers: [PaymentService, PaymentController, Service],
+    providers: [PaymentService, PaymentController, Service, AppointmentService],
     exports: [PaymentService],
 })
 

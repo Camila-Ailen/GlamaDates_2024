@@ -8,6 +8,9 @@ import { JwtService } from '@nestjs/jwt';
 import { Auth } from '@/auth/auth.decorator';
 import { App } from 'supertest/types';
 import { AppointmentDto } from '@/appointment/dto/appointment.dto';
+import { Payment } from 'mercadopago';
+import { PaymentDto } from '@/payment/dto/payment.dto';
+import { ResposeDTO } from '@/base/dto/base.dto';
 
 
 @Controller('mercadopago')
@@ -15,7 +18,7 @@ import { AppointmentDto } from '@/appointment/dto/appointment.dto';
 export class MercadopagoController extends BaseController {
   @Inject(MercadopagoService)
   private mercadopagoService: MercadopagoService;
-    private jwtService: JwtService;
+  private jwtService: JwtService;
 
   constructor() {
     super(MercadopagoController);
@@ -26,4 +29,19 @@ export class MercadopagoController extends BaseController {
   create(@Body() appointment) {
     return this.mercadopagoService.create(appointment);
   }
+
+
+  // @Post('save-payment')
+  // async savePayment(
+  //   @Body() paymentData: { paymentId: string, paymentUrl: string }): Promise<ResposeDTO> {
+  //   // return { payment_id: savedPayment.id }; // Devolver ID para la redirección
+
+  //   console.log("Datos recibidos:", paymentData);
+
+    
+  //   const savedPayment = await this.mercadopagoService.confirm(paymentData);
+
+  //   return { status: 'success', data: savedPayment };
+  // }
+
 }

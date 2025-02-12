@@ -24,7 +24,8 @@ import { Payment } from '@/payment/entities/payment.entity';
     SystemConfigModule,
     UsersModule,
     PaymentModule,
-    forwardRef(() => MercadopagoModule),
+    // forwardRef(() => MercadopagoModule),
+    MercadopagoModule,
     JwtModule.register({
         secret: 'your_jwt_secret', // Usa un secreto seguro en producción
         signOptions: { expiresIn: '1h' },

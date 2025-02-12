@@ -25,7 +25,8 @@ import { PaymentDto } from "@/payment/dto/payment.dto";
 
 @Injectable()
 export class AppointmentService {
-  @Inject((forwardRef(() => MercadopagoService)))
+  // @Inject((forwardRef(() => MercadopagoService)))
+  @Inject(MercadopagoService)
   private mercadopagoService: MercadopagoService;
 
   @Inject(PaymentService)
