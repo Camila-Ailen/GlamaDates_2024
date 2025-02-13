@@ -22,13 +22,15 @@ interface FormStore {
   isOpen: boolean
   openForm: () => void
   closeForm: () => void
-  paymentURL: string
+  paymentURL: string | null
+  appointmentId: string 
 }
 
 const token = useAuthStore.getState().token
 
 export const useFormStore = create<FormStore>()((set, get) => ({
-  paymentURL: "",
+  paymentURL: null,
+  appointmentId: "",
   currentStep: 1,
   formData: {
     step1: { date: null, availableTimes: [] },
@@ -37,9 +39,9 @@ export const useFormStore = create<FormStore>()((set, get) => ({
     step4: { paymentMethod: "" },
     selectedPackage: null,
   },
-  
+
   setStep: (step) => set({ currentStep: step }),
-  
+
   updateFormData: (step, data) =>
     set((state) => ({
       formData: {
@@ -48,8 +50,8 @@ export const useFormStore = create<FormStore>()((set, get) => ({
         ...(step === "selectedPackage" ? { selectedPackage: data as Package } : {}),
       },
     })),
-  
-    isStepValid: (step) => {
+
+  isStepValid: (step) => {
     const { formData } = get()
     switch (step) {
       case 1:
@@ -68,10 +70,10 @@ export const useFormStore = create<FormStore>()((set, get) => ({
     const convertTo24HourFormat = (time: string) => {
       const [timePart, modifier] = time.split(' ');
       let [hours, minutes] = timePart.split(':').map(Number);
-    
+
       if (modifier.replace(/\s+/g, '').trim() === 'p.m.') {
         hours += 12;
-      } 
+      }
       return { hours, minutes };
     };
 
@@ -113,6 +115,8 @@ export const useFormStore = create<FormStore>()((set, get) => ({
 
       const appointment = await response.json();
 
+      set({ appointmentId: appointment.id })
+
       set({ paymentURL: appointment.payments[0].paymentURL });
 
       if (response.ok) {
@@ -126,10 +130,10 @@ export const useFormStore = create<FormStore>()((set, get) => ({
       // Handle error
     }
   },
-  
+
   resetForm: () =>
     set({
-      paymentURL: "",
+      paymentURL: null,
       currentStep: 1,
       formData: {
         step1: { date: null, availableTimes: [] },
@@ -140,9 +144,9 @@ export const useFormStore = create<FormStore>()((set, get) => ({
       },
     }),
   isOpen: false,
-  
+
   openForm: () => set({ isOpen: true }),
-  
+
   closeForm: () => {
     set({ isOpen: false })
     get().resetForm()

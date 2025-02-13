@@ -697,14 +697,6 @@ export class AppointmentService {
   }
 
 
-  // private hasFutureCollision(currentStartTime: Date, existingAppointments: DetailsAppointment[], serviceDuration: number): boolean {
-  //   const endTime = addMinutes(currentStartTime, serviceDuration);
-  //   return existingAppointments.some(app =>
-  //     isBefore(currentStartTime, app.datetimeStart) &&
-  //     isAfter(endTime, app.datetimeStart)
-  //   );
-  // }
-
   private hasFutureCollision(currentStartTime: Date, existingAppointments: DetailsAppointment[], serviceDuration: number): boolean {
     const endTime = addMinutes(currentStartTime, serviceDuration);
     return existingAppointments.some(app =>
@@ -713,12 +705,6 @@ export class AppointmentService {
     );
   }
 
-  // private hasDetailsCollision(currentStartTime: Date, existingAppointments: DetailsAppointment[]): boolean {
-  //   return existingAppointments.some(app =>
-  //     isBefore(currentStartTime, addMinutes(app.datetimeStart, app.durationNow)) &&
-  //     isAfter(addMinutes(currentStartTime, 1), app.datetimeStart)
-  //   );
-  // }
 
   private hasDetailsCollision(currentStartTime: Date, existingAppointments: DetailsAppointment[]): boolean {
     return existingAppointments.some(app =>
@@ -1045,6 +1031,30 @@ export class AppointmentService {
       .getRawMany();
 
     return result;
+  }
+
+
+
+
+  //////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+  async update(params: { id: number; body: AppointmentDto }): Promise<Appointment> {
+    try {
+      const { id, body } = params;
+      const appointment = await this.appointmentRepository.findOne({
+        where: { id: id },
+        relations: ['details', 'details.employee', 'details.workstation', 'details.service', 'client', 'package', 'package.services', 'package.services.category', 'payments'],
+      });
+      if (!appointment) {
+        throw new HttpException('Appointment not found', HttpStatus.NOT_FOUND);
+      }
+
+      Object.assign(appointment, body);
+      return await this.appointmentRepository.save(appointment);
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
   }
 
 

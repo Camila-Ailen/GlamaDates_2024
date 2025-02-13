@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -9,14 +9,32 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import { CreditCard, Eye, Link, Trash, UserPen, View } from 'lucide-react'
+import { CreditCard, Eye, Link, Smile, Trash, UserPen, View } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { format } from 'date-fns/format'
+import { usePaymentStore } from '../store/usePaymentStore'
+import { PaymentButton } from '@/components/mercadopago/PaymentButton'
 
 // import { DetailsAppointment } from '../store/useAppointmentStore'
 
 export function ViewMydateDialog({ appointment }) {
-    // const [isOpen, setIsOpen] = useState(false)
+    const fetchPaymentUrl = usePaymentStore((state) => state.fetchPaymentUrl)
+    // const paymentUrl = usePaymentStore((state) => state.paymentUrl)
+    const paymentUrl = null
+
+    const baseURL = "https://sandbox.mercadopago.com.ar/checkout/v1/redirect?pref_id=";
+
+
+
+    useEffect(() => {
+        console.log("appointment.id en useEffect de ViewMydateDialog", appointment.id)
+        fetchPaymentUrl(appointment.id)
+    }, [appointment.id, fetchPaymentUrl])
+
+
+
+    const fullURL = `${baseURL}${paymentUrl}`;
+    console.log("fullURL de ViewMydateDialog", fullURL)
 
     return (
 
@@ -62,13 +80,28 @@ export function ViewMydateDialog({ appointment }) {
                                     ))}
                             </ul>
                         </div>
-                        {/* <Link href="#"> */}
+
                         {appointment.state !== "COMPLETADO" && appointment.state !== "ACTIVO" && (
+                            <>
+                                <PaymentButton source="later" />
+                                {/* <Link href={fullURL}> */}
+                                    {/* <Button
+                                        className="w-full justify-start"
+                                    >
+                                        <CreditCard className="mr-2 h-4 w-4" />
+                                        Pagar con Mercado Pago
+                                    </Button> */}
+                                {/* </Link> */}
+                            </>
+                        )}
+
+                        {appointment.state === "COMPLETADO" || appointment.state === "ACTIVO" && (
                             <Button
-                                className="w-full justify-start"
+                                className="w-full justify-center"
                             >
-                                <CreditCard className="mr-2 h-4 w-4" />
-                                Pagar con Mercado Pago
+                                <Smile className="mr-2 h-4 w-4" />
+                                Ya has abonado esta cita
+                                <Smile className="mr-2 ml-2 h-4 w-4" />
                             </Button>
                         )}
                         {/* {appointment.state === "PENDIENTE" && (
@@ -79,7 +112,7 @@ export function ViewMydateDialog({ appointment }) {
                                 Cancelar cita
                             </Button>
                         )} */}
-                        {/* </Link> */}
+
                     </div>
                 </div>
             </div>

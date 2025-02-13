@@ -1,4 +1,4 @@
-import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
+import { forwardRef, HttpException, HttpStatus, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Payment } from "./entities/payment.entity";
 import { IsNull, Repository } from "typeorm";
@@ -7,6 +7,8 @@ import { PaymentStatus } from "./entities/payment-status.enum";
 import { AppointmentService } from "@/appointment/appointment.service";
 import { MercadopagoService } from "@/mercadopago/mercadopago.service";
 import { PaymentMethod } from "./entities/payment-method.enum";
+import { AppointmentModule } from "@/appointment/appointment.module";
+import { AppointmentState } from "@/appointment/entities/appointment-state.enum";
 
 
 @Injectable()
@@ -77,6 +79,16 @@ export class PaymentService {
             throw new Error("Appointment not found");
         }
 
+        appointment.state = AppointmentState.ACTIVE;
+        const appointmentDto = {
+            ...appointment,
+            created_at: appointment.createdAt,
+            updated_at: appointment.updatedAt,
+            deleted_at: appointment.deletedAt,
+        };
+        console.log("appointmentDto: ", appointmentDto);
+        await this.appointmentService.update({ id: appointment.id, body: appointmentDto });
+
         const amount = appointment.package.services.reduce((total, service) => total + service.price, 0);
 
         payment.datetime = new Date();
@@ -87,5 +99,17 @@ export class PaymentService {
 
         await this.paymentRepository.save(payment);
     }
+
+    ////////////////////////////////////////////////
+    ////////////////////////////////////////////////
+    async getPaymentUrl(appointmentId: number): Promise<string> {
+        const payment = await this.paymentRepository.findOne({ where: { appointment: { id: appointmentId } } });
+    
+        if (!payment) {
+          throw new NotFoundException('Payment not found');
+        }
+    
+        return payment.paymentURL;
+      }
 
 }

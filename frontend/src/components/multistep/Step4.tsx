@@ -37,7 +37,7 @@ const Step4: React.FC = () => {
                     <Wallet className="mr-2 h-4 w-4" />
                     Pagar en el local
                 </Button>
-                <PaymentButton />
+                <PaymentButton source="now" />
                 <Link href={fullURL}>
                     <Button
                         // onClick={() => handlePaymentMethodChange("mercadopago")}

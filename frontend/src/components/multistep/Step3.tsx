@@ -26,7 +26,6 @@ interface Service {
 
 const Step3: React.FC<{ selectedPackage: Package }> = ({ selectedPackage }) => {
   const { formData, updateFormData } = useFormStore()
-  console.log("Step3 -> formData", formData)
   // const packages = usePackageStore(state => state.packages)
   // const { selectedServices, setSelectedServices } = useAppointmentStore()
 
