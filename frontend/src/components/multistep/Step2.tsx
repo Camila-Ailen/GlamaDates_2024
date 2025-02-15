@@ -8,17 +8,14 @@ const Step2: React.FC = () => {
   const [selectedTime, setSelectedTime] = useState<string | null>(formData.step2.time || null)
 
   const selectedDate = formData.step1.date
-  const availableTimes = formData.step1.availableTimes
-
-  useEffect(() => {
-    console.log(`Available times: ${availableTimes} for package: ${formData.selectedPackage?.name}`)
-  }, [availableTimes])
+  const availableTimes = formData.step1.availableTimes || []
 
   useEffect(() => {
     if (selectedTime) {
       updateFormData("step2", { date: selectedDate, time: selectedTime })
     }
   }, [selectedTime, updateFormData, selectedDate])
+
 
   const handleTimeChange = (time: string) => {
     setSelectedTime(time)

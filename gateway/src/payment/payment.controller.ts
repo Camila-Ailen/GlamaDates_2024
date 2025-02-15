@@ -34,7 +34,7 @@ export class PaymentController extends BaseController {
 
   @Get('payment-url')
   async getPaymentUrl(@Query('appointmentId') appointmentId: string): Promise<ResposeDTO> {
-    const paymentUrl = await this.paymentService.getPaymentUrl(appointmentId);
+    const paymentUrl = await this.paymentService.getPaymentUrl(Number(appointmentId));
     return { status: 'success', data: paymentUrl };
   }
 

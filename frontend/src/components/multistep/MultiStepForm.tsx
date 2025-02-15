@@ -11,6 +11,9 @@ import "@/components/multistep/calendar-appointment-dialog.css"
 import type { Package } from "@/app/store/usePackageStore"
 import { toast } from "sonner"
 import Step0 from "./Step0"
+import { RecommendationDialog } from "./RecommendationDialog"
+import { format } from "date-fns/format"
+import { es } from "date-fns/locale/es"
 
 interface MultiStepFormProps {
   availability: Date[]
@@ -22,10 +25,7 @@ interface MultiStepFormProps {
 const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPackage, onClose, onPackageSelect }) => {
   const { currentStep, setStep, isStepValid, submitForm, isOpen, openForm, closeForm, updateFormData, formData } =
     useFormStore()
-
-  // useEffect(() => {
-  //   console.log('Availability:', availability.length)
-  // }, [availability])
+  const [showRecommendation, setShowRecommendation] = useState(false)
 
 
   const renderStep = () => {
@@ -58,21 +58,16 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
   const handleSubmit = async () => {
     if (isStepValid(3)) {
       await submitForm()
-      // closeForm()
-      // onClose()
       setStep(currentStep + 1)
     }
   }
-
-  
 
   const handlePay = async () => {
     if (isStepValid(4)) {
       // await submitForm()
       if (formData.step4.paymentMethod === "mercadopago") {
-        // AQUI DEBERIA IR EL CODIGO PARA PAGAR CON MERCADO PAGO
         toast("Pago con Mercado Pago no disponible")
-      } 
+      }
       closeForm()
       onClose()
       setStep(currentStep)
@@ -86,6 +81,34 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
 
   const handleOpenForm = () => {
     onPackageSelect()
+    setShowRecommendation(true)
+    openForm()
+  }
+
+  const handleAcceptFullRecommendation = (date: Date, time: string) => {
+    const times = availability
+      .filter((d) => new Date(d).toDateString() === date.toDateString())
+      .map((d) => format(d, "h:mm a", { locale: es }))
+    updateFormData("step1", { date, availableTimes: times })
+    updateFormData("step2", { time })
+    setShowRecommendation(false)
+    setStep(3)
+    openForm()
+  }
+
+  const handleAcceptDateRecommendation = (date: Date) => {
+    const times = availability
+      .filter((d) => new Date(d).toDateString() === date.toDateString())
+      .map((d) => format(d, "h:mm a", { locale: es }))
+    updateFormData("step1", { date, availableTimes: times })
+    setShowRecommendation(false)
+    setStep(2)
+    openForm()
+  }
+
+  const handleRejectRecommendation = () => {
+    setShowRecommendation(false)
+    setStep(1)
     openForm()
   }
 
@@ -106,37 +129,50 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
           <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-xl">
             {availability.length > 0 ? (
               <>
-                <ProgressBar currentStep={currentStep} totalSteps={4} />
-                {renderStep()}
-                <div className="mt-6 flex justify-between">
-                  {currentStep < 4 && (
-                    <button
-                    onClick={handlePrevious}
-                    disabled={currentStep === 1}
-                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded disabled:opacity-50"
-                  >
-                    Anterior
-                  </button>
-                  )}
-                  {currentStep < 3 ? (
-                    <button
-                      onClick={handleNext}
-                      disabled={!isStepValid(currentStep)}
-                      className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
-                    >
-                      Siguiente
-                    </button>
-                  ) : currentStep === 3 ? (
-                    <button
-                      onClick={handleSubmit}
-                      className="px-4 py-2 bg-green-500 text-white rounded disabled:opacity-50"
-                    >
-                      Confirmar
-                    </button>
-                  ) : (
-                    <div></div>
-                  )}
-                </div>
+                {showRecommendation ? (
+                  <RecommendationDialog
+                    isOpen={showRecommendation}
+                    onClose={() => setShowRecommendation(false)}
+                    availability={availability}
+                    onAcceptFull={handleAcceptFullRecommendation}
+                    onAcceptDate={handleAcceptDateRecommendation}
+                    onReject={handleRejectRecommendation}
+                  />
+                ) : (
+                  <>
+                    <ProgressBar currentStep={currentStep} totalSteps={4} />
+                    {renderStep()}
+                    <div className="mt-6 flex justify-between">
+                      {currentStep < 4 && (
+                        <button
+                          onClick={handlePrevious}
+                          disabled={currentStep === 1}
+                          className="px-4 py-2 bg-gray-300 text-gray-700 rounded disabled:opacity-50"
+                        >
+                          Anterior
+                        </button>
+                      )}
+                      {currentStep < 3 ? (
+                        <button
+                          onClick={handleNext}
+                          disabled={!isStepValid(currentStep)}
+                          className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+                        >
+                          Siguiente
+                        </button>
+                      ) : currentStep === 3 ? (
+                        <button
+                          onClick={handleSubmit}
+                          className="px-4 py-2 bg-green-500 text-white rounded disabled:opacity-50"
+                        >
+                          Confirmar
+                        </button>
+                      ) : (
+                        <div></div>
+                      )}
+                    </div>
+                  </>
+                )}
               </>
             ) : (
               <>
@@ -151,13 +187,11 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
                 </div>
               </>
             )}
-
           </div>
         </div>
       </DialogContent>
-    </Dialog >
+    </Dialog>
   )
 }
 
 export default MultiStepForm
-
