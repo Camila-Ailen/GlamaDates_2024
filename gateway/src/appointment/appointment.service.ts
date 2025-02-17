@@ -277,8 +277,16 @@ export class AppointmentService {
       await this.detailsAppointmentRepository.save(detail);
     }
     // Actualizo el appointment con el valor total
-    const total = body.package.services.reduce((total, service) => total + service.price, 0);
+    let total = body.package.services.reduce((total, service) => total + service.price, 0);
+    console.log('total: ', total);
+    if (body.discount) {
+      total = total - body.discount;
+    }
+    console.log('total: ', total);
+    const pending = total;
+    console.log('pending: ', pending);
     await this.appointmentRepository.update(savedAppointment.id, { total });
+    await this.appointmentRepository.update(savedAppointment.id, { pending });
 
     const prefId = await this.mercadopagoService.create(savedAppointment.id.toString());
 
@@ -422,7 +430,6 @@ export class AppointmentService {
 
 
   async findProffesionals(serviceId: number, userRepository: Repository<User>) {
-    // console.log('desde la funcion: serviceId: ', serviceId);
     const service = await this.serviceRepository.findOne({ where: { id: serviceId }, relations: ['category'] });
     if (!service) {
       throw new HttpException('Service not found', HttpStatus.NOT_FOUND);
@@ -932,7 +939,7 @@ export class AppointmentService {
         take: forPage,
         skip,
       });
-      console.log('appointments: ', appointments);
+      // console.log('appointments: ', appointments);
 
       return {
         total: total,

@@ -55,7 +55,6 @@ export class PaymentService {
     ////////////////////////////////////////////////
     ////////////////////////////////////////////////
     async confirm(paymentData) {
-        console.log("Datos recibidos en servicio de payment:", paymentData);
 
         const paymentUrl = paymentData.paymentUrl;
         const paymentId = paymentData.paymentId;
@@ -71,25 +70,27 @@ export class PaymentService {
             throw new Error("Payment not found");
         }
 
-        console.log("payment: ", payment);
-
         const appointment = await this.appointmentService.getById(payment.appointment.id);
 
         if (!appointment) {
             throw new Error("Appointment not found");
         }
 
+        const amount = appointment.pending;
+
         appointment.state = AppointmentState.ACTIVE;
+        appointment.pending = 0;
         const appointmentDto = {
             ...appointment,
             created_at: appointment.createdAt,
             updated_at: appointment.updatedAt,
             deleted_at: appointment.deletedAt,
         };
-        console.log("appointmentDto: ", appointmentDto);
+        // console.log("appointmentDto: ", appointmentDto);
         await this.appointmentService.update({ id: appointment.id, body: appointmentDto });
 
-        const amount = appointment.package.services.reduce((total, service) => total + service.price, 0);
+        
+        // const amount = appointment.package.services.reduce((total, service) => total + service.price, 0);
 
         payment.datetime = new Date();
         payment.amount = amount;

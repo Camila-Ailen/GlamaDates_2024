@@ -17,6 +17,7 @@ import { Package } from '@/package/entities/package.entity';
 import { Workstation } from '@/workstation/entities/workstation.entity';
 import { DetailsAppointment } from '@/details-appointment/entities/details-appointment.entity';
 import { Payment } from '@/payment/entities/payment.entity';
+import { Max, Min } from 'class-validator';
   
   @Entity({ name: 'appointments' })
   export class Appointment {
@@ -35,6 +36,10 @@ import { Payment } from '@/payment/entities/payment.entity';
     //costo total
     @Column({ type: 'float', default: 0, nullable: true })
     total: number;
+
+    //monto del descuento
+    @Column({ type: 'float', default: 0, nullable: true })
+    discount: number;
 
     //costo pendiente
     @Column({ type: 'float', default: 0, nullable: true })
