@@ -32,7 +32,7 @@ export class MercadopagoService {
               id: appointment.id.toString(),
               title: appointment.package.name,
               quantity: 1,
-              unit_price: appointment.total,
+              unit_price: appointment.total - appointment.discount,
               currency_id: 'ARS',
             }
           ],
@@ -44,7 +44,7 @@ export class MercadopagoService {
           auto_return: "approved",
         }
       });
-      console.log(response);
+      // console.log(response);
       return response;
 
       

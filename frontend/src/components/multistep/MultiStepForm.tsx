@@ -23,7 +23,7 @@ interface MultiStepFormProps {
 }
 
 const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPackage, onClose, onPackageSelect }) => {
-  const { currentStep, setStep, isStepValid, submitForm, isOpen, openForm, closeForm, updateFormData, formData } =
+  const { currentStep, setStep, isStepValid, submitForm, isOpen, openForm, closeForm, updateFormData, updateDiscount, formData } =
     useFormStore()
   const [showRecommendation, setShowRecommendation] = useState(false)
 
@@ -62,18 +62,6 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
     }
   }
 
-  const handlePay = async () => {
-    if (isStepValid(4)) {
-      // await submitForm()
-      if (formData.step4.paymentMethod === "mercadopago") {
-        toast("Pago con Mercado Pago no disponible")
-      }
-      closeForm()
-      onClose()
-      setStep(currentStep)
-    }
-  }
-
   const handleCancel = async () => {
     closeForm()
     onClose()
@@ -86,6 +74,7 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
   }
 
   const handleAcceptFullRecommendation = (date: Date, time: string) => {
+    updateDiscount(1)
     const times = availability
       .filter((d) => new Date(d).toDateString() === date.toDateString())
       .map((d) => format(d, "h:mm a", { locale: es }))
@@ -97,6 +86,7 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
   }
 
   const handleAcceptDateRecommendation = (date: Date) => {
+    updateDiscount(2)
     const times = availability
       .filter((d) => new Date(d).toDateString() === date.toDateString())
       .map((d) => format(d, "h:mm a", { locale: es }))
@@ -107,6 +97,7 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
   }
 
   const handleRejectRecommendation = () => {
+    updateDiscount(null)
     setShowRecommendation(false)
     setStep(1)
     openForm()

@@ -18,6 +18,7 @@ import { Workstation } from '@/workstation/entities/workstation.entity';
 import { DetailsAppointment } from '@/details-appointment/entities/details-appointment.entity';
 import { Payment } from '@/payment/entities/payment.entity';
 import { Max, Min } from 'class-validator';
+import { DiscountType } from './discountTypes';
   
   @Entity({ name: 'appointments' })
   export class Appointment {
@@ -33,7 +34,11 @@ import { Max, Min } from 'class-validator';
     @Column({ type: 'enum', enum: AppointmentState, default: AppointmentState.ACTIVE })
     state: AppointmentState;
 
-    //costo total
+    // Tipo de descuento, despues toma el valor en config
+    @Column({ type: 'enum', enum: DiscountType, default: DiscountType.NONE })
+    discountType: DiscountType;
+
+    //costo total sin contar el descuento
     @Column({ type: 'float', default: 0, nullable: true })
     total: number;
 
@@ -41,7 +46,7 @@ import { Max, Min } from 'class-validator';
     @Column({ type: 'float', default: 0, nullable: true })
     discount: number;
 
-    //costo pendiente
+    //costo pendiente a pagar
     @Column({ type: 'float', default: 0, nullable: true })
     pending: number;
 

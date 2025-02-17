@@ -22,6 +22,7 @@ import { PaymentType } from "@/payment/entities/payment-type.enum";
 import { PaymentStatus } from "@/payment/entities/payment-status.enum";
 import { PaymentService } from "@/payment/payment.service";
 import { PaymentDto } from "@/payment/dto/payment.dto";
+import { DiscountType } from "./entities/discountTypes";
 
 @Injectable()
 export class AppointmentService {
@@ -60,7 +61,7 @@ export class AppointmentService {
   ) { }
 
   async getById(id: number): Promise<Appointment> {
-    console.log("get ONE ID desde appint: ", id);
+    // console.log("get ONE ID desde appint: ", id);
     const appointment = await this.appointmentRepository.findOne({
       where: {
         id,
@@ -277,17 +278,32 @@ export class AppointmentService {
       await this.detailsAppointmentRepository.save(detail);
     }
     // Actualizo el appointment con el valor total
+    // let total = body.details.reduce((total, detail) => total + detail.priceNow, 0);
     let total = body.package.services.reduce((total, service) => total + service.price, 0);
     console.log('total: ', total);
+    console.log('discount: ', body.discount)
+    console.log('config: ', config.descountFull)
     if (body.discount) {
-      total = total - body.discount;
+      // Descuento para fecha y hora
+      if (body.discount === 1) {
+        body.discountType = DiscountType.FULL
+        body.discount = total * config.descountFull / 100
+      } else if (body.discount === 2) {
+        body.discountType = DiscountType.PARTIAL
+        body.discount = total * config.descountPartial / 100
+      }
+    } else {
+      body.discountType = DiscountType.NONE
+      body.discount = 0
     }
-    console.log('total: ', total);
-    const pending = total;
+    console.log('discount: ', body.discount);  
+    const pending = total - body.discount;
     console.log('pending: ', pending);
-    await this.appointmentRepository.update(savedAppointment.id, { total });
-    await this.appointmentRepository.update(savedAppointment.id, { pending });
+    await this.appointmentRepository.update(savedAppointment.id, { total, discount: body.discount, pending, discountType: body.discountType});
 
+    
+    
+    
     const prefId = await this.mercadopagoService.create(savedAppointment.id.toString());
 
     // Creo el pago

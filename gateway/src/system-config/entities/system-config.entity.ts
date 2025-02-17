@@ -36,12 +36,12 @@ export class SystemConfig {
   @Column({ name: 'descount1', type: 'int', nullable: false, default: 0 })
   @Min(0)
   @Max(100)
-  descount1: number; // Descuento porcentual turno 1
+  descountFull: number; // Descuento porcentual total (dia y hora)
   
   @Column({ name: 'descount2', type: 'int', nullable: false, default: 0 })
   @Min(0)
   @Max(100)
-  descount2: number; // Descuento porcentual turno 2
+  descountPartial: number; // Descuento porcentual parcial (solo dia)
 
   @Column({ 
     type: 'enum',

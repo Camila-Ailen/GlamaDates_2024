@@ -34,6 +34,14 @@ export class SystemConfigDto {
     @IsString()
     closingHour2: string;
 
+    @ApiProperty({ required: false, type: 'number' })
+    @IsOptional()
+    descountFull: number;
+
+    @ApiProperty({ required: false, type: 'number' })
+    @IsOptional()
+    descountPartial: number;
+
     @ApiProperty({ required: false, type: 'string' })
     @IsOptional()
     @IsEnum(DaysOfWeek)

@@ -9,6 +9,7 @@ import { Package } from '@/package/entities/package.entity';
 import { DetailsAppointment } from '@/details-appointment/entities/details-appointment.entity';
 import { Transform } from 'class-transformer';
 import { Payment } from '@/payment/entities/payment.entity';
+import { DiscountType } from '../entities/discountTypes';
 
 export class AppointmentDto {
     @IsOptional()
@@ -28,6 +29,11 @@ export class AppointmentDto {
     @IsOptional()
     @IsEnum(AppointmentState)
     state: AppointmentState;
+
+    @ApiProperty({ required: false, type: 'string' })
+    @IsOptional()
+    @IsEnum(DiscountType)
+    discountType: DiscountType;
 
     @ApiProperty({ required: false, type: 'number' })
     @IsOptional()

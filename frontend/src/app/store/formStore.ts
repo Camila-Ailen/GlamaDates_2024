@@ -9,6 +9,7 @@ interface FormData {
   step3: { packageId: number }
   step4: { paymentMethod: string }
   selectedPackage: Package | null
+  discount: number | null
 }
 
 interface FormStore {
@@ -24,6 +25,7 @@ interface FormStore {
   closeForm: () => void
   paymentURL: string | null
   appointmentId: string 
+  updateDiscount: (discount: number | null) => void
 }
 
 const token = useAuthStore.getState().token
@@ -38,6 +40,7 @@ export const useFormStore = create<FormStore>()((set, get) => ({
     step3: { packageId: 0 },
     step4: { paymentMethod: "" },
     selectedPackage: null,
+    discount: null,
   },
 
   setStep: (step) => set({ currentStep: step }),
@@ -50,7 +53,7 @@ export const useFormStore = create<FormStore>()((set, get) => ({
         ...(step === "selectedPackage" ? { selectedPackage: data as Package } : {}),
       },
     })),
-
+    
   isStepValid: (step) => {
     const { formData } = get()
     switch (step) {
@@ -81,6 +84,7 @@ export const useFormStore = create<FormStore>()((set, get) => ({
     const _package = formData.step3.packageId.toString()
     const date = formData.step1.date
     const time = formData.step2.time
+    const discount = formData.discount
 
     // const paymentMethod = formData.step4.paymentMethod
 
@@ -104,7 +108,7 @@ export const useFormStore = create<FormStore>()((set, get) => ({
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ datetimeStart, package: _package }),
+        body: JSON.stringify({ datetimeStart, package: _package, discount }),
       })
 
       if (response.status === 403) {
@@ -141,6 +145,7 @@ export const useFormStore = create<FormStore>()((set, get) => ({
         step3: { packageId: 0 },
         step4: { paymentMethod: "" },
         selectedPackage: null,
+        discount: null,
       },
     }),
   isOpen: false,
@@ -151,6 +156,14 @@ export const useFormStore = create<FormStore>()((set, get) => ({
     set({ isOpen: false })
     get().resetForm()
   },
+
+  updateDiscount: (discount: number | null) =>
+    set((state) => ({
+      formData: {
+        ...state.formData,
+        discount,
+      },
+    })),
 }))
 
 export default useFormStore
