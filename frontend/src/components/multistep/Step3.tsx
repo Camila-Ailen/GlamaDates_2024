@@ -29,6 +29,13 @@ const Step3: React.FC<{ selectedPackage: Package }> = ({ selectedPackage }) => {
   // const packages = usePackageStore(state => state.packages)
   // const { selectedServices, setSelectedServices } = useAppointmentStore()
 
+  const discountMap: { [key: number]: number } = {
+    1: 10,
+    2: 5,
+  };
+
+  const price = selectedPackage.services.reduce((acc, service) => acc + service.price, 0)
+
   useEffect(() => {
     if (selectedPackage && selectedPackage.id) {
       updateFormData("step3", { packageId: selectedPackage.id })
@@ -46,6 +53,15 @@ const Step3: React.FC<{ selectedPackage: Package }> = ({ selectedPackage }) => {
           <strong>Fecha y hora del turno:</strong>{" "}
           {formData.step1.date ? formData.step1.date.toLocaleDateString("es-AR") : "Fecha no seleccionada"} a las{" "}
           {formData.step2.time || "Hora no seleccionada"}
+        </p>
+        <p>
+          <strong>Descuento aplicado:</strong>{" "}
+          {formData.discount !== null ? `$${(price * discountMap[formData.discount] / 100).toFixed(2)} - (${discountMap[formData.discount]}%)` : "Sin descuento. Acepta una recomendación al seleccionar una fecha para conseguir un descuento."}
+        </p>
+
+        <p>
+          <strong>Monto a pagar:</strong>{" "}
+          {formData.discount !== null ? `$${(price - (price * discountMap[formData.discount] / 100)).toFixed(2)}` : `$${price.toFixed(2)}`}
         </p>
         <h3>Servicios:</h3>
         <ul>

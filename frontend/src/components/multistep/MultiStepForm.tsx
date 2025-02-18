@@ -12,8 +12,6 @@ import type { Package } from "@/app/store/usePackageStore"
 import { toast } from "sonner"
 import Step0 from "./Step0"
 import { RecommendationDialog } from "./RecommendationDialog"
-import { format } from "date-fns/format"
-import { es } from "date-fns/locale/es"
 
 interface MultiStepFormProps {
   availability: Date[]
@@ -50,8 +48,12 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
   }
 
   const handlePrevious = () => {
-    if (currentStep > 1) {
+    if (currentStep > 1 && formData.discount === null) {
       setStep(currentStep - 1)
+    } else if (currentStep > 2 && formData.discount === 2) {
+      setStep(currentStep - 1)
+    } else {
+      toast.info("No puedes volver atras si ya aceptaste una recomendacion. Si deseas cambiar la fecha, vuelve a solicitar el turno, y rechaza la recomendacion.")
     }
   }
 
@@ -77,7 +79,8 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
     updateDiscount(1)
     const times = availability
       .filter((d) => new Date(d).toDateString() === date.toDateString())
-      .map((d) => format(d, "h:mm a", { locale: es }))
+      // .map((d) => format(d, "h:mm a", { locale: es }))
+      .map((d) => new Date(d).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }))
     updateFormData("step1", { date, availableTimes: times })
     updateFormData("step2", { time })
     setShowRecommendation(false)
@@ -89,7 +92,8 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
     updateDiscount(2)
     const times = availability
       .filter((d) => new Date(d).toDateString() === date.toDateString())
-      .map((d) => format(d, "h:mm a", { locale: es }))
+      // .map((d) => format(d, "h:mm a", { locale: es }))
+      .map((d) => new Date(d).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }))
     updateFormData("step1", { date, availableTimes: times })
     setShowRecommendation(false)
     setStep(2)

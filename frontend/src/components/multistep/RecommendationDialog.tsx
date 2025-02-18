@@ -3,8 +3,6 @@
 import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { format } from "date-fns"
-import { es } from "date-fns/locale"
 import { useFormStore } from "@/app/store/formStore"
 
 interface RecommendationDialogProps {
@@ -32,7 +30,7 @@ export function RecommendationDialog({
     if (availability.length > 0) {
       const nextAvailable = availability[0]
       setRecommendedDate(nextAvailable)
-      setRecommendedTime(format(nextAvailable, "h:mm a", { locale: es }))
+      setRecommendedTime(new Date(nextAvailable).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }))
     }
   }, [availability])
 
@@ -40,7 +38,7 @@ export function RecommendationDialog({
     if (recommendedDate) {
       const times = availability
         .filter((d) => new Date(d).toDateString() === recommendedDate.toDateString())
-        .map((d) => format(d, "h:mm a", { locale: es }))
+        .map((d) => new Date(d).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }))
       updateFormData("step1", { date: recommendedDate })
       updateFormData("step2", { time: recommendedTime })
       onAcceptFull(recommendedDate, recommendedTime)
@@ -51,7 +49,7 @@ export function RecommendationDialog({
     if (recommendedDate) {
       const times = availability
         .filter((d) => new Date(d).toDateString() === recommendedDate.toDateString())
-        .map((d) => format(d, "h:mm a", { locale: es }))
+        .map((d) => new Date(d).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }))
       updateFormData("step1", { date: recommendedDate, availableTimes: times })
       onAcceptDate(recommendedDate)
     }
@@ -67,7 +65,12 @@ export function RecommendationDialog({
           <div>
             <p>Te sugerimos la siguiente fecha y hora:</p>
             <p className="font-bold">
-              {format(recommendedDate, "PPPP", { locale: es })} a las {recommendedTime}
+              {recommendedDate.toLocaleString("es-AR", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric"
+              })} a las {recommendedTime}
             </p>
           </div>
         )}
