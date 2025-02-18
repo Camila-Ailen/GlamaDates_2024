@@ -15,6 +15,7 @@ import { PaymentController } from "./payment.controller";
 import { PaymentService } from "./payment.service";
 import { AppointmentService } from "@/appointment/appointment.service";
 import { MercadopagoModule } from "@/mercadopago/mercadopago.module";
+import { MailerService } from "@/mailer/mailer.service";
 
 
 @Module({
@@ -24,12 +25,12 @@ import { MercadopagoModule } from "@/mercadopago/mercadopago.module";
         UsersModule,
         MercadopagoModule,
         JwtModule.register({
-                secret: 'your_jwt_secret', // Usa un secreto seguro en producción
+                secret: 'your_jwt_secret', // Usa un secreto seguro en producción          v                           
                 signOptions: { expiresIn: '1h' },
               }),
     ],
     controllers: [PaymentController],
-    providers: [PaymentService, PaymentController, Service, AppointmentService],
+    providers: [PaymentService, PaymentController, Service, AppointmentService, MailerService],
     exports: [PaymentService],
 })
 

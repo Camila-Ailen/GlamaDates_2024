@@ -14,6 +14,7 @@ import { SystemConfigModule } from './system-config/system-config.module';
 import { DetailsAppointmentModule } from './details-appointment/details-appointment.module';
 import { PaymentModule } from './payment/payment.module';
 import { MercadopagoModule } from './mercadopago/mercadopago.module';
+import { MailerService } from './mailer/mailer.service';
 
 @Module({
     imports: [
@@ -34,7 +35,9 @@ import { MercadopagoModule } from './mercadopago/mercadopago.module';
         DetailsAppointmentModule,
         PaymentModule,
         MercadopagoModule,
-    ]
+    ],
+    providers: [MailerService],
+    exports: [MailerService],
 })
 export class AppModule {
 }

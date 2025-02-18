@@ -17,6 +17,7 @@ import { MercadopagoModule } from '@/mercadopago/mercadopago.module';
 import { MercadopagoService } from '@/mercadopago/mercadopago.service';
 import { PaymentModule } from '@/payment/payment.module';
 import { Payment } from '@/payment/entities/payment.entity';
+import { MailerService } from '@/mailer/mailer.service';
 
 @Module({
   imports: [
@@ -32,7 +33,7 @@ import { Payment } from '@/payment/entities/payment.entity';
       }),
 ],
    controllers: [AppointmentController],
-   providers: [AppointmentService, AppointmentController, Service, MercadopagoService],
+   providers: [AppointmentService, AppointmentController, Service, MercadopagoService, MailerService],
    exports: [AppointmentService],
 })
 export class AppointmentModule {}

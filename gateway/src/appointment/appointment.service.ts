@@ -23,6 +23,7 @@ import { PaymentStatus } from "@/payment/entities/payment-status.enum";
 import { PaymentService } from "@/payment/payment.service";
 import { PaymentDto } from "@/payment/dto/payment.dto";
 import { DiscountType } from "./entities/discountTypes";
+import { MailerService } from "@/mailer/mailer.service";
 
 @Injectable()
 export class AppointmentService {
@@ -58,6 +59,8 @@ export class AppointmentService {
     private readonly detailsAppointmentRepository: Repository<DetailsAppointment>,
 
     private readonly configService: SystemConfigService,
+
+    private readonly mailerService: MailerService
   ) { }
 
   async getById(id: number): Promise<Appointment> {
@@ -815,6 +818,9 @@ export class AppointmentService {
       results: [],
     };
 
+    console.log('estoy bien?');
+      this.mailerService.testEmail();
+
     try {
       if (Object.keys(params.query).length === 0) {
         return emptyResponse;
@@ -843,6 +849,8 @@ export class AppointmentService {
         take: forPage,
         skip,
       });
+
+      
 
       return {
         total: total,
