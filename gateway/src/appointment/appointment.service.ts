@@ -126,6 +126,7 @@ export class AppointmentService {
       client: user,
       state: AppointmentState.PENDING,
       package: body.package,
+      advance: body.advance,
     });
 
 
@@ -281,11 +282,7 @@ export class AppointmentService {
       await this.detailsAppointmentRepository.save(detail);
     }
     // Actualizo el appointment con el valor total
-    // let total = body.details.reduce((total, detail) => total + detail.priceNow, 0);
     let total = body.package.services.reduce((total, service) => total + service.price, 0);
-    console.log('total: ', total);
-    console.log('discount: ', body.discount)
-    console.log('config: ', config.descountFull)
     if (body.discount) {
       // Descuento para fecha y hora
       if (body.discount === 1) {
@@ -299,9 +296,7 @@ export class AppointmentService {
       body.discountType = DiscountType.NONE
       body.discount = 0
     }
-    console.log('discount: ', body.discount);  
     const pending = total - body.discount;
-    console.log('pending: ', pending);
     await this.appointmentRepository.update(savedAppointment.id, { total, discount: body.discount, pending, discountType: body.discountType});
 
     

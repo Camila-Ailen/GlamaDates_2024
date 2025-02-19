@@ -6,7 +6,7 @@ import type { Package } from "./usePackageStore"
 interface FormData {
   step1: { date: Date | null; availableTimes: string[] }
   step2: { time: string }
-  step3: { packageId: number }
+  step3: { packageId: number, advance: boolean }
   step4: { paymentMethod: string }
   selectedPackage: Package | null
   discount: number | null
@@ -37,7 +37,7 @@ export const useFormStore = create<FormStore>()((set, get) => ({
   formData: {
     step1: { date: null, availableTimes: [] },
     step2: { time: "" },
-    step3: { packageId: 0 },
+    step3: { packageId: 0, advance: true },
     step4: { paymentMethod: "" },
     selectedPackage: null,
     discount: null,
@@ -85,6 +85,7 @@ export const useFormStore = create<FormStore>()((set, get) => ({
     const date = formData.step1.date
     const time = formData.step2.time
     const discount = formData.discount
+    const advance = formData.step3.advance
 
     // const paymentMethod = formData.step4.paymentMethod
 
@@ -108,7 +109,7 @@ export const useFormStore = create<FormStore>()((set, get) => ({
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ datetimeStart, package: _package, discount }),
+        body: JSON.stringify({ datetimeStart, package: _package, discount, advance }),
       })
 
       if (response.status === 403) {
@@ -142,7 +143,7 @@ export const useFormStore = create<FormStore>()((set, get) => ({
       formData: {
         step1: { date: null, availableTimes: [] },
         step2: { time: "" },
-        step3: { packageId: 0 },
+        step3: { packageId: 0, advance: true },
         step4: { paymentMethod: "" },
         selectedPackage: null,
         discount: null,

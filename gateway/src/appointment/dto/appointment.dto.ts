@@ -47,6 +47,10 @@ export class AppointmentDto {
     @IsOptional()
     pending: number;
 
+    @ApiProperty({ required: false, type: 'boolean' })
+    @IsOptional()
+    advance: boolean;
+
     @ApiProperty({ required: false, type: 'string' })
     @IsOptional()
     @IsString()

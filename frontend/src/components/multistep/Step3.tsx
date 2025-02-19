@@ -42,6 +42,11 @@ const Step3: React.FC<{ selectedPackage: Package }> = ({ selectedPackage }) => {
     }
   }, [selectedPackage, updateFormData])
 
+  const handleNotificationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = e.target.checked
+    updateFormData("step3", { advance: checked })
+  }
+
   return (
     <div className="custom-dialog-content">
       <h2 className="custom-dialog-title">Paso 3: Confirmacion de datos para {selectedPackage.name}</h2>
@@ -63,6 +68,23 @@ const Step3: React.FC<{ selectedPackage: Package }> = ({ selectedPackage }) => {
           <strong>Monto a pagar:</strong>{" "}
           {formData.discount !== null ? `$${(price - (price * discountMap[formData.discount] / 100)).toFixed(2)}` : `$${price.toFixed(2)}`}
         </p>
+
+        <div className="flex items-center space-x-2 mt-2">
+          <input
+            type="checkbox"
+            id="notifications"
+            checked={formData.step3.advance || false}
+            onChange={handleNotificationChange}
+            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+          />
+          <label
+            htmlFor="notifications"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            Quiero recibir avisos para poder adelantar el turno
+          </label>
+        </div>
+
         <h3>Servicios:</h3>
         <ul>
           {selectedPackage &&

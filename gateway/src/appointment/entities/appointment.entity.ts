@@ -50,6 +50,10 @@ import { DiscountType } from './discountTypes';
     @Column({ type: 'float', default: 0, nullable: true })
     pending: number;
 
+    // Adelantamiento de cita como un boolean
+    @Column({ type: 'boolean', default: true })
+    advance: boolean;
+
     // Relacion con cliente
     @ManyToOne(() => User, (client) => client.appointmentClient, {
         nullable: false,
