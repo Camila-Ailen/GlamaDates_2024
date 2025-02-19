@@ -299,9 +299,6 @@ export class AppointmentService {
     const pending = total - body.discount;
     await this.appointmentRepository.update(savedAppointment.id, { total, discount: body.discount, pending, discountType: body.discountType});
 
-    
-    
-    
     const prefId = await this.mercadopagoService.create(savedAppointment.id.toString());
 
     // Creo el pago
@@ -321,6 +318,50 @@ export class AppointmentService {
 
     
     return await this.getById(savedAppointment.id);
+  }
+
+  ////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////
+  async cancel(params: { id: number, body: AppointmentDto }): Promise<Appointment> {
+    const appointment = await this.appointmentRepository.findOne({
+      where: { id: params.id },
+      relations: ['payments'],
+    });
+
+    if (!appointment) {
+      throw new HttpException('Appointment not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (appointment.state === AppointmentState.CANCELLED) {
+      throw new HttpException('Appointment already canceled', HttpStatus.BAD_REQUEST);
+    }
+
+    if (appointment.state === AppointmentState.INACTIVE) {
+      throw new HttpException('Appointment already inactive', HttpStatus.BAD_REQUEST);
+    }
+
+    if (appointment.state === AppointmentState.COMPLETED) {
+      throw new HttpException('Appointment already completed', HttpStatus.BAD_REQUEST);
+    }
+
+    if (appointment.state === AppointmentState.DELINQUENT) {
+      throw new HttpException('Appointment already delinquent', HttpStatus.BAD_REQUEST);
+    }
+
+    if (appointment.state === AppointmentState.ACTIVE) {
+      throw new HttpException('Appointment already active', HttpStatus.BAD_REQUEST);
+    } 
+
+    if (appointment.state === AppointmentState.DEPOSITED) {
+      throw new HttpException('Appointment already deposited', HttpStatus.BAD_REQUEST);
+    }
+
+    if (appointment.state === AppointmentState.PENDING) {
+      appointment.state = AppointmentState.CANCELLED;
+      await this.appointmentRepository.save(appointment);
+    }
+
+    return appointment;
   }
 
 

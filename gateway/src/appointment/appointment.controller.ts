@@ -9,7 +9,9 @@ import { User } from '@/users/entities/user.entity';
 import { Auth } from '@/auth/auth.decorator';
 import { JwtService } from '@nestjs/jwt';
 import { BaseController } from '@/base/base.controller';
-import { ResposeDTO } from '@/base/dto/base.dto';
+import { IdDTO, ResposeDTO } from '@/base/dto/base.dto';
+import { ApiOperation } from '@nestjs/swagger';
+import { Appointment } from './entities/appointment.entity';
 
 @Controller('appointment')
 export class AppointmentController extends BaseController {
@@ -98,6 +100,22 @@ export class AppointmentController extends BaseController {
     const user = request.user;
     return await this.appointmentService.create(appointmentDto, user);
   }
+
+  ////////////////////////////////////////////////
+    ////////////////////////////////////////////////
+    @Patch('cancel/:id')
+    //@Auth('update:users')
+    @ApiOperation({ summary: 'Cancel appointment' })
+    async update(
+      @Param() params: IdDTO,
+      @Body() body: AppointmentDto,
+      @Req() request: { appointment: Appointment },
+    ): Promise<ResposeDTO> {
+      return {
+        status: 'success',
+        data: await this.appointmentService.cancel({ id: params.id, body }),
+      };
+    }
 
   ////////////////////////////////////////////////////
   ////////////////////////////////////////////////////

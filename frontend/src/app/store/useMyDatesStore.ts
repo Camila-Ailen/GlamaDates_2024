@@ -17,6 +17,7 @@ interface MyDatesState {
     filter: string
     // setMyDates: (dates: Date[]) => void
     fetchMyDates: (page?: number, token?: string) => Promise<void>
+    cancelAppointment: (id: number) => Promise<void>
     setOrderBy: (field: string) => void
     setOrderType: (type: 'ASC' | 'DESC') => void
     setFilter: (filter: string) => void
@@ -77,6 +78,31 @@ export const useMyDatesStore = create<MyDatesState>((set, get) => ({
             set({ error: (error as Error).message, isLoading: false });
         }
 
+    },
+
+    cancelAppointment: async (id: number) => {
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/appointment/cancel/${id}`, {
+                method: 'PATCH',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            if (response.status === 403) {
+                toast.error("Sesión expirada");
+                useAuthStore.getState().logout();
+                return;
+            }
+            if (!response.ok){
+                throw new Error('Error al cancelar la cita');
+            } else {
+                toast.success('Cita cancelada exitosamente');
+            }
+            const data = await response.json();
+            console.log(data);
+        } catch (error) {
+            console.error(error);
+        }
     },
 
     setOrderBy: (field) => set({ orderBy: field }),

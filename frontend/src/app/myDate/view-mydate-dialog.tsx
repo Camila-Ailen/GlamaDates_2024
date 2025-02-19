@@ -9,15 +9,17 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import { CreditCard, Eye, Link, Smile, Trash, UserPen, View } from 'lucide-react'
+import { CreditCard, Eye, Frown, Link, Smile, Trash, UserPen, View } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { format } from 'date-fns/format'
 import { usePaymentStore } from '../store/usePaymentStore'
 import { PaymentButton } from '@/components/mercadopago/PaymentButton'
+import useMyDatesStore from '../store/useMyDatesStore'
 
 // import { DetailsAppointment } from '../store/useAppointmentStore'
 
 export function ViewMydateDialog({ appointment }) {
+    const { cancelAppointment } = useMyDatesStore();
     const fetchPaymentUrl = usePaymentStore((state) => state.fetchPaymentUrl)
     // const paymentUrl = usePaymentStore((state) => state.paymentUrl)
     const paymentUrl = null
@@ -27,14 +29,17 @@ export function ViewMydateDialog({ appointment }) {
 
 
     useEffect(() => {
-        console.log("appointment.id en useEffect de ViewMydateDialog", appointment.id)
         fetchPaymentUrl(appointment.id)
     }, [appointment.id, fetchPaymentUrl])
 
 
+    const handleCancel = async () => {
+        await cancelAppointment(appointment.id);
+        window.location.reload();
+    }
+
 
     const fullURL = `${baseURL}${paymentUrl}`;
-    console.log("fullURL de ViewMydateDialog", fullURL)
 
     return (
 
@@ -84,14 +89,17 @@ export function ViewMydateDialog({ appointment }) {
                         {appointment.state !== "COMPLETADO" && appointment.state !== "ACTIVO" && (
                             <>
                                 <PaymentButton source="later" />
-                                {/* <Link href={fullURL}> */}
-                                    {/* <Button
-                                        className="w-full justify-start"
-                                    >
-                                        <CreditCard className="mr-2 h-4 w-4" />
-                                        Pagar con Mercado Pago
-                                    </Button> */}
-                                {/* </Link> */}
+                            </>
+                        )}
+
+                        {appointment.state === "PENDIENTE" && (
+                            <>
+                                <Button
+                                    onClick={handleCancel}
+                                >
+                                    <Frown className="mr-2 h-4 w-4" />
+                                    Cancelar cita
+                                </Button>
                             </>
                         )}
 
