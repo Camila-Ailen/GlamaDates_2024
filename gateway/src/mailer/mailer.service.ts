@@ -13,7 +13,7 @@ export class MailerService {
     async sendEmail(from, subjectEmail, sendTo, html){
         try {
             const info = await this.transporter.sendMail({
-                from: '"GlamaDates 💅🏻" <info@glamadates.com>',
+                from: from,
                 to: sendTo, // list of receivers
                 subject: subjectEmail, // Subject line
                 html: html, // html body

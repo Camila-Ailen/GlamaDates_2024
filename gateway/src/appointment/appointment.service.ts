@@ -2,7 +2,7 @@ import { forwardRef, HttpException, HttpStatus, Inject, Injectable } from "@nest
 import { InjectRepository } from "@nestjs/typeorm";
 import { Appointment } from "./entities/appointment.entity";
 import { Package } from "@/package/entities/package.entity";
-import { Between, In, IsNull, Not, Repository } from "typeorm";
+import { Between, Brackets, In, IsNull, Not, Repository } from "typeorm";
 import { addMinutes, endOfDay, isAfter, isBefore, isEqual, startOfDay, subMinutes } from "date-fns";
 import { Service } from "@/service/entities/service.entity";
 import { SystemConfigService } from "@/system-config/system-config.service";
@@ -327,7 +327,7 @@ export class AppointmentService {
   async cancel(params: { id: number, body: AppointmentDto }): Promise<Appointment> {
     const appointment = await this.appointmentRepository.findOne({
       where: { id: params.id },
-      relations: ['payments', 'details', 'details.service', 'details.service.category', 'details.employee', 'client'],
+      relations: ['payments', 'details', 'details.service', 'details.service.category', 'details.employee'],
     });
 
     if (!appointment) {
@@ -390,12 +390,20 @@ export class AppointmentService {
       const futureAppointments = await this.detailsAppointmentRepository.createQueryBuilder('details')
         .innerJoinAndSelect('details.appointment', 'appointment')
         .innerJoinAndSelect('appointment.client', 'client')
+        .innerJoinAndSelect('appointment.package', 'package')
         .innerJoin('details.service', 'service')
         .innerJoin('service.category', 'category')
         .where('category.id = :categoryId', { categoryId: category })
         .andWhere('details.durationNow <= :roundedDuration', { roundedDuration })
         .andWhere('details.datetimeStart > :datetimeStart', { datetimeStart })
         .andWhere('appointment.advance = true')
+        .andWhere(
+          new Brackets(qb => {
+            qb.where('appointment.state = :activeState', { activeState: AppointmentState.ACTIVE })
+              .orWhere('appointment.state = :pendingState', { pendingState: AppointmentState.PENDING })
+              .orWhere('appointment.state = :depositedState', { depositedState: AppointmentState.DEPOSITED });
+          })
+        )
         .getMany();
 
         
@@ -422,11 +430,22 @@ async notifyClientsForReappointments(cancelledAppointment: Appointment): Promise
   const emailTemplatePath = path.join(__dirname, '../mailer/templates/reappointment-email-template.html');
   const emailTemplate = fs.readFileSync(emailTemplatePath, 'utf8');
 
+  const cancelledAppointmentDate = cancelledAppointment.datetimeStart.toLocaleString();
+
   for (const suggestion of suggestions) {
     const client = suggestion.appointment.client;
     if (client) {
-      console.log('client: ', client);
-      const emailContent = emailTemplate.replace('{{clientName}}', client.firstName);
+      const suggestedAppointmentDate = suggestion.appointment.datetimeStart.toLocaleString();
+      const packageName = suggestion.appointment.package?.name || 'N/A';
+      const packageDescription = suggestion.appointment.package?.description || 'N/A';
+
+      let emailContent = emailTemplate.replace('{{clientName}}', client.firstName + ' ' + client.lastName);
+      emailContent = emailContent.replace('{{cancelledAppointmentDate}}', cancelledAppointmentDate);
+      emailContent = emailContent.replace('{{suggestedAppointmentDate}}', suggestedAppointmentDate);
+      emailContent = emailContent.replace('{{packageName}}', packageName);
+      emailContent = emailContent.replace('{{suggestedAppointmentId}}', suggestion.appointment.id.toString());
+      emailContent = emailContent.replace('{{packageDescription}}', packageDescription);
+
       await this.mailerService.sendEmail(
         'info@glamadates.com',
         'Reacomodamiento de Turno Disponible',
