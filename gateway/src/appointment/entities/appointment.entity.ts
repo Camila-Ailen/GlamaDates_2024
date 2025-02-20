@@ -88,6 +88,7 @@ import { DiscountType } from './discountTypes';
     @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp', nullable: true })
     @Exclude()
     deletedAt: Date | null;
+    appointment: any;
   
     toJSON() {
       return instanceToPlain(this);

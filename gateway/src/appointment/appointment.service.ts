@@ -24,6 +24,8 @@ import { PaymentService } from "@/payment/payment.service";
 import { PaymentDto } from "@/payment/dto/payment.dto";
 import { DiscountType } from "./entities/discountTypes";
 import { MailerService } from "@/mailer/mailer.service";
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class AppointmentService {
@@ -325,7 +327,7 @@ export class AppointmentService {
   async cancel(params: { id: number, body: AppointmentDto }): Promise<Appointment> {
     const appointment = await this.appointmentRepository.findOne({
       where: { id: params.id },
-      relations: ['payments'],
+      relations: ['payments', 'details', 'details.service', 'details.service.category', 'details.employee', 'client'],
     });
 
     if (!appointment) {
@@ -359,10 +361,83 @@ export class AppointmentService {
     if (appointment.state === AppointmentState.PENDING) {
       appointment.state = AppointmentState.CANCELLED;
       await this.appointmentRepository.save(appointment);
+      console.log('Cita cancelada');
+      // Ahora se calcula a quienes se le puede recomendar la cita
+      await this.notifyClientsForReappointments(appointment);
     }
 
     return appointment;
   }
+
+  async suggestReappointments(cancelledAppointment: Appointment): Promise<DetailsAppointment[]> {
+    const { details } = cancelledAppointment;
+    const config = await this.configService.getSystemConfig();
+    const intervalMinutes = config.intervalMinutes;
+  
+    const suggestions = [];
+  
+    // console.log('En suggestReappointments:', details);
+  
+    for (const detail of details) {
+      const { durationNow: duration, datetimeStart } = detail;
+      const category = detail.service.category.id;
+  
+      console.log('Category:', category, 'Duration:', duration, 'DatetimeStart:', datetimeStart);
+      const roundedDuration = Math.ceil(duration / intervalMinutes) * intervalMinutes;
+  
+      console.log('Rounded duration:', roundedDuration);
+  
+      const futureAppointments = await this.detailsAppointmentRepository.createQueryBuilder('details')
+        .innerJoinAndSelect('details.appointment', 'appointment')
+        .innerJoinAndSelect('appointment.client', 'client')
+        .innerJoin('details.service', 'service')
+        .innerJoin('service.category', 'category')
+        .where('category.id = :categoryId', { categoryId: category })
+        .andWhere('details.durationNow <= :roundedDuration', { roundedDuration })
+        .andWhere('details.datetimeStart > :datetimeStart', { datetimeStart })
+        .andWhere('appointment.advance = true')
+        .getMany();
+
+        
+  
+      suggestions.push(...futureAppointments);
+    }
+
+    console.log('Pasamos el for de suggestions');
+  
+    return suggestions;
+  }
+
+
+async notifyClientsForReappointments(cancelledAppointment: Appointment): Promise<void> {
+  console.log('Notificando a los clientes sobre reacomodamiento de turnos disponibles...');
+  const suggestions = await this.suggestReappointments(cancelledAppointment);
+  console.log('Sugerencias de reacomodamiento:', suggestions);
+
+  if (suggestions.length === 0) {
+    return;
+  }
+
+  console.log('dirname: ', __dirname);
+  const emailTemplatePath = path.join(__dirname, '../mailer/templates/reappointment-email-template.html');
+  const emailTemplate = fs.readFileSync(emailTemplatePath, 'utf8');
+
+  for (const suggestion of suggestions) {
+    const client = suggestion.appointment.client;
+    if (client) {
+      console.log('client: ', client);
+      const emailContent = emailTemplate.replace('{{clientName}}', client.firstName);
+      await this.mailerService.sendEmail(
+        'info@glamadates.com',
+        'Reacomodamiento de Turno Disponible',
+        [client.email],
+        emailContent
+      );
+    } else {
+      console.log('No se encontró el cliente para la cita:', suggestion.appointment.id);
+    }
+  }
+}
 
 
 
