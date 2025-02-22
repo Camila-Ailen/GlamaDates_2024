@@ -37,6 +37,7 @@ export class AppointmentController extends BaseController {
   @Get('availability2/:packageId')
   @Auth('read:availableappointments')
   async getAvailability2(@Param('packageId') packageId: number, @Query('offset') offset: number, @Query('pageSize') pageSize: number): Promise<Date[]> {
+    console.log('packageId desde el controlador: ', packageId);
     return this.appointmentService.getAvailableAppointments3(packageId, offset, pageSize);
   }
 
@@ -99,6 +100,23 @@ export class AppointmentController extends BaseController {
   ) {
     const user = request.user;
     return await this.appointmentService.create(appointmentDto, user);
+  }
+
+  ////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
+  @Get('isAvailable')
+  @Auth('read:availableappointments')
+  async checkAvailability(
+    @Query('packageId') packageId: number,
+    @Query('datetimeStart') datetimeStart: string
+    // @Param('packageId') packageId: number,
+    // @Param('datetimeStart') datetimeStart: string
+  ): Promise<{ available: boolean }> {
+    console.log('packageId: ', packageId);
+    console.log('datetimeStart: ', datetimeStart);
+    const available = await this.appointmentService.isPackageAssignable(packageId, new Date(datetimeStart));
+    console.log('available: ', available);
+    return { available };
   }
 
   ////////////////////////////////////////////////

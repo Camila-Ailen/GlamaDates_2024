@@ -8,6 +8,7 @@ import useAuthStore from "../store/useAuthStore"
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
 import { ViewMydateDialog } from "./view-mydate-dialog"
 import { Dialog, DialogTrigger } from "@radix-ui/react-dialog"
+import RearrangeForm from "@/components/edit/rearrange"
 
 
 export function MyDates() {
@@ -186,6 +187,7 @@ export function MyDates() {
                     </PaginationItem>
                 </PaginationContent>
             </Pagination>
+            <RearrangeForm />
         </div>
     )
 }

@@ -66,7 +66,6 @@ export class AppointmentService {
   ) { }
 
   async getById(id: number): Promise<Appointment> {
-    // console.log("get ONE ID desde appint: ", id);
     const appointment = await this.appointmentRepository.findOne({
       where: {
         id,
@@ -97,7 +96,6 @@ export class AppointmentService {
 
     // Guardo la fecha y horario de la cita
     const appointmentDate = new Date(body.datetimeStart);
-    // console.log('appointmentDate: ', appointmentDate);
 
     // Primero traigo los datos globales
 
@@ -299,7 +297,7 @@ export class AppointmentService {
       body.discount = 0
     }
     const pending = total - body.discount;
-    await this.appointmentRepository.update(savedAppointment.id, { total, discount: body.discount, pending, discountType: body.discountType});
+    await this.appointmentRepository.update(savedAppointment.id, { total, discount: body.discount, pending, discountType: body.discountType });
 
     const prefId = await this.mercadopagoService.create(savedAppointment.id.toString());
 
@@ -318,7 +316,7 @@ export class AppointmentService {
 
     await this.paymentService.create({ body: payment });
 
-    
+
     return await this.getById(savedAppointment.id);
   }
 
@@ -352,7 +350,7 @@ export class AppointmentService {
 
     if (appointment.state === AppointmentState.ACTIVE) {
       throw new HttpException('Appointment already active', HttpStatus.BAD_REQUEST);
-    } 
+    }
 
     if (appointment.state === AppointmentState.DEPOSITED) {
       throw new HttpException('Appointment already deposited', HttpStatus.BAD_REQUEST);
@@ -361,7 +359,6 @@ export class AppointmentService {
     if (appointment.state === AppointmentState.PENDING) {
       appointment.state = AppointmentState.CANCELLED;
       await this.appointmentRepository.save(appointment);
-      console.log('Cita cancelada');
       // Ahora se calcula a quienes se le puede recomendar la cita
       await this.notifyClientsForReappointments(appointment);
     }
@@ -373,20 +370,15 @@ export class AppointmentService {
     const { details } = cancelledAppointment;
     const config = await this.configService.getSystemConfig();
     const intervalMinutes = config.intervalMinutes;
-  
+
     const suggestions = [];
-  
-    // console.log('En suggestReappointments:', details);
-  
+
     for (const detail of details) {
       const { durationNow: duration, datetimeStart } = detail;
       const category = detail.service.category.id;
-  
-      console.log('Category:', category, 'Duration:', duration, 'DatetimeStart:', datetimeStart);
+
       const roundedDuration = Math.ceil(duration / intervalMinutes) * intervalMinutes;
-  
-      console.log('Rounded duration:', roundedDuration);
-  
+
       const futureAppointments = await this.detailsAppointmentRepository.createQueryBuilder('details')
         .innerJoinAndSelect('details.appointment', 'appointment')
         .innerJoinAndSelect('appointment.client', 'client')
@@ -406,57 +398,55 @@ export class AppointmentService {
         )
         .getMany();
 
-        
-  
+
+
       suggestions.push(...futureAppointments);
     }
 
-    console.log('Pasamos el for de suggestions');
-  
     return suggestions;
   }
 
 
-async notifyClientsForReappointments(cancelledAppointment: Appointment): Promise<void> {
-  console.log('Notificando a los clientes sobre reacomodamiento de turnos disponibles...');
-  const suggestions = await this.suggestReappointments(cancelledAppointment);
-  console.log('Sugerencias de reacomodamiento:', suggestions);
+  async notifyClientsForReappointments(cancelledAppointment: Appointment): Promise<void> {
+    const suggestions = await this.suggestReappointments(cancelledAppointment);
 
-  if (suggestions.length === 0) {
-    return;
-  }
+    if (suggestions.length === 0) {
+      return;
+    }
 
-  console.log('dirname: ', __dirname);
-  const emailTemplatePath = path.join(__dirname, '../mailer/templates/reappointment-email-template.html');
-  const emailTemplate = fs.readFileSync(emailTemplatePath, 'utf8');
+    const emailTemplatePath = path.join(__dirname, '../mailer/templates/reappointment-email-template.html');
+    const emailTemplate = fs.readFileSync(emailTemplatePath, 'utf8');
 
-  const cancelledAppointmentDate = cancelledAppointment.datetimeStart.toLocaleString();
+    const cancelledAppointmentDate = cancelledAppointment.datetimeStart.toLocaleString();
 
-  for (const suggestion of suggestions) {
-    const client = suggestion.appointment.client;
-    if (client) {
-      const suggestedAppointmentDate = suggestion.appointment.datetimeStart.toLocaleString();
-      const packageName = suggestion.appointment.package?.name || 'N/A';
-      const packageDescription = suggestion.appointment.package?.description || 'N/A';
+    for (const suggestion of suggestions) {
+      const client = suggestion.appointment.client;
+      if (client) {
+        const suggestedAppointmentDate = suggestion.appointment.datetimeStart.toLocaleString();
+        const packageName = suggestion.appointment.package?.name || 'N/A';
+        const packageDescription = suggestion.appointment.package?.description || 'N/A';
 
-      let emailContent = emailTemplate.replace('{{clientName}}', client.firstName + ' ' + client.lastName);
-      emailContent = emailContent.replace('{{cancelledAppointmentDate}}', cancelledAppointmentDate);
-      emailContent = emailContent.replace('{{suggestedAppointmentDate}}', suggestedAppointmentDate);
-      emailContent = emailContent.replace('{{packageName}}', packageName);
-      emailContent = emailContent.replace('{{suggestedAppointmentId}}', suggestion.appointment.id.toString());
-      emailContent = emailContent.replace('{{packageDescription}}', packageDescription);
+        const reappointmentLink = `${process.env.FRONTEND_URL}/rearrange/?datetime=${encodeURIComponent(cancelledAppointment.datetimeStart.toISOString())}&packageId=${suggestion.appointment.package.id}&appointmentId=${suggestion.appointment.id}`;
 
-      await this.mailerService.sendEmail(
-        'info@glamadates.com',
-        'Reacomodamiento de Turno Disponible',
-        [client.email],
-        emailContent
-      );
-    } else {
-      console.log('No se encontró el cliente para la cita:', suggestion.appointment.id);
+        let emailContent = emailTemplate.replace('{{clientName}}', client.firstName + ' ' + client.lastName);
+        emailContent = emailContent.replace('{{cancelledAppointmentDate}}', cancelledAppointmentDate);
+        emailContent = emailContent.replace('{{suggestedAppointmentDate}}', suggestedAppointmentDate);
+        emailContent = emailContent.replace('{{packageName}}', packageName);
+        emailContent = emailContent.replace('{{suggestedAppointmentId}}', suggestion.appointment.id.toString());
+        emailContent = emailContent.replace('{{packageDescription}}', packageDescription);
+        emailContent = emailContent.replace('{{reappointmentLink}}', reappointmentLink);
+
+        await this.mailerService.sendEmail(
+          'info@glamadates.com',
+          'Reacomodamiento de Turno Disponible',
+          [client.email],
+          emailContent
+        );
+      } else {
+        console.log('No se encontró el cliente para la cita:', suggestion.appointment.id);
+      }
     }
   }
-}
 
 
 
@@ -773,14 +763,16 @@ async notifyClientsForReappointments(cancelledAppointment: Appointment): Promise
       .createQueryBuilder('detailsAppointment')
       .innerJoin('detailsAppointment.workstation', 'workstation')
       .innerJoin('workstation.categories', 'category')
+      .innerJoin('detailsAppointment.appointment', 'appointment')
       .where('category.id = :categoryId', { categoryId: category })
       .andWhere('detailsAppointment.datetimeStart BETWEEN :start AND :end', {
         start: subMinutes(currentStartTime, serviceDuration),
-        end: addMinutes(currentStartTime, serviceDuration),
+        end: addMinutes(currentStartTime, serviceDuration - 1),
       })
+      .andWhere('appointment.state NOT IN (:...states)', { states: [AppointmentState.CANCELLED, AppointmentState.INACTIVE, AppointmentState.COMPLETED] })
       .getMany();
 
-    return existingAppointments;
+    return existingAppointments; 
   }
 
   private async colisionAvailableFuture(currentStartTime: Date, serviceDuration: number, category: number) {
@@ -790,11 +782,13 @@ async notifyClientsForReappointments(cancelledAppointment: Appointment): Promise
       .createQueryBuilder('detailsAppointment')
       .innerJoin('detailsAppointment.workstation', 'workstation')
       .innerJoin('workstation.categories', 'category')
+      .innerJoin('detailsAppointment.appointment', 'appointment')
       .where('category.id = :categoryId', { categoryId: category })
       .andWhere('detailsAppointment.datetimeStart BETWEEN :start AND :end', {
         start: subMinutes(currentStartTime, serviceDuration),
         end: addMinutes(currentStartTime, serviceDuration),
       })
+      .andWhere('appointment.state NOT IN (:...states)', { states: [AppointmentState.CANCELLED, AppointmentState.INACTIVE, AppointmentState.COMPLETED] })
       .getMany();
 
     return existingAppointments;
@@ -880,6 +874,45 @@ async notifyClientsForReappointments(cancelledAppointment: Appointment): Promise
     return data.slice(start, end);
   }
 
+  ////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////
+  async isPackageAssignable(packageId: number, datetimeStart: Date): Promise<boolean> {
+    const pkg = await this.packageRepository.findOne({ where: { id: packageId }, relations: ['services', 'services.category'] });
+
+    if (!pkg) {
+      throw new HttpException('Package not found', HttpStatus.NOT_FOUND);
+    }
+
+    const appointmentDate = new Date(datetimeStart);
+
+    for (const service of pkg.services) {
+      const professionals = await this.findProffesionals(service.id, this.userRepository);
+      const workstations = await this.findWorkstations(service.id, this.workstationRepository);
+
+      if (professionals.length === 0 || workstations.length === 0) {
+        return false;
+      }
+
+      const existingAppointmentsDetail = await this.colisionAvailable(appointmentDate, service.duration, service.category.id);
+      // const existingAppointmentsDetail = await this.detailsAppointmentRepository.createQueryBuilder('details')
+      //   .innerJoin('details.appointment', 'appointment')
+      //   .where('details.datetimeStart = :appointmentDate', { appointmentDate })
+      //   .andWhere('details.durationNow = :duration', { duration: service.duration })
+      //   .andWhere('details.serviceId = :serviceId', { serviceId: service.id })
+      //   .andWhere('appointment.state NOT IN (:...excludedStates)', { excludedStates: [AppointmentState.CANCELLED, AppointmentState.INACTIVE, AppointmentState.COMPLETED] })
+      //   .getMany();
+
+      console.log(existingAppointmentsDetail);
+
+
+      if (existingAppointmentsDetail.length >= professionals.length || existingAppointmentsDetail.length >= workstations.length) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
 
 
   //////////////////////////////////////////////////////////
@@ -948,8 +981,7 @@ async notifyClientsForReappointments(cancelledAppointment: Appointment): Promise
       results: [],
     };
 
-    console.log('estoy bien?');
-      this.mailerService.testEmail();
+    this.mailerService.testEmail();
 
     try {
       if (Object.keys(params.query).length === 0) {
@@ -980,7 +1012,7 @@ async notifyClientsForReappointments(cancelledAppointment: Appointment): Promise
         skip,
       });
 
-      
+
 
       return {
         total: total,

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 
 
 
-const Step0: React.FC = () => {
+const Unapproved: React.FC = () => {
    
 
   return (
@@ -15,13 +15,13 @@ const Step0: React.FC = () => {
           <CardTitle>Lo siento</CardTitle>
         </CardHeader>
         <div className="flex flex-col items-center">
-          <p>No hay turnos disponibles para este paquete. Disculpe los inconvenientes.</p>
-          <p>Puede seguir recorriendo el catálogo en busca de otro paquete.</p>
+          <p>Alguien ya ha tomado este espacio.</p>
+          <p>Igualmente puedes modificar tu cita a un nuevo dia y/u horario</p>
         </div>
       </CardContent>
     </Card>
   )
 }
 
-export default Step0
+export default Unapproved
 
