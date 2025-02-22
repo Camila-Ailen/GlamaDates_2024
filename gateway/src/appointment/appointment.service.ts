@@ -26,6 +26,7 @@ import { DiscountType } from "./entities/discountTypes";
 import { MailerService } from "@/mailer/mailer.service";
 import * as fs from 'fs';
 import * as path from 'path';
+import { ok } from "assert";
 
 @Injectable()
 export class AppointmentService {
@@ -894,16 +895,6 @@ export class AppointmentService {
       }
 
       const existingAppointmentsDetail = await this.colisionAvailable(appointmentDate, service.duration, service.category.id);
-      // const existingAppointmentsDetail = await this.detailsAppointmentRepository.createQueryBuilder('details')
-      //   .innerJoin('details.appointment', 'appointment')
-      //   .where('details.datetimeStart = :appointmentDate', { appointmentDate })
-      //   .andWhere('details.durationNow = :duration', { duration: service.duration })
-      //   .andWhere('details.serviceId = :serviceId', { serviceId: service.id })
-      //   .andWhere('appointment.state NOT IN (:...excludedStates)', { excludedStates: [AppointmentState.CANCELLED, AppointmentState.INACTIVE, AppointmentState.COMPLETED] })
-      //   .getMany();
-
-      console.log(existingAppointmentsDetail);
-
 
       if (existingAppointmentsDetail.length >= professionals.length || existingAppointmentsDetail.length >= workstations.length) {
         return false;
@@ -1250,9 +1241,39 @@ export class AppointmentService {
     }
   }
 
+  //////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+  async rearrange(params: { id: number; body: AppointmentDto }) {
+    try {
+      let body = params.body;
+      const appointment = await this.appointmentRepository.findOne({
+        where: { id: params.id },
+        relations: ['package', 'package.services', 'package.services.category'],
+      });
+      const isAvailable = await this.isPackageAssignable( appointment.package.id, body.datetimeStart);
+      if (!isAvailable) {
+        throw new HttpException('Package is not available', HttpStatus.BAD_REQUEST);
+      }
+
+      // Calcular la nueva datetimeEnd
+    const newDatetimeEnd = addMinutes(
+      new Date(body.datetimeStart),
+      appointment.package.services.reduce((total, service) => total + service.duration, 0)
+    );
+
+    // Actualizar el body con la nueva datetimeEnd
+    body.datetimeEnd = newDatetimeEnd;
+
+      await this.update({id: params.id, body: params.body});
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
 
 
 
+ 
 
 
 

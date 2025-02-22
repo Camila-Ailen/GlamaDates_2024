@@ -75,7 +75,7 @@ export class AppointmentController extends BaseController {
     return { status: 'success', data: appointments };
   }
 
-   ////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
   ////////////////////////////////////////////////////
   // Trae los turnos de un profesional
   @Get('professional')
@@ -84,7 +84,7 @@ export class AppointmentController extends BaseController {
     const user = request.user;
     console.log('user: ', user.id);
     const appointments = await this.appointmentService.allByProfessional(user, { query });
-    console.log('data: ', appointments); 
+    console.log('data: ', appointments);
     return { status: 'success', data: appointments };
   }
 
@@ -120,20 +120,35 @@ export class AppointmentController extends BaseController {
   }
 
   ////////////////////////////////////////////////
-    ////////////////////////////////////////////////
-    @Patch('cancel/:id')
-    //@Auth('update:users')
-    @ApiOperation({ summary: 'Cancel appointment' })
-    async update(
-      @Param() params: IdDTO,
-      @Body() body: AppointmentDto,
-      @Req() request: { appointment: Appointment },
-    ): Promise<ResposeDTO> {
-      return {
-        status: 'success',
-        data: await this.appointmentService.cancel({ id: params.id, body }),
-      };
-    }
+  ////////////////////////////////////////////////
+  @Patch('cancel/:id')
+  //@Auth('update:users')
+  @ApiOperation({ summary: 'Cancel appointment' })
+  async update(
+    @Param() params: IdDTO,
+    @Body() body: AppointmentDto,
+    @Req() request: { appointment: Appointment },
+  ): Promise<ResposeDTO> {
+    return {
+      status: 'success',
+      data: await this.appointmentService.cancel({ id: params.id, body }),
+    };
+  }
+
+  ////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
+  @Patch('rearrange/:id')
+  @Auth('update:appointments')
+  async rearrange(
+    @Param() params: IdDTO,
+    @Body() body: AppointmentDto,
+    @Req() request: { appointment: Appointment },
+  ): Promise<ResposeDTO> {
+    return {
+      status: 'success',
+      data: await this.appointmentService.rearrange({ id: params.id, body: body }),
+    };
+  } 
 
   ////////////////////////////////////////////////////
   ////////////////////////////////////////////////////
@@ -159,7 +174,7 @@ export class AppointmentController extends BaseController {
   ////////////////////////////////////////////////////
 
   @Get('lastMonth')
-  @Auth('read:appointments') 
+  @Auth('read:appointments')
   async getLastMonthAppointments(): Promise<{ total_turnos: number }> {
     const totalTurnos = await this.appointmentService.getLastMonthAppointments();
     return { total_turnos: totalTurnos };
@@ -184,5 +199,5 @@ export class AppointmentController extends BaseController {
     return history;
   }
 
-  
+
 }
