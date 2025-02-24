@@ -28,12 +28,12 @@ const RearrangeForm: React.FC = () => {
           <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-xl">
             {isAvailable ? <Approved /> : <Unapproved />}
             <div className="mt-6 flex justify-center">
-              <button
+              {/* <button
                 onClick={handleCancel}
                 className="w-full py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
               >
                 Volver al Catalogo
-              </button>
+              </button> */}
             </div>
           </div>
         </div>

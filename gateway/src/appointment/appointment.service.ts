@@ -759,16 +759,17 @@ export class AppointmentService {
   // 3. la id de la categoria del servicio (category)
   private async colisionAvailable(currentStartTime: Date, serviceDuration: number, category: number) {
 
+    console.log('currentStartTime', currentStartTime);
 
     const existingAppointments = await this.detailsAppointmentRepository
       .createQueryBuilder('detailsAppointment')
-      .innerJoin('detailsAppointment.workstation', 'workstation')
-      .innerJoin('workstation.categories', 'category')
+      .innerJoin('detailsAppointment.service', 'service')
+      .innerJoin('service.category', 'category')
       .innerJoin('detailsAppointment.appointment', 'appointment')
       .where('category.id = :categoryId', { categoryId: category })
-      .andWhere('detailsAppointment.datetimeStart BETWEEN :start AND :end', {
-        start: subMinutes(currentStartTime, serviceDuration),
-        end: addMinutes(currentStartTime, serviceDuration - 1),
+      .andWhere('detailsAppointment.datetimeStart < :end AND detailsAppointment.datetimeStart + (detailsAppointment.durationNow * interval \'1 minute\') > :start', {
+        start: currentStartTime,
+        end: addMinutes(currentStartTime, serviceDuration),
       })
       .andWhere('appointment.state NOT IN (:...states)', { states: [AppointmentState.CANCELLED, AppointmentState.INACTIVE, AppointmentState.COMPLETED] })
       .getMany();
@@ -894,7 +895,12 @@ export class AppointmentService {
         return false;
       }
 
+      console.log(`appointmentDate: ${appointmentDate}, service.duration: ${service.duration}, service.category.id: ${service.category.id}`);
+
       const existingAppointmentsDetail = await this.colisionAvailable(appointmentDate, service.duration, service.category.id);
+
+      // console.log('existingAppointmentsDetail', existingAppointmentsDetail);
+      console.log(`Profesionales: ${professionals.length}, Estaciones de trabajo: ${workstations.length}, Citas existentes: ${existingAppointmentsDetail.length}`);
 
       if (existingAppointmentsDetail.length >= professionals.length || existingAppointmentsDetail.length >= workstations.length) {
         return false;

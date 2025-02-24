@@ -16,7 +16,7 @@ const Unapproved: React.FC = () => {
         </CardHeader>
         <div className="flex flex-col items-center">
           <p>Alguien ya ha tomado este espacio.</p>
-          <p>Igualmente puedes modificar tu cita a un nuevo dia y/u horario</p>
+          <p>Igualmente puedes modificar tu cita a un nuevo dia y/o horario</p>
         </div>
       </CardContent>
     </Card>
@@ -24,4 +24,3 @@ const Unapproved: React.FC = () => {
 }
 
 export default Unapproved
-

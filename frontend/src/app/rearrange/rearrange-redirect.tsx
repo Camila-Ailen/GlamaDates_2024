@@ -7,7 +7,7 @@ import { useEditStore } from "../store/useEditStore"
 export function RearrangeRedirect() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { fetchRearrange, isAvailable, openDialog } = useEditStore()
+  const { fetchRearrange, isAvailable, openDialog, setAppointment } = useEditStore()
 
   useEffect(() => {
     const datetime = searchParams.get("datetime")
@@ -16,6 +16,7 @@ export function RearrangeRedirect() {
 
     if (datetime && packageId) {
       fetchRearrange({ packageId: Number(packageId), datetime })
+      setAppointment(Number(appointmentId))
     }
   }, [searchParams, fetchRearrange])
 

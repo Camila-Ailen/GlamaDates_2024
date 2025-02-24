@@ -73,6 +73,7 @@ interface AppointmentState {
     thisWeekAppointments: number
     lastMonthAppointments: number
     appointmentHistory: [] 
+    fetchOneAppointment: (id: number) => Promise<Appointment | null>
     setSelectedServices: (services: Service[]) => void
     fetchPackageAvailability: (packageId: number, orderBy: string, orderType: 'ASC' | 'DESC', offset: number, pageSize: number) => Promise<string[]>
     fetchAppointments: (page?: number, token?: string) => Promise<void>
@@ -109,6 +110,33 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
     setSelectedServices: (services) => set({ selectedServices: services }),
 
 
+    fetchOneAppointment: async (id: number) => {
+        try {
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/appointment/user/one/${id}`,
+                {
+                    method: 'GET',
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            if (response.status === 403) {
+                toast.error("Sesión expirada");
+                useAuthStore.getState().logout();
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error('Error al obtener la cita');
+            }
+            const data = await response.json();
+            return data; // Retorna la cita
+        } catch (error) {
+            console.error(error);
+            return null;
+        }
+    },
 
     fetchPackageAvailability: async (packageId: number, orderBy: string, orderType: 'ASC' | 'DESC', offset: number, pageSize: number) => {
         try {

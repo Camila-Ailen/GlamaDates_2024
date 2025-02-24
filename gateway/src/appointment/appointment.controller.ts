@@ -32,6 +32,20 @@ export class AppointmentController extends BaseController {
     return { openDays: config.openDays };
   }
 
+  ////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
+  @Get('user/one/:id')
+  // @Auth('read:appointments')
+  async one(@Param() params: IdDTO): Promise<ResposeDTO> {
+    return {
+      status: 'success',
+      data: await this.appointmentService.getById(params.id),
+    };
+  }
+
+  ////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
+
 
   // Trae los horarios disponibles para un paquete
   @Get('availability2/:packageId')
@@ -109,13 +123,8 @@ export class AppointmentController extends BaseController {
   async checkAvailability(
     @Query('packageId') packageId: number,
     @Query('datetimeStart') datetimeStart: string
-    // @Param('packageId') packageId: number,
-    // @Param('datetimeStart') datetimeStart: string
   ): Promise<{ available: boolean }> {
-    console.log('packageId: ', packageId);
-    console.log('datetimeStart: ', datetimeStart);
     const available = await this.appointmentService.isPackageAssignable(packageId, new Date(datetimeStart));
-    console.log('available: ', available);
     return { available };
   }
 
