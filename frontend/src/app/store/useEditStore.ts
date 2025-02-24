@@ -1,10 +1,12 @@
 import { create } from 'zustand';
 import useAuthStore from './useAuthStore';
+import { toast } from 'sonner';
 
 interface EditStoreState {
     isAvailable: boolean | null;
     isOpen: boolean;
     appointment: number | null;
+    datetimeOld: string | null;
     fetchRearrange: (data: { packageId: number; datetime: string }) => Promise<void>;
     rearrangeAppointment: (details: any) => Promise<void>;
     setAppointment: (appointmentId: number) => void;
@@ -18,6 +20,7 @@ export const useEditStore = create<EditStoreState>((set) => ({
     isAvailable: null,
     isOpen: false,
     appointment: null,
+    datetimeOld: null,
     
 
     fetchRearrange: async (data) => {
@@ -39,6 +42,7 @@ export const useEditStore = create<EditStoreState>((set) => ({
 
             const result = await response.json();
             set({ isAvailable: result.available });
+            set({ datetimeOld: data.datetime });
            
         } catch (error) {
             console.error('Error fetching rearrange availability:', error);
@@ -48,6 +52,7 @@ export const useEditStore = create<EditStoreState>((set) => ({
 
     rearrangeAppointment: async (details) => {
         try {
+            console.log('details', details)
           const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/appointment/rearrange/${details.id}`, {
             method: 'PATCH',
             headers: {
@@ -62,9 +67,11 @@ export const useEditStore = create<EditStoreState>((set) => ({
           }
     
           const result = await response.json();
+          toast.success('Turno modificado');
         //   set({ appointmentDetails: result.data });
         } catch (error) {
           console.error('Error rearranging appointment:', error);
+          toast.error('Error rearranging appointment');
         }
       },
 

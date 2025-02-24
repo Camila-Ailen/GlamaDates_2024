@@ -774,7 +774,7 @@ export class AppointmentService {
       .andWhere('appointment.state NOT IN (:...states)', { states: [AppointmentState.CANCELLED, AppointmentState.INACTIVE, AppointmentState.COMPLETED] })
       .getMany();
 
-    return existingAppointments; 
+    return existingAppointments;  
   }
 
   private async colisionAvailableFuture(currentStartTime: Date, serviceDuration: number, category: number) {
@@ -1256,10 +1256,12 @@ export class AppointmentService {
         where: { id: params.id },
         relations: ['package', 'package.services', 'package.services.category'],
       });
-      const isAvailable = await this.isPackageAssignable( appointment.package.id, body.datetimeStart);
-      if (!isAvailable) {
-        throw new HttpException('Package is not available', HttpStatus.BAD_REQUEST);
-      }
+      // const isAvailable = await this.isPackageAssignable( appointment.package.id, body.datetimeStart);
+      // if (!isAvailable) {
+      //   throw new HttpException('Package is not available', HttpStatus.BAD_REQUEST);
+      // }
+
+      console.log('body: ', params.body);
 
       // Calcular la nueva datetimeEnd
     const newDatetimeEnd = addMinutes(
@@ -1269,6 +1271,10 @@ export class AppointmentService {
 
     // Actualizar el body con la nueva datetimeEnd
     body.datetimeEnd = newDatetimeEnd;
+
+    
+    console.log('newDatetimeEnd: ', newDatetimeEnd);
+    console.log('id: ', params.id);
 
       await this.update({id: params.id, body: params.body});
     } catch (error) {
