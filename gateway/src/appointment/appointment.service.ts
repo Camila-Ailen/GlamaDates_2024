@@ -361,6 +361,7 @@ export class AppointmentService {
       appointment.state = AppointmentState.CANCELLED;
       await this.appointmentRepository.save(appointment);
       // Ahora se calcula a quienes se le puede recomendar la cita
+      console.log('hasta aqui ok')
       await this.notifyClientsForReappointments(appointment);
     }
 
@@ -403,14 +404,17 @@ export class AppointmentService {
 
       suggestions.push(...futureAppointments);
     }
+    console.log('sugerencias buscadas')
 
     return suggestions;
   }
 
 
   async notifyClientsForReappointments(cancelledAppointment: Appointment): Promise<void> {
+    console.log('Notificando a los clientes para reacomodar la cita');
     const suggestions = await this.suggestReappointments(cancelledAppointment);
 
+    console.log('Sugerencias:', suggestions.length);
     if (suggestions.length === 0) {
       return;
     }
@@ -418,12 +422,35 @@ export class AppointmentService {
     const emailTemplatePath = path.join(__dirname, '../mailer/templates/reappointment-email-template.html');
     const emailTemplate = fs.readFileSync(emailTemplatePath, 'utf8');
 
-    const cancelledAppointmentDate = cancelledAppointment.datetimeStart.toLocaleString();
+    const cancelledAppointmentDate = new Date(cancelledAppointment.datetimeStart).toLocaleDateString('es-ES', {
+      weekday: 'long',
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    });
+
+    const cancelledAppointmentTime = new Date(cancelledAppointment.datetimeStart).toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
 
     for (const suggestion of suggestions) {
       const client = suggestion.appointment.client;
       if (client) {
-        const suggestedAppointmentDate = suggestion.appointment.datetimeStart.toLocaleString();
+        const suggestedAppointmentDate = new Date(suggestion.datetimeStart).toLocaleDateString('es-ES', {
+          weekday: 'long',
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        })
+
+        const suggestedAppointmentTime = new Date(suggestion.datetimeStart).toLocaleTimeString('es-ES', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+        });
+
         const packageName = suggestion.appointment.package?.name || 'N/A';
         const packageDescription = suggestion.appointment.package?.description || 'N/A';
 
@@ -431,7 +458,9 @@ export class AppointmentService {
 
         let emailContent = emailTemplate.replace('{{clientName}}', client.firstName + ' ' + client.lastName);
         emailContent = emailContent.replace('{{cancelledAppointmentDate}}', cancelledAppointmentDate);
+        emailContent = emailContent.replace('{{cancelledAppointmentTime}}', cancelledAppointmentTime);
         emailContent = emailContent.replace('{{suggestedAppointmentDate}}', suggestedAppointmentDate);
+        emailContent = emailContent.replace('{{suggestedAppointmentTime}}', suggestedAppointmentTime);
         emailContent = emailContent.replace('{{packageName}}', packageName);
         emailContent = emailContent.replace('{{suggestedAppointmentId}}', suggestion.appointment.id.toString());
         emailContent = emailContent.replace('{{packageDescription}}', packageDescription);
@@ -443,6 +472,7 @@ export class AppointmentService {
           [client.email],
           emailContent
         );
+        console.log('Notificacion enviada al cliente:', client.email);
       } else {
         console.log('No se encontró el cliente para la cita:', suggestion.appointment.id);
       }
@@ -759,8 +789,6 @@ export class AppointmentService {
   // 3. la id de la categoria del servicio (category)
   private async colisionAvailable(currentStartTime: Date, serviceDuration: number, category: number) {
 
-    console.log('currentStartTime', currentStartTime);
-
     const existingAppointments = await this.detailsAppointmentRepository
       .createQueryBuilder('detailsAppointment')
       .innerJoin('detailsAppointment.service', 'service')
@@ -774,7 +802,7 @@ export class AppointmentService {
       .andWhere('appointment.state NOT IN (:...states)', { states: [AppointmentState.CANCELLED, AppointmentState.INACTIVE, AppointmentState.COMPLETED] })
       .getMany();
 
-    return existingAppointments;  
+    return existingAppointments;
   }
 
   private async colisionAvailableFuture(currentStartTime: Date, serviceDuration: number, category: number) {
@@ -895,12 +923,7 @@ export class AppointmentService {
         return false;
       }
 
-      console.log(`appointmentDate: ${appointmentDate}, service.duration: ${service.duration}, service.category.id: ${service.category.id}`);
-
       const existingAppointmentsDetail = await this.colisionAvailable(appointmentDate, service.duration, service.category.id);
-
-      // console.log('existingAppointmentsDetail', existingAppointmentsDetail);
-      console.log(`Profesionales: ${professionals.length}, Estaciones de trabajo: ${workstations.length}, Citas existentes: ${existingAppointmentsDetail.length}`);
 
       if (existingAppointmentsDetail.length >= professionals.length || existingAppointmentsDetail.length >= workstations.length) {
         return false;
@@ -1254,29 +1277,30 @@ export class AppointmentService {
       let body = params.body;
       const appointment = await this.appointmentRepository.findOne({
         where: { id: params.id },
-        relations: ['package', 'package.services', 'package.services.category'],
+        relations: ['package', 'package.services', 'package.services.category', 'details'],
       });
-      // const isAvailable = await this.isPackageAssignable( appointment.package.id, body.datetimeStart);
-      // if (!isAvailable) {
-      //   throw new HttpException('Package is not available', HttpStatus.BAD_REQUEST);
-      // }
-
-      console.log('body: ', params.body);
+      const isAvailable = await this.isPackageAssignable(appointment.package.id, body.datetimeStart);
+      if (!isAvailable) {
+        throw new HttpException('Package is not available', HttpStatus.BAD_REQUEST);
+      }
 
       // Calcular la nueva datetimeEnd
-    const newDatetimeEnd = addMinutes(
-      new Date(body.datetimeStart),
-      appointment.package.services.reduce((total, service) => total + service.duration, 0)
-    );
+      const newDatetimeEnd = addMinutes(
+        new Date(body.datetimeStart),
+        appointment.package.services.reduce((total, service) => total + service.duration, 0)
+      );
 
-    // Actualizar el body con la nueva datetimeEnd
-    body.datetimeEnd = newDatetimeEnd;
+      // Actualizar el body con la nueva datetimeEnd
+      body.datetimeEnd = newDatetimeEnd;
 
-    
-    console.log('newDatetimeEnd: ', newDatetimeEnd);
-    console.log('id: ', params.id);
+      await this.update({ id: params.id, body: params.body });
 
-      await this.update({id: params.id, body: params.body});
+      // actualiza el datetimeStart del correspondiente detail
+      for (const detail of appointment.details) {
+        detail.datetimeStart = new Date(body.datetimeStart);
+        await this.detailsAppointmentRepository.save(detail);
+      }
+
     } catch (error) {
       console.error(error);
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
@@ -1285,7 +1309,7 @@ export class AppointmentService {
 
 
 
- 
+
 
 
 
