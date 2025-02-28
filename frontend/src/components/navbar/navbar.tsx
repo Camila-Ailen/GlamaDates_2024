@@ -250,6 +250,10 @@ export function Navbar() {
           </Sheet>
 
           <div className="ml-auto flex items-center space-x-4">
+            <div className="mr-2 text-primary font-semibold">
+              <p>Bienvendi@, {user.firstName} {user.lastName}</p>
+            </div>
+
             <ModeToggle />
 
             <DropdownMenu>

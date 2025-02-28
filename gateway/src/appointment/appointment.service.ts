@@ -1001,8 +1001,6 @@ export class AppointmentService {
       results: [],
     };
 
-    this.mailerService.testEmail();
-
     try {
       if (Object.keys(params.query).length === 0) {
         return emptyResponse;
