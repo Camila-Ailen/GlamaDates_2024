@@ -25,7 +25,7 @@ export function AppointmentCalendar({
 }: AppointmentCalendarProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
-  const handleDateSelect = (date: Date | undefined) => {
+  const handleDateSelect = (date: Date) => {
     if (!date) return
 
     // Verificar si hay citas para esta fecha
@@ -41,7 +41,7 @@ export function AppointmentCalendar({
   const dayClassName = (date: Date) => {
     const hasAppointment = availableDates.some((availableDate) => availableDate.toDateString() === date.toDateString())
 
-    return hasAppointment ? "bg-pink-100 text-pink-700 font-medium rounded-full" : undefined
+    return hasAppointment ? "highlighted-date" : ""
   }
 
   // Filtrar citas para la fecha seleccionada
@@ -54,30 +54,34 @@ export function AppointmentCalendar({
       <Calendar
     //   calendarType="ISO 8601"
         // mode="single"
+        // calendarType="US"
         selected={selectedDate}
-        onSelect={handleDateSelect}
+        // onSelect={handleDateSelect}
+        onClickDay={handleDateSelect}
         locale="es-AR"
         className="custom-calendar"
-        modifiersClassNames={{
-          selected: "bg-pink-500 text-white hover:bg-pink-500 hover:text-white focus:bg-pink-500 focus:text-white",
-        }}
-        modifiers={{
-          highlighted: availableDates,
-        }}
-        modifiersStyles={{
-          highlighted: {
-            fontWeight: "bold",
-            backgroundColor: "rgba(236, 72, 153, 0.1)",
-            color: "rgb(190, 24, 93)",
-            borderRadius: "100%",
-          },
-        }}
-        components={{
-          Day: ({ date, ...props }) => {
-            const className = dayClassName(date)
-            return <button {...props} className={cn(props.className, className)} />
-          },
-        }}
+        tileClassName={({ date, view }) => view === 'month' && dayClassName(date)}
+
+        // modifiersClassNames={{
+        //   selected: "bg-pink-500 text-white hover:bg-pink-500 hover:text-white focus:bg-pink-500 focus:text-white",
+        // }}
+        // modifiers={{
+        //   highlighted: availableDates,
+        // }}
+        // modifiersStyles={{
+        //   highlighted: {
+        //     fontWeight: "bold",
+        //     backgroundColor: "rgba(236, 72, 153, 0.1)",
+        //     color: "rgb(190, 24, 93)",
+        //     borderRadius: "100%",
+        //   },
+        // }}
+        // components={{
+        //   Day: ({ date, ...props }) => {
+        //     const className = dayClassName(date)
+        //     return <button {...props} className={cn(props.className, className)} />
+        //   },
+        // }}
       />
 
       <AppointmentListDialog

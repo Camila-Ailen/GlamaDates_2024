@@ -125,3 +125,17 @@
   background-color: #d81b60;
   border: 2px solid #ff8888;
 }
+
+
+.custom-calendar .highlighted-date {
+  background-color: rgba(236, 72, 153, 0.3); /* Fondo más destacado */
+  color: rgb(190, 24, 93); /* Color del texto */
+  font-weight: bold;
+  border-radius: 50%; /* Redondear los bordes */
+  padding: 5px; /* Espaciado interno */
+}
+
+.custom-calendar .highlighted-date:hover {
+  background-color: rgba(236, 72, 153, 0.5); /* Fondo más destacado al pasar el mouse */
+  color: rgb(190, 24, 93); /* Color del texto */
+}
