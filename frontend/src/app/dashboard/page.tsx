@@ -80,17 +80,17 @@ export default function Component() {
               className="bg-primary text-primary-foreground"
               index={1}
             >
-              <Link href="/service">
+              <Link href="/statistic">
               <Card className="bg-primary text-primary-foreground">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-base font-medium">
-                    Servicios
+                    Estadisticas
                   </CardTitle>
                   <Folder className="h-4 w-4" />
                 </CardHeader>
                 <CardContent>
                   <CardDescription className="text-primary-foreground/80">
-                    Lista de Servicios
+                    Administracion de Estadisticas
                   </CardDescription>
                 </CardContent>
               </Card>
