@@ -208,5 +208,41 @@ export class AppointmentController extends BaseController {
     return history;
   }
 
+  ////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
+  @Get('statistics/allDates')
+  @Auth('read:appointments')
+  async getDatesStatistics(@Query('begin') begin: string, @Query('end') end: string): Promise<any> {
+    const statistics = await this.appointmentService.getDatesStatistics(begin, end);
+    return statistics;
+  }
+
+  ////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
+  @Get('statistics/payMethod')
+  @Auth('read:appointments')
+  async getPayMethodStatistics(@Query('begin') begin: string, @Query('end') end: string): Promise<any> {
+    const statistics = await this.appointmentService.getPayMethodStatistics(begin, end);
+    return statistics;
+  }
+
+  ////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
+  @Get('statistics/delinquentClient')
+  @Auth('read:appointments')
+  async getDelinquentClientStatistics(@Query('begin') begin: string, @Query('end') end: string): Promise<any> {
+    const statistics = await this.appointmentService.getDelinquentClientStatistics(begin, end);
+    return statistics;
+  }
+
+  ////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
+  @Get('statistics/perCategory')
+  @Auth('read:appointments')
+  async getPerCategoryStatistics(@Query('begin') begin: string, @Query('end') end: string): Promise<any> {
+    const statistics = await this.appointmentService.getPerCategoryStatistics(begin, end);
+    return statistics;
+  }
+
 
 }

@@ -1244,6 +1244,111 @@ export class AppointmentService {
     return result;
   }
 
+  //////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+  async getDatesStatistics(begin: string, end: string): Promise<any> {
+    const endDate = end + ' 23:00:00';
+    const result = await this.appointmentRepository
+      .createQueryBuilder('appointments')
+      .select('DATE_TRUNC(\'day\', "appointments"."datetimeStart")', 'fecha')
+      .addSelect(`SUM(CASE WHEN "appointments"."state" = 'COMPLETADO' THEN 1 ELSE 0 END)::int`, 'total_completado')
+      .addSelect(`SUM(CASE WHEN "appointments"."state" IN ('PENDIENTE', 'SEÑADO', 'ACTIVO') THEN 1 ELSE 0 END)::int`, 'total_pendiente_seniado_activo')
+      .addSelect(`SUM(CASE WHEN "appointments"."state" IN ('MOROSO', 'INACTIVO', 'CANCELADO') THEN 1 ELSE 0 END)::int`, 'total_moroso_inactivo_cancelado')
+      .where(`"datetimeStart" BETWEEN '${begin}' AND '${endDate}'`)
+      .groupBy('DATE_TRUNC(\'day\', "appointments"."datetimeStart")')
+      .orderBy('fecha')
+      .getRawMany();
+
+    const totals = await this.appointmentRepository
+      .createQueryBuilder('appointments')
+      .select(`SUM(CASE WHEN "appointments"."state" = 'COMPLETADO' THEN 1 ELSE 0 END)::int`, 'total_completado')
+      .addSelect(`SUM(CASE WHEN "appointments"."state" IN ('PENDIENTE', 'SEÑADO', 'ACTIVO') THEN 1 ELSE 0 END)::int`, 'total_pendiente_seniado_activo')
+      .addSelect(`SUM(CASE WHEN "appointments"."state" IN ('MOROSO', 'INACTIVO', 'CANCELADO') THEN 1 ELSE 0 END)::int`, 'total_moroso_inactivo_cancelado')
+      .where(`"datetimeStart" BETWEEN '${begin}' AND '${endDate}'`)
+      .getRawOne();
+
+    return { result, totals };
+  }
+
+  //////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////
+  async getPayMethodStatistics(begin: string, end: string): Promise<any> {
+    const endDate = end + ' 23:00:00';
+    // const result = await this.appointmentRepository
+    //     .createQueryBuilder('appointments')
+    //     .leftJoin('appointments.payments', 'payments')
+    //     .select('DATE_TRUNC(\'day\', "appointments"."datetimeStart")', 'fecha')
+    //     .addSelect(`SUM(CASE WHEN "appointments"."state" = 'COMPLETADO' THEN 1 ELSE 0 END)::int`, 'total_completado')
+    //     .addSelect(`SUM(CASE WHEN "appointments"."state" IN ('SEÑADO', 'ACTIVO') THEN 1 ELSE 0 END)::int`, 'total_seniado_activo')
+    //     .addSelect(`SUM(CASE WHEN "appointments"."state" IN ('MOROSO', 'PENDIENTE') THEN 1 ELSE 0 END)::int`, 'total_moroso_pendiente')
+    //     .addSelect(`SUM(CASE WHEN "payments"."status" = 'PENDIENTE' AND "appointments"."state" != 'CANCELADO' THEN 1 ELSE 0 END)::int`, 'total_pendiente_pago')
+    //     .addSelect(`SUM(CASE WHEN "payments"."amount" > 0 AND "payments"."payment_method" = 'EFECTIVO' THEN 1 ELSE 0 END)::int`, 'total_efectivo')
+    //     .addSelect(`SUM(CASE WHEN "payments"."amount" > 0 AND "payments"."payment_method" = 'TRANSFERENCIA' THEN 1 ELSE 0 END)::int`, 'total_transferencia')
+    //     .addSelect(`SUM(CASE WHEN "payments"."amount" > 0 AND "payments"."payment_method" = 'TARJETA DEBITO' THEN 1 ELSE 0 END)::int`, 'total_tarjeta_debito')
+    //     .addSelect(`SUM(CASE WHEN "payments"."amount" > 0 AND "payments"."payment_method" = 'TARJETA CREDITO' THEN 1 ELSE 0 END)::int`, 'total_tarjeta_credito')
+    //     .addSelect(`SUM(CASE WHEN "payments"."amount" > 0 AND "payments"."payment_method" = 'MERCADOPAGO' THEN 1 ELSE 0 END)::int`, 'total_mercadopago')
+    //     .where(`"appointments"."datetimeStart" BETWEEN '${begin}' AND '${end}'`)
+    //     .groupBy('DATE_TRUNC(\'day\', "appointments"."datetimeStart")')
+    //     .orderBy('fecha')
+    //     .getRawMany();
+
+    const totals = await this.appointmentRepository
+        .createQueryBuilder('appointments')
+        .leftJoin('appointments.payments', 'payments')
+        .select(`SUM(CASE WHEN "payments"."status" = 'PENDIENTE' AND "appointments"."state" != 'CANCELADO' THEN 1 ELSE 0 END)::int`, 'total_pendiente_pago')
+        .addSelect(`SUM(CASE WHEN "payments"."amount" > 0 AND "payments"."payment_method" = 'EFECTIVO' THEN 1 ELSE 0 END)::int`, 'total_efectivo')
+        // .addSelect(`SUM(CASE WHEN "payments"."amount" > 0 AND "payments"."payment_method" = 'TRANSFERENCIA' THEN 1 ELSE 0 END)::int`, 'total_transferencia')
+        // .addSelect(`SUM(CASE WHEN "payments"."amount" > 0 AND "payments"."payment_method" = 'TARJETA DEBITO' THEN 1 ELSE 0 END)::int`, 'total_tarjeta_debito')
+        // .addSelect(`SUM(CASE WHEN "payments"."amount" > 0 AND "payments"."payment_method" = 'TARJETA CREDITO' THEN 1 ELSE 0 END)::int`, 'total_tarjeta_credito')
+        .addSelect(`SUM(CASE WHEN "payments"."amount" > 0 AND "payments"."payment_method" = 'MERCADOPAGO' THEN 1 ELSE 0 END)::int`, 'total_mercadopago')
+        .where(`"appointments"."datetimeStart" BETWEEN '${begin}' AND '${endDate}'`)
+        .getRawOne();
+
+    return { totals };
+  }
+
+  //////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+  async getDelinquentClientStatistics(begin: string, end: string): Promise<any> {
+    const result = await this.appointmentRepository
+       
+  }
+
+  //////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+  async getPerCategoryStatistics(begin: string, end: string): Promise<any> {
+    // const endDate = endOfDay(new Date(end)).toISOString();
+    const endDate = end + ' 23:00:00';
+    const result = await this.appointmentRepository
+        .createQueryBuilder('appointments')
+        .leftJoin('appointments.package', 'package')
+        .leftJoin('package.services', 'services')
+        .leftJoin('services.category', 'category')
+        .select('DATE_TRUNC(\'day\', "appointments"."datetimeStart")', 'fecha')
+        .addSelect('category.name', 'categoria')
+        .addSelect('COUNT(*)::int', 'total_citas')
+        .addSelect('SUM("appointments"."total")::float', 'total_ingresos')
+        .where(`"appointments"."datetimeStart" BETWEEN '${begin}' AND '${endDate}'`)
+        .andWhere(`"appointments"."state" NOT IN ('CANCELADO', 'INACTIVO')`)
+        .groupBy('DATE_TRUNC(\'day\', "appointments"."datetimeStart"), category.name')
+        .orderBy('fecha')
+        .getRawMany();
+
+    const totals = await this.appointmentRepository
+        .createQueryBuilder('appointments')
+        .leftJoin('appointments.package', 'package')
+        .leftJoin('package.services', 'services')
+        .leftJoin('services.category', 'category')
+        .select('category.name', 'categoria')
+        .addSelect('COUNT(*)::int', 'total_citas')
+        .addSelect('SUM("appointments"."total")::float', 'total_ingresos')
+        .where(`"appointments"."datetimeStart" BETWEEN '${begin}' AND '${endDate}'`)
+        .andWhere(`"appointments"."state" NOT IN ('CANCELADO', 'INACTIVO')`)
+        .groupBy('category.name')
+        .getRawMany();
+
+    return { result, totals };
+}
 
 
 
