@@ -244,5 +244,23 @@ export class AppointmentController extends BaseController {
     return statistics;
   }
 
+  ////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
+  @Get('statistics/perProfessional')
+  @Auth('read:appointments')
+  async getPerProfessionalStatistics(@Query('begin') begin: string, @Query('end') end: string): Promise<any> {
+    const statistics = await this.appointmentService.getPerProfessionalStatistics(begin, end);
+    return statistics;
+  }
+
+  ////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
+  @Get('statistics/perDay')
+  @Auth('read:appointments')
+  async getPerDayStatistics(@Query('begin') begin: string, @Query('end') end: string): Promise<any> {
+    const statistics = await this.appointmentService.getPerDayStatistics(begin, end);
+    return statistics;
+  }
+
 
 }

@@ -3,7 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Appointment } from "./entities/appointment.entity";
 import { Package } from "@/package/entities/package.entity";
 import { Between, Brackets, In, IsNull, Not, Repository } from "typeorm";
-import { addMinutes, endOfDay, isAfter, isBefore, isEqual, startOfDay, subMinutes } from "date-fns";
+import { addMinutes, endOfDay, format, isAfter, isBefore, isEqual, startOfDay, subMinutes } from "date-fns";
 import { Service } from "@/service/entities/service.entity";
 import { SystemConfigService } from "@/system-config/system-config.service";
 import { SystemConfig } from "@/system-config/entities/system-config.entity";
@@ -1319,20 +1319,20 @@ export class AppointmentService {
   async getPerCategoryStatistics(begin: string, end: string): Promise<any> {
     // const endDate = endOfDay(new Date(end)).toISOString();
     const endDate = end + ' 23:00:00';
-    const result = await this.appointmentRepository
-        .createQueryBuilder('appointments')
-        .leftJoin('appointments.package', 'package')
-        .leftJoin('package.services', 'services')
-        .leftJoin('services.category', 'category')
-        .select('DATE_TRUNC(\'day\', "appointments"."datetimeStart")', 'fecha')
-        .addSelect('category.name', 'categoria')
-        .addSelect('COUNT(*)::int', 'total_citas')
-        .addSelect('SUM("appointments"."total")::float', 'total_ingresos')
-        .where(`"appointments"."datetimeStart" BETWEEN '${begin}' AND '${endDate}'`)
-        .andWhere(`"appointments"."state" NOT IN ('CANCELADO', 'INACTIVO')`)
-        .groupBy('DATE_TRUNC(\'day\', "appointments"."datetimeStart"), category.name')
-        .orderBy('fecha')
-        .getRawMany();
+    // const result = await this.appointmentRepository
+    //     .createQueryBuilder('appointments')
+    //     .leftJoin('appointments.package', 'package')
+    //     .leftJoin('package.services', 'services')
+    //     .leftJoin('services.category', 'category')
+    //     .select('DATE_TRUNC(\'day\', "appointments"."datetimeStart")', 'fecha')
+    //     .addSelect('category.name', 'categoria')
+    //     .addSelect('COUNT(*)::int', 'total_citas')
+    //     .addSelect('SUM("appointments"."total")::float', 'total_ingresos')
+    //     .where(`"appointments"."datetimeStart" BETWEEN '${begin}' AND '${endDate}'`)
+    //     .andWhere(`"appointments"."state" NOT IN ('CANCELADO', 'INACTIVO')`)
+    //     .groupBy('DATE_TRUNC(\'day\', "appointments"."datetimeStart"), category.name')
+    //     .orderBy('fecha')
+    //     .getRawMany();
 
     const totals = await this.appointmentRepository
         .createQueryBuilder('appointments')
@@ -1347,8 +1347,91 @@ export class AppointmentService {
         .groupBy('category.name')
         .getRawMany();
 
-    return { result, totals };
+    return { totals };
 }
+
+////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
+async getPerProfessionalStatistics(begin: string, end: string): Promise<any> {
+  const endDate = end + ' 23:00:00';
+  // const result = await this.appointmentRepository
+  //     .createQueryBuilder('appointments')
+  //     .leftJoin('appointments.details', 'details')
+  //     .leftJoin('details.employee', 'employee')
+  //     .select('DATE_TRUNC(\'day\', "appointments"."datetimeStart")', 'fecha')
+  //     .addSelect('employee.email', 'correo')
+  //     .addSelect('CONCAT(employee.firstName, \' \', employee.lastName)', 'profesional')
+  //     .addSelect('COUNT(*)::int', 'total_citas')
+  //     .addSelect('SUM("appointments"."total")::float', 'total_ingresos')
+  //     .where(`"appointments"."datetimeStart" BETWEEN '${begin}' AND '${endDate}'`)
+  //     .andWhere(`"appointments"."state" NOT IN ('CANCELADO', 'INACTIVO')`)
+  //     .groupBy('DATE_TRUNC(\'day\', "appointments"."datetimeStart"), employee.email, employee.firstName, employee.lastName')
+  //     .orderBy('fecha')
+  //     .getRawMany();
+
+  const totals = await this.appointmentRepository
+      .createQueryBuilder('appointments')
+      .leftJoin('appointments.details', 'details')
+      .leftJoin('details.employee', 'employee')
+      .select('employee.email', 'correo')
+      .addSelect('CONCAT(employee.firstName, \' \', employee.lastName)', 'profesional')
+      .addSelect('COUNT(*)::int', 'total_citas')
+      .addSelect('SUM("appointments"."total")::float', 'total_ingresos')
+      .where(`"appointments"."datetimeStart" BETWEEN '${begin}' AND '${endDate}'`)
+      .andWhere(`"appointments"."state" NOT IN ('CANCELADO', 'INACTIVO')`)
+      .groupBy('employee.email, employee.firstName, employee.lastName')
+      .getRawMany();
+
+  return { totals };
+}
+
+////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
+  async getPerDayStatistics(begin: string, end: string): Promise<any> {
+      const endDate = end + ' 23:00:00';
+  
+      // Obtener los días abiertos desde la configuración del sistema
+      const config = await this.configService.getSystemConfig();
+      const openDays = config.openDays;
+  
+      // Crear una estructura para almacenar los resultados, incluyendo los días con 0 citas
+      const daysOfWeek = [
+          { day: 'Sunday', count: 0 },
+          { day: 'Monday', count: 0 },
+          { day: 'Tuesday', count: 0 },
+          { day: 'Wednesday', count: 0 },
+          { day: 'Thursday', count: 0 },
+          { day: 'Friday', count: 0 },
+          { day: 'Saturday', count: 0 },
+      ];
+  
+      // Filtrar los días abiertos
+      const openDaysOfWeek = daysOfWeek.filter(day => openDays.includes(DaysOfWeek[day.day.toUpperCase() as keyof typeof DaysOfWeek]));
+  
+      // Realizar la consulta para obtener la cantidad de detalles de turno por día
+      const result = await this.appointmentRepository
+          .createQueryBuilder('appointments')
+          .leftJoin('appointments.details', 'details')
+          .select('DATE_TRUNC(\'day\', "appointments"."datetimeStart")', 'fecha')
+          .addSelect('COUNT(details.id)::int', 'total_detalles')
+          .where(`"appointments"."datetimeStart" BETWEEN '${begin}' AND '${endDate}'`)
+          .andWhere(`"appointments"."state" NOT IN ('CANCELADO', 'INACTIVO')`)
+          .groupBy('DATE_TRUNC(\'day\', "appointments"."datetimeStart")')
+          .orderBy('fecha')
+          .getRawMany();
+  
+      // Combinar los resultados de la consulta con la estructura inicial
+      result.forEach(row => {
+          const dayOfWeek = format(new Date(row.fecha), 'EEEE');
+          const day = openDaysOfWeek.find(d => d.day === dayOfWeek);
+          if (day) {
+              day.count += row.total_detalles;
+          }
+      });
+  
+      console.log('openDaysOfWeek: ', openDaysOfWeek);
+      return openDaysOfWeek;
+  }
 
 
 
