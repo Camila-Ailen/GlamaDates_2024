@@ -1,15 +1,13 @@
 import { create } from 'zustand'
 import useAuthStore from './useAuthStore'
 import { toast } from 'sonner'
-import { start } from 'repl';
-import { is } from 'date-fns/locale';
-import { error } from 'console';
+
 
 interface StatisticsState {
 
     startDate: string;
     endDate: string;
-    error: string;
+    error: string | null;
     isLoading: boolean;
     appointmentTotal: any[];
     payMethod: any[];
@@ -27,10 +25,10 @@ interface StatisticsState {
 
 const token = useAuthStore.getState().token;
 
-export const useStatisticsStore = create((set) => ({
+export const useStatisticsStore = create<StatisticsState>((set, get) => ({
 
-    startDate: null,
-    endDate: null,
+    startDate: '',
+    endDate: '',
     error: null,
     isLoading: false,
     appointmentTotal: [],
@@ -182,3 +180,5 @@ export const useStatisticsStore = create((set) => ({
     },
 
 }))
+
+export default useStatisticsStore;
