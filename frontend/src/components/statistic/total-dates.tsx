@@ -1,7 +1,7 @@
 "use client"
 
 import { TrendingUp } from "lucide-react"
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import useStatisticsStore from '@/app/store/useStatisticsStore'
@@ -13,11 +13,11 @@ const chartConfig = {
     color: "hsl(var(--chart-1))",
   },
   total_pendiente_seniado_activo: {
-    label: "Pendiente/Señado/Activo",
+    label: "Pendiente",
     color: "hsl(var(--chart-2))",
   },
   total_moroso_inactivo_cancelado: {
-    label: "Moroso/Inactivo/Cancelado",
+    label: "No Completado",
     color: "hsl(var(--chart-3))",
   },
 } satisfies ChartConfig
@@ -41,71 +41,91 @@ export function TotalDates() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Area Chart - Axes</CardTitle>
+        <CardTitle>Completitud de citas</CardTitle>
         <CardDescription>
-          Showing total appointments for the selected date range
+          Se muestra la cantidad de citas completadas, pendientes y no completadas en el rango de fechas seleccionado.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig}>
-          <AreaChart
-            accessibilityLayer
-            data={chartData}
-            margin={{
-              left: -20,
-              right: 12,
-            }}
-          >
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="fecha"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              tickFormatter={(value) => value.slice(0, 3)}
-            />
-            <YAxis
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              tickCount={3}
-            />
-            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-            <Area
-              dataKey="total_completado"
-              type="natural"
-              fill="var(--color-completado)"
-              fillOpacity={0.4}
-              stroke="var(--color-completado)"
-              stackId="a"
-            />
-            <Area
-              dataKey="total_pendiente_seniado_activo"
-              type="natural"
-              fill="var(--color-pendiente-seniado-activo)"
-              fillOpacity={0.4}
-              stroke="var(--color-pendiente-seniado-activo)"
-              stackId="a"
-            />
-            <Area
-              dataKey="total_moroso_inactivo_cancelado"
-              type="natural"
-              fill="var(--color-moroso-inactivo-cancelado)"
-              fillOpacity={0.4}
-              stroke="var(--color-moroso-inactivo-cancelado)"
-              stackId="a"
-            />
-          </AreaChart>
+        <ChartContainer config={chartConfig} className="aspect-auto h-[400px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart
+              accessibilityLayer
+              data={chartData}
+            // margin={{
+            //   left: -20,
+            //   right: 12,
+            // }}
+            >
+              <defs>
+                <linearGradient id="fillPendiente" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="var(--color-pendiente-seniado-activo)" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="var(--color-pendiente-seniado-activo)" stopOpacity={0.1} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid vertical={true} />
+              <XAxis
+                dataKey="fecha"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                minTickGap={32}
+                tickFormatter={(value) => {
+                  const date = new Date(value)
+                  return date.toLocaleDateString("es-AR", {
+                    month: "short",
+                    day: "numeric",
+                  })
+                }}
+              />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tickCount={5}
+              />
+              <ChartTooltip cursor={false} content={
+                  <ChartTooltipContent />} />
+              <Area
+                dataKey="total_completado"
+                type="monotone"
+                fill="url(#fillPendiente)"
+                // fillOpacity={0.4}
+                stroke="var(--color-completado)"
+                stackId="a"
+              />
+              <Area
+                dataKey="total_pendiente_seniado_activo"
+                type="monotone"
+                fill="url(#fillPendiente)"
+                // fillOpacity={0.4}
+                stroke="var(--color-pendiente-seniado-activo)"
+                strokeWidth={2}
+                // stackId="a"
+              />
+              <Area
+                dataKey="total_moroso_inactivo_cancelado"
+                type="monotone"
+                fill="url(#fillPendiente)"
+                // fillOpacity={0.4}
+                stroke="var(--color_moroso_inactivo_cancelado)"
+                strokeWidth={2}
+                // stackId="a"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </ChartContainer>
       </CardContent>
       <CardFooter>
         <div className="flex w-full items-start gap-2 text-sm">
           <div className="grid gap-2">
             <div className="flex items-center gap-2 font-medium leading-none">
-              Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
+              <p>Total de citas completadas: {appointmentTotal.totals.total_completado}</p>
+              <p> || Total de citas pendientes: {appointmentTotal.totals.total_pendiente_seniado_activo}</p>
+              <p> || Total de citas no completadas: {appointmentTotal.totals.total_moroso_inactivo_cancelado}</p>
             </div>
             <div className="flex items-center gap-2 leading-none text-muted-foreground">
-              {new Date(startDate).toLocaleDateString()} - {new Date(endDate).toLocaleDateString()}
+            {new Date(startDate).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" })} - {new Date(endDate).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" })}
             </div>
           </div>
         </div>
