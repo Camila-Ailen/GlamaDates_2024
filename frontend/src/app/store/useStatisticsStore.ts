@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import useAuthStore from './useAuthStore'
 import { toast } from 'sonner'
+import { format, subDays } from 'date-fns';
 
 
 interface StatisticsState {
@@ -15,6 +16,8 @@ interface StatisticsState {
     perProfessional: any[];
     perDay: any[];
 
+    setStartDate: (date: string) => void;
+    setEndDate: (date: string) => void;
     fetchTotalDates: (startDate: string, endDate: string) => Promise<any>;
     fetchPayMethod: (startDate: string, endDate: string) => Promise<any>;
     fetchPerCategory: (startDate: string, endDate: string) => Promise<any>;
@@ -25,10 +28,14 @@ interface StatisticsState {
 
 const token = useAuthStore.getState().token;
 
+const defaultStartDate = format(subDays(new Date(), 30), 'yyyy-MM-dd');
+const defaultEndDate = format(new Date(), 'yyyy-MM-dd');
+
+
 export const useStatisticsStore = create<StatisticsState>((set, get) => ({
 
-    startDate: '',
-    endDate: '',
+    startDate: defaultStartDate,
+    endDate: defaultEndDate,
     error: null,
     isLoading: false,
     appointmentTotal: [],
@@ -37,6 +44,9 @@ export const useStatisticsStore = create<StatisticsState>((set, get) => ({
     perProfessional: [],
     perDay: [],
 
+
+    setStartDate: (date: string) => set({ startDate: date }),
+    setEndDate: (date: string) => set({ endDate: date }),
 
 
     fetchTotalDates: async (startDate: string, endDate: string) => {

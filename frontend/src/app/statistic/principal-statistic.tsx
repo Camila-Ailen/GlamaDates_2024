@@ -6,11 +6,13 @@ import { PerCategory } from '@/components/statistic/per-category';
 import { PerProfessional } from '@/components/statistic/per-professional';
 import { TotalDates } from '@/components/statistic/total-dates';
 import { Card } from '@/components/ui/card';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import useStatisticsStore from '../store/useStatisticsStore';
 
 const PrincipalStatistic = () => {
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
+    const { startDate, endDate, setStartDate, setEndDate } = useStatisticsStore();
+
+  
     const [error, setError] = useState('');
 
     const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,6 +39,12 @@ const PrincipalStatistic = () => {
         const [year, month, day] = date.split('-');
         return `${day}/${month}/${year}`;
     };
+
+    useEffect(() => {
+        setStartDate(formatDate(startDate));
+        setEndDate(formatDate(endDate));
+        console.log(startDate, endDate);
+    }, []);
 
 
     interface AnimatedCardProps extends React.ComponentProps<typeof Card> {
