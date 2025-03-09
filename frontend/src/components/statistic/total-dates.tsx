@@ -1,11 +1,9 @@
 "use client"
-
-import { TrendingUp } from "lucide-react"
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from "recharts"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import useStatisticsStore from '@/app/store/useStatisticsStore'
-import { useEffect } from 'react'
+import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import useStatisticsStore from "@/app/store/useStatisticsStore"
+import { format } from "date-fns"
 
 const chartConfig = {
   total_completado: {
@@ -31,12 +29,13 @@ export function TotalDates() {
   //   }
   // }, [startDate, endDate, fetchTotalDates])
 
-  const chartData = appointmentTotal.result?.map((item: any) => ({
-    fecha: new Date(item.fecha).toLocaleDateString(),
-    total_completado: item.total_completado,
-    total_pendiente_seniado_activo: item.total_pendiente_seniado_activo,
-    total_moroso_inactivo_cancelado: item.total_moroso_inactivo_cancelado,
-  })) || []
+  const chartData =
+    appointmentTotal.result?.map((item: any) => ({
+      fecha: format(new Date(item.fecha), "dd/MM/yyyy"),
+      total_completado: item.total_completado,
+      total_pendiente_seniado_activo: item.total_pendiente_seniado_activo,
+      total_moroso_inactivo_cancelado: item.total_moroso_inactivo_cancelado,
+    })) || []
 
   return (
     <Card>
@@ -52,10 +51,10 @@ export function TotalDates() {
             <AreaChart
               accessibilityLayer
               data={chartData}
-            // margin={{
-            //   left: -20,
-            //   right: 12,
-            // }}
+              // margin={{
+              //   left: -20,
+              //   right: 12,
+              // }}
             >
               <defs>
                 <linearGradient id="fillPendiente" x1="0" y1="0" x2="0" y2="1">
@@ -71,21 +70,35 @@ export function TotalDates() {
                 tickMargin={8}
                 minTickGap={32}
                 tickFormatter={(value) => {
-                  const date = new Date(value)
-                  return date.toLocaleDateString("es-AR", {
-                    month: "short",
-                    day: "numeric",
-                  })
+                  // Verificamos si value ya es una cadena formateada como dd/MM/yyyy
+                  if (typeof value === "string" && value.includes("/")) {
+                    // Si ya está formateada, extraemos día y mes
+                    const parts = value.split("/")
+                    if (parts.length >= 3) {
+                      // Asumimos formato dd/MM/yyyy
+                      return `${parts[0]}/${parts[1]}` // Retornamos solo día/mes
+                    }
+                    return value // Si no podemos procesarlo, devolvemos el valor original
+                  }
+
+                  // Si no es una cadena formateada, intentamos crear una fecha
+                  try {
+                    const date = new Date(value)
+                    if (isNaN(date.getTime())) {
+                      return value // Si la fecha es inválida, devolvemos el valor original
+                    }
+                    return date.toLocaleDateString("es-AR", {
+                      month: "short",
+                      day: "numeric",
+                    })
+                  } catch (e) {
+                    console.error("Error formateando fecha:", value, e)
+                    return value // En caso de error, devolvemos el valor original
+                  }
                 }}
               />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                tickCount={5}
-              />
-              <ChartTooltip cursor={false} content={
-                  <ChartTooltipContent />} />
+              <YAxis tickLine={false} axisLine={false} tickMargin={8} tickCount={5} />
+              <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
               <Area
                 dataKey="total_completado"
                 type="monotone"
@@ -125,7 +138,7 @@ export function TotalDates() {
               <p> || Total de citas no completadas: {appointmentTotal.totals.total_moroso_inactivo_cancelado}</p>
             </div>
             <div className="flex items-center gap-2 leading-none text-muted-foreground">
-            {new Date(startDate).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" })} - {new Date(endDate).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" })}
+              {format(new Date(startDate), "dd/MM/yyyy")} - {format(new Date(endDate), "dd/MM/yyyy")}
             </div>
           </div>
         </div>
@@ -133,3 +146,4 @@ export function TotalDates() {
     </Card>
   )
 }
+
