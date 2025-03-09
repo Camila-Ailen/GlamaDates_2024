@@ -10,7 +10,7 @@ import React, { useEffect } from "react"
 import useStatisticsStore from "../store/useStatisticsStore"
 
 const PrincipalStatistic = () => {
-  const { startDate, endDate, error, setError, fetchTotalDates, setStartDate, setEndDate } = useStatisticsStore()
+  const { startDate, endDate, error, setError, fetchTotalDates, fetchPayMethod, fetchPerCategory, fetchPerProfessional, fetchPerDay, setStartDate, setEndDate } = useStatisticsStore()
 
   const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const date = e.target.value // Formato yyyy-MM-dd del input date
@@ -20,6 +20,7 @@ const PrincipalStatistic = () => {
     } else {
       setError("")
       fetchTotalDates(date, endDate)
+      fetchPayMethod(date, endDate)
     }
   }
 
@@ -31,6 +32,7 @@ const PrincipalStatistic = () => {
     } else {
       setError("")
       fetchTotalDates(startDate, date)
+      fetchPayMethod(startDate, date)
     }
   }
 
@@ -43,7 +45,8 @@ const PrincipalStatistic = () => {
 
   useEffect(() => {
     fetchTotalDates(startDate, endDate)
-  }, [startDate, endDate, fetchTotalDates])
+    fetchPayMethod(startDate, endDate)
+  }, [startDate, endDate, fetchTotalDates, fetchPayMethod])
 
   interface AnimatedCardProps extends React.ComponentProps<typeof Card> {
     index: number

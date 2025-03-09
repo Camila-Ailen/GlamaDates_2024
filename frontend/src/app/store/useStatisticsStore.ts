@@ -9,7 +9,7 @@ interface StatisticsState {
   error: string | null
   isLoading: boolean
   appointmentTotal: any
-  payMethod: any[]
+  payMethod: any
   perCategory: any[]
   perProfessional: any[]
   perDay: any[]
@@ -35,7 +35,7 @@ export const useStatisticsStore = create<StatisticsState>((set, get) => ({
   error: null,
   isLoading: false,
   appointmentTotal: { result: [], totals: {} },
-  payMethod: [],
+  payMethod: {totals:{}},
   perCategory: [],
   perProfessional: [],
   perDay: [],
@@ -87,7 +87,7 @@ export const useStatisticsStore = create<StatisticsState>((set, get) => ({
     set({ isLoading: true, error: null })
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/statistics/payMethod?begin=${startDate}&end=${endDate}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/appointment/statistics/payMethod?begin=${startDate}&end=${endDate}`,
         {
           method: "GET",
           headers: {

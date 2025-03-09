@@ -213,9 +213,9 @@ export class AppointmentController extends BaseController {
   @Get('statistics/allDates')
   @Auth('read:appointments')
   async getDatesStatistics(@Query('begin') begin: string, @Query('end') end: string): Promise<any> {
-    console.log('llega al controlador: ', begin, end)
+    console.log('llega al controlador del total: ', begin, end)
     const statistics = await this.appointmentService.getDatesStatistics(begin, end);
-    console.log('y lo pasa: ', statistics) 
+    // console.log('y lo pasa: ', statistics) 
     return statistics; 
   }
 
@@ -224,7 +224,9 @@ export class AppointmentController extends BaseController {
   @Get('statistics/payMethod')
   @Auth('read:appointments')
   async getPayMethodStatistics(@Query('begin') begin: string, @Query('end') end: string): Promise<any> {
+    console.log('llega al controlador de payMethod: ', begin, end)
     const statistics = await this.appointmentService.getPayMethodStatistics(begin, end);
+    console.log('y lo pasa: ', statistics)
     return statistics;
   }
 
