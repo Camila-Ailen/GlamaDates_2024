@@ -1,6 +1,6 @@
 "use client"
 
-import { DelinquentClient } from '@/components/statistic/delinquent-client';
+import { WeekDay } from '@/components/statistic/week-day';
 import { PayMethod } from '@/components/statistic/pay-method';
 import { PerCategory } from '@/components/statistic/per-category';
 import { PerProfessional } from '@/components/statistic/per-professional';
@@ -96,7 +96,7 @@ const PrincipalStatistic = () => {
                 </AnimatedCard>
 
                 <AnimatedCard index={4} className="mt-4">
-                    <DelinquentClient />
+                    <WeekDay />
                 </AnimatedCard>
             </div>
 
