@@ -12,7 +12,7 @@ interface StatisticsState {
   payMethod: any
   perCategory: any[]
   perProfessional: any[]
-  perDay: any[]
+  perDay: any
 
   setStartDate: (date: string) => void
   setEndDate: (date: string) => void
@@ -38,7 +38,7 @@ export const useStatisticsStore = create<StatisticsState>((set, get) => ({
   payMethod: {totals:{}},
   perCategory: [],
   perProfessional: [],
-  perDay: [],
+  perDay: { totals: {} },
 
   setStartDate: (date: string) => {
     // Aseguramos que la fecha se guarde en formato yyyy-MM-dd para la API
@@ -171,7 +171,7 @@ export const useStatisticsStore = create<StatisticsState>((set, get) => ({
     set({ isLoading: true, error: null })
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/statistics/perDay?begin=${startDate}&end=${endDate}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/appointment/statistics/perDay?begin=${startDate}&end=${endDate}`,
         {
           method: "GET",
           headers: {

@@ -21,6 +21,7 @@ const PrincipalStatistic = () => {
       setError("")
       fetchTotalDates(date, endDate)
       fetchPayMethod(date, endDate)
+      fetchPerDay(date, endDate)
     }
   }
 
@@ -33,6 +34,7 @@ const PrincipalStatistic = () => {
       setError("")
       fetchTotalDates(startDate, date)
       fetchPayMethod(startDate, date)
+      fetchPerDay(startDate, date)
     }
   }
 
@@ -46,7 +48,10 @@ const PrincipalStatistic = () => {
   useEffect(() => {
     fetchTotalDates(startDate, endDate)
     fetchPayMethod(startDate, endDate)
-  }, [startDate, endDate, fetchTotalDates, fetchPayMethod])
+    fetchPerCategory(startDate, endDate)
+    fetchPerProfessional(startDate, endDate)
+    fetchPerDay(startDate, endDate)
+  }, [startDate, endDate, fetchTotalDates, fetchPayMethod, fetchPerCategory, fetchPerProfessional, fetchPerDay])
 
   interface AnimatedCardProps extends React.ComponentProps<typeof Card> {
     index: number
