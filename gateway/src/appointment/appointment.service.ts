@@ -1246,15 +1246,23 @@ export class AppointmentService {
 
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
+  private formatDate(date: string): string {
+    const [day, month, year] = date.split('/');
+    return `${year}/${month}/${day}`;
+  }
+
   async getDatesStatistics(begin: string, end: string): Promise<any> {
-    const endDate = end + ' 23:00:00';
+    // const endDate = end + ' 23:00:00';
+    const formattedBegin = this.formatDate(begin);
+    const formattedEnd = this.formatDate(end) + ' 23:00:00';
+
     const result = await this.appointmentRepository
       .createQueryBuilder('appointments')
       .select('DATE_TRUNC(\'day\', "appointments"."datetimeStart")', 'fecha')
       .addSelect(`SUM(CASE WHEN "appointments"."state" = 'COMPLETADO' THEN 1 ELSE 0 END)::int`, 'total_completado')
       .addSelect(`SUM(CASE WHEN "appointments"."state" IN ('PENDIENTE', 'SEÑADO', 'ACTIVO') THEN 1 ELSE 0 END)::int`, 'total_pendiente_seniado_activo')
       .addSelect(`SUM(CASE WHEN "appointments"."state" IN ('MOROSO', 'INACTIVO', 'CANCELADO') THEN 1 ELSE 0 END)::int`, 'total_moroso_inactivo_cancelado')
-      .where(`"datetimeStart" BETWEEN '${begin}' AND '${endDate}'`)
+      .where(`"datetimeStart" BETWEEN '${formattedBegin}' AND '${formattedEnd}'`)
       .groupBy('DATE_TRUNC(\'day\', "appointments"."datetimeStart")')
       .orderBy('fecha')
       .getRawMany();
@@ -1264,7 +1272,7 @@ export class AppointmentService {
       .select(`SUM(CASE WHEN "appointments"."state" = 'COMPLETADO' THEN 1 ELSE 0 END)::int`, 'total_completado')
       .addSelect(`SUM(CASE WHEN "appointments"."state" IN ('PENDIENTE', 'SEÑADO', 'ACTIVO') THEN 1 ELSE 0 END)::int`, 'total_pendiente_seniado_activo')
       .addSelect(`SUM(CASE WHEN "appointments"."state" IN ('MOROSO', 'INACTIVO', 'CANCELADO') THEN 1 ELSE 0 END)::int`, 'total_moroso_inactivo_cancelado')
-      .where(`"datetimeStart" BETWEEN '${begin}' AND '${endDate}'`)
+      .where(`"datetimeStart" BETWEEN '${formattedBegin}' AND '${formattedEnd}'`)
       .getRawOne();
 
     return { result, totals };

@@ -213,8 +213,10 @@ export class AppointmentController extends BaseController {
   @Get('statistics/allDates')
   @Auth('read:appointments')
   async getDatesStatistics(@Query('begin') begin: string, @Query('end') end: string): Promise<any> {
+    console.log('llega al controlador: ', begin, end)
     const statistics = await this.appointmentService.getDatesStatistics(begin, end);
-    return statistics;
+    console.log('y lo pasa: ', statistics) 
+    return statistics; 
   }
 
   ////////////////////////////////////////////////////

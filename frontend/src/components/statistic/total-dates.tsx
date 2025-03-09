@@ -2,48 +2,48 @@
 
 import { TrendingUp } from "lucide-react"
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart"
-const chartData = [
-  { month: "January", desktop: 186, mobile: 80 },
-  { month: "February", desktop: 305, mobile: 200 },
-  { month: "March", desktop: 237, mobile: 120 },
-  { month: "April", desktop: 73, mobile: 190 },
-  { month: "May", desktop: 209, mobile: 130 },
-  { month: "June", desktop: 214, mobile: 140 },
-]
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import useStatisticsStore from '@/app/store/useStatisticsStore'
+import { useEffect } from 'react'
 
 const chartConfig = {
-  desktop: {
-    label: "Desktop",
+  total_completado: {
+    label: "Completado",
     color: "hsl(var(--chart-1))",
   },
-  mobile: {
-    label: "Mobile",
+  total_pendiente_seniado_activo: {
+    label: "Pendiente/Señado/Activo",
     color: "hsl(var(--chart-2))",
+  },
+  total_moroso_inactivo_cancelado: {
+    label: "Moroso/Inactivo/Cancelado",
+    color: "hsl(var(--chart-3))",
   },
 } satisfies ChartConfig
 
 export function TotalDates() {
+  const { startDate, endDate, fetchTotalDates, appointmentTotal } = useStatisticsStore()
+
+  // useEffect(() => {
+  //   if (startDate && endDate) {
+  //     fetchTotalDates(startDate, endDate)
+  //   }
+  // }, [startDate, endDate, fetchTotalDates])
+
+  const chartData = appointmentTotal.result?.map((item: any) => ({
+    fecha: new Date(item.fecha).toLocaleDateString(),
+    total_completado: item.total_completado,
+    total_pendiente_seniado_activo: item.total_pendiente_seniado_activo,
+    total_moroso_inactivo_cancelado: item.total_moroso_inactivo_cancelado,
+  })) || []
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Area Chart - Axes</CardTitle>
         <CardDescription>
-          Showing total visitors for the last 6 months
+          Showing total appointments for the selected date range
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -58,7 +58,7 @@ export function TotalDates() {
           >
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey="month"
+              dataKey="fecha"
               tickLine={false}
               axisLine={false}
               tickMargin={8}
@@ -72,19 +72,27 @@ export function TotalDates() {
             />
             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
             <Area
-              dataKey="mobile"
+              dataKey="total_completado"
               type="natural"
-              fill="var(--color-mobile)"
+              fill="var(--color-completado)"
               fillOpacity={0.4}
-              stroke="var(--color-mobile)"
+              stroke="var(--color-completado)"
               stackId="a"
             />
             <Area
-              dataKey="desktop"
+              dataKey="total_pendiente_seniado_activo"
               type="natural"
-              fill="var(--color-desktop)"
+              fill="var(--color-pendiente-seniado-activo)"
               fillOpacity={0.4}
-              stroke="var(--color-desktop)"
+              stroke="var(--color-pendiente-seniado-activo)"
+              stackId="a"
+            />
+            <Area
+              dataKey="total_moroso_inactivo_cancelado"
+              type="natural"
+              fill="var(--color-moroso-inactivo-cancelado)"
+              fillOpacity={0.4}
+              stroke="var(--color-moroso-inactivo-cancelado)"
               stackId="a"
             />
           </AreaChart>
@@ -97,7 +105,7 @@ export function TotalDates() {
               Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
             </div>
             <div className="flex items-center gap-2 leading-none text-muted-foreground">
-              January - June 2024
+              {new Date(startDate).toLocaleDateString()} - {new Date(endDate).toLocaleDateString()}
             </div>
           </div>
         </div>

@@ -5,19 +5,19 @@ import { format, subDays } from 'date-fns';
 
 
 interface StatisticsState {
-
     startDate: string;
     endDate: string;
     error: string | null;
     isLoading: boolean;
-    appointmentTotal: any[];
+    appointmentTotal: any;
     payMethod: any[];
     perCategory: any[];
     perProfessional: any[];
     perDay: any[];
 
-    setStartDate: (date: string) => void;
-    setEndDate: (date: string) => void;
+    // setStartDate: (date: string) => void;
+    // setEndDate: (date: string) => void;
+    setError: (error: string | null) => void;
     fetchTotalDates: (startDate: string, endDate: string) => Promise<any>;
     fetchPayMethod: (startDate: string, endDate: string) => Promise<any>;
     fetchPerCategory: (startDate: string, endDate: string) => Promise<any>;
@@ -33,27 +33,36 @@ const defaultEndDate = format(new Date(), 'yyyy-MM-dd');
 
 
 export const useStatisticsStore = create<StatisticsState>((set, get) => ({
-
     startDate: defaultStartDate,
     endDate: defaultEndDate,
     error: null,
     isLoading: false,
-    appointmentTotal: [],
+    appointmentTotal: { result: [], totals: {} },
     payMethod: [],
     perCategory: [],
     perProfessional: [],
     perDay: [],
 
 
-    setStartDate: (date: string) => set({ startDate: date }),
-    setEndDate: (date: string) => set({ endDate: date }),
+    // setStartDate: (date: string) => {
+    //     console.log("date", date);
+    //     const formattedDate = format(new Date(date), 'yyyy/MM/dd');
+    //     console.log("formattedDate", formattedDate);
+    //     set({ startDate: formattedDate });
+    // },
+    // setEndDate: (date: string) => {
+    //     const formattedDate = format(new Date(date), 'yyyy/MM/dd');
+    //     set({ endDate: formattedDate });
+    // },
+
+    setError: (error: string | null) => set({ error }),
 
 
     fetchTotalDates: async (startDate: string, endDate: string) => {
         set({ isLoading: true, error: null });
         try {
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/statistics/allDates?begin=${startDate}&end=${endDate}`,
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/appointment/statistics/allDates?begin=${startDate}&end=${endDate}`,
                 {
                     method: 'GET',
                     headers: {
@@ -72,8 +81,10 @@ export const useStatisticsStore = create<StatisticsState>((set, get) => ({
             }
             const data = await response.json();
             set({ appointmentTotal: data, isLoading: false });
+            console.log(data);
         } catch (error) {
             console.error(error);
+            set({ error: (error as any).message, isLoading: false });
         }
     },
 

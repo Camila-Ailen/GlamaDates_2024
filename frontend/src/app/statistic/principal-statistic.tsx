@@ -10,28 +10,27 @@ import React, { useEffect, useState } from 'react';
 import useStatisticsStore from '../store/useStatisticsStore';
 
 const PrincipalStatistic = () => {
-    const { startDate, endDate, setStartDate, setEndDate } = useStatisticsStore();
-
-  
-    const [error, setError] = useState('');
+    const { startDate, endDate, error, setError, fetchTotalDates } = useStatisticsStore();
 
     const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const formattedDate = formatDate(e.target.value);
-        setStartDate(formattedDate);
+        // setStartDate(formattedDate);
         if (endDate && new Date(formattedDate.split('/').reverse().join('-')) > new Date(endDate.split('/').reverse().join('-'))) {
             setError('La fecha de inicio debe ser anterior a la fecha de fin');
         } else {
             setError('');
+            fetchTotalDates(formattedDate, endDate);
         }
     };
 
     const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const formattedDate = formatDate(e.target.value);
-        setEndDate(formattedDate);
+        // setEndDate(formattedDate);
         if (startDate && new Date(formattedDate.split('/').reverse().join('-')) < new Date(startDate.split('/').reverse().join('-'))) {
             setError('La fecha de fin debe ser posterior a la fecha de inicio');
         } else {
             setError('');
+            fetchTotalDates(startDate, formattedDate);
         }
     };
 
@@ -41,16 +40,17 @@ const PrincipalStatistic = () => {
     };
 
     useEffect(() => {
-        setStartDate(formatDate(startDate));
-        setEndDate(formatDate(endDate));
-        console.log(startDate, endDate);
+        const initialStartDate = formatDate(startDate);
+        const initialEndDate = formatDate(endDate);
+        // setStartDate(initialStartDate);
+        // setEndDate(initialEndDate);
+        fetchTotalDates(initialStartDate, initialEndDate);
     }, []);
 
 
     interface AnimatedCardProps extends React.ComponentProps<typeof Card> {
         index: number;
     }
-
     const AnimatedCard = React.forwardRef<HTMLDivElement, AnimatedCardProps>(
         ({ className, index, ...props }, ref) => {
             return (
