@@ -8,7 +8,7 @@ export default function ReportPage() {
   return (
     <div className="container mx-auto py-6">
       <div className="mb-6">
-        <Link href="/statistics">
+        <Link href="/statistic">
           <Button variant="outline" className="flex items-center gap-2">
             <ArrowLeft className="h-4 w-4" />
             Volver a Estadísticas
@@ -21,7 +21,7 @@ export default function ReportPage() {
         <p className="text-gray-600">Visualiza y exporta el informe completo en formato PDF.</p>
       </div>
 
-      <StatisticsReport companyName="Tu Empresa" companyLogo="/logo.png" />
+      <StatisticsReport companyName="GlamaDates" companyLogo="/logo.png" />
     </div>
   )
 }

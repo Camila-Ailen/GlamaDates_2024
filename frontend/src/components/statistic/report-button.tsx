@@ -18,7 +18,7 @@ interface ReportButtonProps {
   companyLogo?: string
 }
 
-const ReportButton = ({ companyName, companyLogo }: ReportButtonProps) => {
+const ReportButton = ({ companyName = "GlamaDates", companyLogo }: ReportButtonProps) => {
   const [isOpen, setIsOpen] = useState(false)
 
   return (

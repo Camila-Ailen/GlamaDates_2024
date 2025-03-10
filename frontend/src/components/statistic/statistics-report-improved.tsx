@@ -1,13 +1,12 @@
+
 "use client"
 
-import { useRef } from "react"
+import { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import useStatisticsStore from "@/app/store/useStatisticsStore"
-import { FileDown, Printer } from "lucide-react"
-import html2canvas from "html2canvas"
-import jsPDF from "jspdf"
+import { FileDown, Printer, Loader2 } from "lucide-react"
 import { format } from "date-fns"
-import { es } from "date-fns/locale"
+import { generatePDF, formatDateString, splitTableForPagination } from "./pdf-utils"
 
 interface StatisticsReportProps {
   title?: string
@@ -16,7 +15,7 @@ interface StatisticsReportProps {
   companyLogo?: string
 }
 
-const StatisticsReport = ({
+const StatisticsReportImproved = ({
   title = "Informe de Estadísticas",
   subtitle = "Análisis de Citas",
   companyName = "GlamaDates",
@@ -24,137 +23,22 @@ const StatisticsReport = ({
 }: StatisticsReportProps) => {
   const reportRef = useRef<HTMLDivElement>(null)
   const { startDate, endDate, appointmentTotal, payMethod, perCategory, perProfessional, perDay } = useStatisticsStore()
-
-  const formatDateString = (dateStr: string) => {
-    if (!dateStr) return ""
-    const date = new Date(dateStr)
-    return format(date, "d 'de' MMMM 'de' yyyy", { locale: es })
-  }
-
-  // Añadir esta función después de formatDateString
-  const splitTableForPagination = (data: any[], itemsPerPage = 10) => {
-    if (!data || data.length <= itemsPerPage) return [data]
-
-    const chunks = []
-    for (let i = 0; i < data.length; i += itemsPerPage) {
-      chunks.push(data.slice(i, i + itemsPerPage))
-    }
-    return chunks
-  }
+  const [isExporting, setIsExporting] = useState(false)
 
   const handleExportPDF = async () => {
     if (!reportRef.current) return
 
+    setIsExporting(true)
     try {
-      const reportElement = reportRef.current
-
-      // Configuración del PDF
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-      })
-
-      // Dimensiones de página A4 en mm
-      const pageWidth = 210
-      const pageHeight = 297
-
-      // Márgenes en mm
-      const margin = 10
-      const contentWidth = pageWidth - margin * 2
-      const contentHeight = pageHeight - margin * 2
-
-      // Obtener el número total de elementos para dividir
-      const sections = reportElement.querySelectorAll("section")
-      const totalSections = sections.length
-
-      // Contador de páginas
-      let pageCount = 1
-
-      // Crear la primera página
-      let yPosition = margin
-
-      // Añadir encabezado
-      const headerElement = reportElement.querySelector(".report-header") as HTMLElement
-      if (headerElement) {
-        const headerCanvas = await html2canvas(headerElement, {
-          scale: 2,
-          useCORS: true,
-          logging: false,
-        })
-
-        const headerImgData = headerCanvas.toDataURL("image/png")
-        const headerHeight = (headerCanvas.height * contentWidth) / headerCanvas.width
-
-        pdf.addImage(headerImgData, "PNG", margin, yPosition, contentWidth, headerHeight)
-        yPosition += headerHeight + 5 // Espacio después del encabezado
-      }
-
-      // Procesar cada sección
-      for (let i = 0; i < sections.length; i++) {
-        const section = sections[i] as HTMLElement
-
-        // Renderizar la sección a un canvas
-        const sectionCanvas = await html2canvas(section, {
-          scale: 2,
-          useCORS: true,
-          logging: false,
-        })
-
-        const sectionImgData = sectionCanvas.toDataURL("image/png")
-        const sectionHeight = (sectionCanvas.height * contentWidth) / sectionCanvas.width
-
-        // Verificar si la sección cabe en la página actual
-        if (yPosition + sectionHeight > pageHeight - margin - 15) {
-          // 15mm para el pie de página
-          // Añadir pie de página con número de página
-          pdf.setFontSize(9)
-          pdf.setTextColor(100, 100, 100)
-          pdf.text(`Página ${pageCount} de ${Math.ceil(totalSections / 2) + 1}`, pageWidth / 2, pageHeight - 5, {
-            align: "center",
-          })
-
-          // Nueva página
-          pdf.addPage()
-          pageCount++
-          yPosition = margin
-
-          // Añadir encabezado pequeño en las páginas siguientes
-          pdf.setFontSize(12)
-          pdf.setTextColor(0, 0, 0)
-          pdf.text(
-            `${title} - Período: ${formatDateString(startDate)} - ${formatDateString(endDate)}`,
-            margin,
-            yPosition + 5,
-          )
-          yPosition += 10
-        }
-
-        // Añadir la sección a la página
-        pdf.addImage(sectionImgData, "PNG", margin, yPosition, contentWidth, sectionHeight)
-        yPosition += sectionHeight + 5 // Espacio después de la sección
-      }
-
-      // Añadir pie de página en la última página
-      pdf.setFontSize(9)
-      pdf.setTextColor(100, 100, 100)
-      pdf.text(`Página ${pageCount} de ${Math.ceil(totalSections / 2) + 1}`, pageWidth / 2, pageHeight - 5, {
-        align: "center",
-      })
-
-      // Añadir información de copyright en la última página
-      pdf.setFontSize(8)
-      pdf.text(
-        `© ${new Date().getFullYear()} ${companyName} - Todos los derechos reservados`,
-        pageWidth / 2,
-        pageHeight - 10,
-        { align: "center" },
-      )
+      const userInfo = { name: "John", lastName: "Doe", email: "john.glamadates@example.com" }
+      const pdf = await generatePDF(reportRef.current, title, startDate, endDate, companyName, userInfo)
 
       const fileName = `Informe_Estadisticas_${startDate}_${endDate}.pdf`
       pdf.save(fileName)
     } catch (error) {
       console.error("Error al exportar a PDF:", error)
+    } finally {
+      setIsExporting(false)
     }
   }
 
@@ -162,38 +46,30 @@ const StatisticsReport = ({
     window.print()
   }
 
-  // Añadir esta función después de handlePrint
-  const captureCharts = async () => {
-    // Esta función se puede implementar para capturar los gráficos reales
-    // de tus componentes de estadísticas
-    console.log("Capturando gráficos para el informe")
-
-    // Ejemplo de implementación:
-    // const chartElements = document.querySelectorAll('.recharts-wrapper');
-    // const chartImages = [];
-
-    // for (let i = 0; i < chartElements.length; i++) {
-    //   const canvas = await html2canvas(chartElements[i] as HTMLElement);
-    //   chartImages.push(canvas.toDataURL('image/png'));
-    // }
-
-    // return chartImages;
-  }
-
   return (
     <div className="flex flex-col gap-4">
       <div className="flex justify-end gap-2 print:hidden">
-        <Button variant="outline" onClick={handlePrint} className="flex items-center gap-2">
+        <Button variant="outline" onClick={handlePrint} className="flex items-center gap-2" disabled={isExporting}>
           <Printer className="h-4 w-4" />
           Imprimir
         </Button>
-        <Button onClick={handleExportPDF} className="flex items-center gap-2">
-          <FileDown className="h-4 w-4" />
-          Exportar a PDF
+        <Button onClick={handleExportPDF} className="flex items-center gap-2" disabled={isExporting}>
+          {isExporting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Generando PDF...
+            </>
+          ) : (
+            <>
+              <FileDown className="h-4 w-4" />
+              Exportar a PDF
+            </>
+          )}
         </Button>
       </div>
 
       <div
+        id="reportRef"
         ref={reportRef}
         className="bg-white p-8 shadow-sm rounded-lg w-full max-w-[210mm] mx-auto"
         style={{ minHeight: "297mm" }}
@@ -235,10 +111,13 @@ const StatisticsReport = ({
               </p>
             </div>
           </div>
+        </section>
 
-          {/* Gráfico de citas */}
+        {/* Gráfico de citas */}
+        {/* <section className="mb-8">
+          <h3 className="text-lg font-semibold mb-4 text-pink-700">Evolución de Citas</h3>
           <div className="mb-6">
-            <p className="text-sm font-medium mb-2">Evolución de Citas</p>
+            <p className="text-sm font-medium mb-2">Evolución de Citas por Fecha</p>
             <div className="border rounded-lg p-4 bg-gray-50">
               {appointmentTotal.result && appointmentTotal.result.length > 0 ? (
                 <img
@@ -258,67 +137,67 @@ const StatisticsReport = ({
               )}
             </div>
           </div>
+        </section> */}
 
-          {/* Tabla de datos */}
-          <div>
-            <p className="text-sm font-medium mb-2">Detalle por Fecha</p>
-            <div className="overflow-x-auto">
-              {appointmentTotal.result && appointmentTotal.result.length > 0 ? (
-                splitTableForPagination(appointmentTotal.result).map((chunk, chunkIndex) => (
-                  <div key={`chunk-${chunkIndex}`} className="mb-4">
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr className="bg-gray-100">
-                          <th className="border px-4 py-2 text-left">Fecha</th>
-                          <th className="border px-4 py-2 text-right">Completadas</th>
-                          <th className="border px-4 py-2 text-right">Pendientes</th>
-                          <th className="border px-4 py-2 text-right">No Completadas</th>
-                          <th className="border px-4 py-2 text-right">Total</th>
+        {/* Tabla de datos */}
+        <section className="mb-8">
+          <h3 className="text-lg font-semibold mb-4 text-pink-700">Detalle por Fecha</h3>
+          <div className="overflow-x-auto">
+            {appointmentTotal.result && appointmentTotal.result.length > 0 ? (
+              splitTableForPagination(appointmentTotal.result, 8).map((chunk, chunkIndex) => (
+                <div key={`chunk-${chunkIndex}`} className="mb-4">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-gray-100">
+                        <th className="border px-4 py-2 text-left">Fecha</th>
+                        <th className="border px-4 py-2 text-right">Completadas</th>
+                        <th className="border px-4 py-2 text-right">Pendientes</th>
+                        <th className="border px-4 py-2 text-right">No Completadas</th>
+                        <th className="border px-4 py-2 text-right">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {chunk.map((item: any, index: number) => (
+                        <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                          <td className="border px-4 py-2">{format(new Date(item.fecha), "dd/MM/yyyy")}</td>
+                          <td className="border px-4 py-2 text-right">{item.total_completado}</td>
+                          <td className="border px-4 py-2 text-right">{item.total_pendiente_seniado_activo}</td>
+                          <td className="border px-4 py-2 text-right">{item.total_moroso_inactivo_cancelado}</td>
+                          <td className="border px-4 py-2 text-right font-medium">
+                            {item.total_completado +
+                              item.total_pendiente_seniado_activo +
+                              item.total_moroso_inactivo_cancelado}
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {chunk.map((item: any, index: number) => (
-                          <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                            <td className="border px-4 py-2">{format(new Date(item.fecha), "dd/MM/yyyy")}</td>
-                            <td className="border px-4 py-2 text-right">{item.total_completado}</td>
-                            <td className="border px-4 py-2 text-right">{item.total_pendiente_seniado_activo}</td>
-                            <td className="border px-4 py-2 text-right">{item.total_moroso_inactivo_cancelado}</td>
-                            <td className="border px-4 py-2 text-right font-medium">
-                              {item.total_completado +
-                                item.total_pendiente_seniado_activo +
-                                item.total_moroso_inactivo_cancelado}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                      {chunkIndex === splitTableForPagination(appointmentTotal.result).length - 1 && (
-                        <tfoot>
-                          <tr className="bg-pink-50">
-                            <td className="border px-4 py-2 font-medium">Total</td>
-                            <td className="border px-4 py-2 text-right font-medium">
-                              {appointmentTotal.totals.total_completado || 0}
-                            </td>
-                            <td className="border px-4 py-2 text-right font-medium">
-                              {appointmentTotal.totals.total_pendiente_seniado_activo || 0}
-                            </td>
-                            <td className="border px-4 py-2 text-right font-medium">
-                              {appointmentTotal.totals.total_moroso_inactivo_cancelado || 0}
-                            </td>
-                            <td className="border px-4 py-2 text-right font-bold">
-                              {(appointmentTotal.totals.total_completado || 0) +
-                                (appointmentTotal.totals.total_pendiente_seniado_activo || 0) +
-                                (appointmentTotal.totals.total_moroso_inactivo_cancelado || 0)}
-                            </td>
-                          </tr>
-                        </tfoot>
-                      )}
-                    </table>
-                  </div>
-                ))
-              ) : (
-                <p className="text-center text-gray-500">No hay datos disponibles</p>
-              )}
-            </div>
+                      ))}
+                    </tbody>
+                    {chunkIndex === splitTableForPagination(appointmentTotal.result, 8).length - 1 && (
+                      <tfoot>
+                        <tr className="bg-pink-50">
+                          <td className="border px-4 py-2 font-medium">Total</td>
+                          <td className="border px-4 py-2 text-right font-medium">
+                            {appointmentTotal.totals.total_completado || 0}
+                          </td>
+                          <td className="border px-4 py-2 text-right font-medium">
+                            {appointmentTotal.totals.total_pendiente_seniado_activo || 0}
+                          </td>
+                          <td className="border px-4 py-2 text-right font-medium">
+                            {appointmentTotal.totals.total_moroso_inactivo_cancelado || 0}
+                          </td>
+                          <td className="border px-4 py-2 text-right font-bold">
+                            {(appointmentTotal.totals.total_completado || 0) +
+                              (appointmentTotal.totals.total_pendiente_seniado_activo || 0) +
+                              (appointmentTotal.totals.total_moroso_inactivo_cancelado || 0)}
+                          </td>
+                        </tr>
+                      </tfoot>
+                    )}
+                  </table>
+                </div>
+              ))
+            ) : (
+              <p className="text-center text-gray-500">No hay datos disponibles</p>
+            )}
           </div>
         </section>
 
@@ -333,6 +212,8 @@ const StatisticsReport = ({
                     <svg width="300" height="300" xmlns="http://www.w3.org/2000/svg">
                       <rect width="300" height="300" fill="#f9fafb" />
                       <text x="150" y="150" font-family="Arial" font-size="14" text-anchor="middle" fill="#666">
+                        Gráfico circular de días (vista previa)
+                        fill="#666">
                         Gráfico circular de días (vista previa)
                       </text>
                     </svg>
@@ -515,5 +396,5 @@ const StatisticsReport = ({
   )
 }
 
-export default StatisticsReport
+export default StatisticsReportImproved
 
