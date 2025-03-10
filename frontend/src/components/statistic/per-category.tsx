@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Bar, BarChart, CartesianGrid, LabelList, XAxis, YAxis, Tooltip } from "recharts"
+import { Bar, BarChart, CartesianGrid, LabelList, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 import useStatisticsStore from "@/app/store/useStatisticsStore"
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -75,48 +75,50 @@ export function PerCategory() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig}>
-          <BarChart
-            accessibilityLayer
-            data={chartData}
-            margin={{
-              top: 30,
-              right: 30,
-              left: 20,
-              bottom: 20,
-            }}
-            barGap={20}
-          >
-            <CartesianGrid vertical={false} strokeDasharray="3 3" />
-            <XAxis dataKey="categoria" tickLine={false} tickMargin={10} axisLine={false} />
-            <YAxis
-              yAxisId="left"
-              orientation="left"
-              tickLine={false}
-              axisLine={false}
-              label={{ value: "Citas", angle: -90, position: "insideLeft" }}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="total_citas" fill="var(--color-total_citas)" radius={[4, 4, 0, 0]} yAxisId="left">
-              <LabelList
-                dataKey="total_citas"
-                position="top"
-                offset={10}
-                className="fill-foreground"
-                fontSize={12}
-                formatter={(value: number) =>
-                  `${value} (${chartData.find((item: { total_citas: number }) => item.total_citas === value)?.percentage}%)`
-                }
+        <ChartContainer config={chartConfig} className="aspect-auto h-[400px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              accessibilityLayer
+              data={chartData}
+              margin={{
+                top: 30,
+                right: 30,
+                left: 20,
+                bottom: 20,
+              }}
+              barGap={20}
+            >
+              <CartesianGrid vertical={false} strokeDasharray="3 3" />
+              <XAxis dataKey="categoria" tickLine={false} tickMargin={10} axisLine={false} />
+              <YAxis
+                yAxisId="left"
+                orientation="left"
+                tickLine={false}
+                axisLine={false}
+                label={{ value: "Citas", angle: -90, position: "insideLeft" }}
               />
-              <LabelList
-                dataKey="total_ingresos"
-                position="center"
-                className="fill-background font-medium"
-                fontSize={11}
-                formatter={(value: number) => `$${value}`}
-              />
-            </Bar>
-          </BarChart>
+              <Tooltip content={<CustomTooltip />} />
+              <Bar dataKey="total_citas" fill="var(--color-total_citas)" radius={[4, 4, 0, 0]} yAxisId="left">
+                <LabelList
+                  dataKey="total_citas"
+                  position="top"
+                  offset={10}
+                  className="fill-foreground"
+                  fontSize={12}
+                  formatter={(value: number) =>
+                    `${value} (${chartData.find((item: { total_citas: number }) => item.total_citas === value)?.percentage}%)`
+                  }
+                />
+                <LabelList
+                  dataKey="total_ingresos"
+                  position="center"
+                  className="fill-background font-medium"
+                  fontSize={11}
+                  formatter={(value: number) => `$${value}`}
+                />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </ChartContainer>
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 text-sm">

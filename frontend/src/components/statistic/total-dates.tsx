@@ -8,15 +8,15 @@ import { format } from "date-fns"
 const chartConfig = {
   total_completado: {
     label: "Completado",
-    color: "hsl(var(--chart-1))",
+    color: "hsl(347, 77%, 50%)",  // Tono rosa principal
   },
   total_pendiente_seniado_activo: {
     label: "Pendiente",
-    color: "hsl(var(--chart-2))",
+    color: "hsl(352, 83%, 91%)",  // Tono rosa más claro
   },
   total_moroso_inactivo_cancelado: {
     label: "No Completado",
-    color: "hsl(var(--chart-3))",
+    color: "hsl(350, 80%, 72%)",  // Tono rosa más oscuro
   },
 } satisfies ChartConfig
 
@@ -51,15 +51,25 @@ export function TotalDates() {
             <AreaChart
               accessibilityLayer
               data={chartData}
-              // margin={{
-              //   left: -20,
-              //   right: 12,
-              // }}
+              margin={{
+                top: 10,
+                right: 30,
+                left: 0,
+                bottom: 0,
+              }}
             >
               <defs>
+                <linearGradient id="fillCompletado" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(328, 73%, 69%)" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="hsl(328, 73%, 69%)" stopOpacity={0.1} />
+                </linearGradient>
                 <linearGradient id="fillPendiente" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--color-pendiente-seniado-activo)" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="var(--color-pendiente-seniado-activo)" stopOpacity={0.1} />
+                  <stop offset="5%" stopColor="hsl(340, 82%, 76%)" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="hsl(340, 82%, 76%)" stopOpacity={0.1} />
+                </linearGradient>
+                <linearGradient id="fillNoCompletado" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(350, 70%, 60%)" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="hsl(350, 70%, 60%)" stopOpacity={0.1} />
                 </linearGradient>
               </defs>
               <CartesianGrid vertical={true} />
@@ -102,28 +112,26 @@ export function TotalDates() {
               <Area
                 dataKey="total_completado"
                 type="monotone"
-                fill="url(#fillPendiente)"
-                // fillOpacity={0.4}
-                stroke="var(--color-completado)"
+                fill="url(#fillCompletado)"
+                stroke="hsl(328, 73%, 59%)"
+                strokeWidth={2}
                 stackId="a"
               />
               <Area
                 dataKey="total_pendiente_seniado_activo"
                 type="monotone"
                 fill="url(#fillPendiente)"
-                // fillOpacity={0.4}
-                stroke="var(--color-pendiente-seniado-activo)"
+                stroke="hsl(340, 82%, 66%)"
                 strokeWidth={2}
-                // stackId="a"
+                stackId="a"
               />
               <Area
                 dataKey="total_moroso_inactivo_cancelado"
                 type="monotone"
-                fill="url(#fillPendiente)"
-                // fillOpacity={0.4}
-                stroke="var(--color_moroso_inactivo_cancelado)"
+                fill="url(#fillNoCompletado)"
+                stroke="hsl(350, 70%, 50%)"
                 strokeWidth={2}
-                // stackId="a"
+                stackId="a"
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -132,10 +140,19 @@ export function TotalDates() {
       <CardFooter>
         <div className="flex w-full items-start gap-2 text-sm">
           <div className="grid gap-2">
-            <div className="flex items-center gap-2 font-medium leading-none">
-              <p>Total de citas completadas: {appointmentTotal.totals.total_completado}</p>
-              <p> || Total de citas pendientes: {appointmentTotal.totals.total_pendiente_seniado_activo}</p>
-              <p> || Total de citas no completadas: {appointmentTotal.totals.total_moroso_inactivo_cancelado}</p>
+            <div className="flex flex-wrap items-center gap-4 font-medium leading-none">
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full" style={{ backgroundColor: "hsl(328, 73%, 69%)" }} />
+                <p>Completadas: {appointmentTotal.totals.total_completado}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full" style={{ backgroundColor: "hsl(340, 82%, 76%)" }} />
+                <p>Pendientes: {appointmentTotal.totals.total_pendiente_seniado_activo}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full" style={{ backgroundColor: "hsl(350, 70%, 60%)" }} />
+                <p>No completadas: {appointmentTotal.totals.total_moroso_inactivo_cancelado}</p>
+              </div>
             </div>
             <div className="flex items-center gap-2 leading-none text-muted-foreground">
               {format(new Date(startDate), "dd/MM/yyyy")} - {format(new Date(endDate), "dd/MM/yyyy")}
@@ -146,4 +163,3 @@ export function TotalDates() {
     </Card>
   )
 }
-

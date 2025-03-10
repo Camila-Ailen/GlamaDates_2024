@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { TrendingUp } from "lucide-react"
-import { Bar, BarChart, CartesianGrid, LabelList, XAxis, YAxis, Tooltip } from "recharts"
+import { Bar, BarChart, CartesianGrid, LabelList, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 import useStatisticsStore from "@/app/store/useStatisticsStore"
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -78,33 +78,35 @@ export function PerProfessional() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig}>
-          <BarChart
-            accessibilityLayer
-            data={chartData}
-            layout="vertical"
-            margin={{
-              top: 20,
-              right: 30,
-              left: 20,
-              bottom: 20,
-            }}
-          >
-            <CartesianGrid horizontal={false} />
-            <YAxis dataKey="profesional" type="category" tickLine={false} tickMargin={10} axisLine={false} hide />
-            <XAxis dataKey="total_citas" type="number" hide />
-            <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="total_citas" fill="var(--color-total_citas)" radius={4}>
-              <LabelList
-                dataKey="profesional"
-                position="insideLeft"
-                offset={8}
-                className="fill-[--color-label]"
-                fontSize={12}
-              />
-              <LabelList dataKey="total_citas" position="right" offset={8} className="fill-foreground" fontSize={12} />
-            </Bar>
-          </BarChart>
+        <ChartContainer config={chartConfig} className="aspect-auto h-[400px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              accessibilityLayer
+              data={chartData}
+              layout="vertical"
+              margin={{
+                top: 20,
+                right: 30,
+                left: 20,
+                bottom: 20,
+              }}
+            >
+              <CartesianGrid horizontal={false} />
+              <YAxis dataKey="profesional" type="category" tickLine={false} tickMargin={10} axisLine={false} hide />
+              <XAxis dataKey="total_citas" type="number" hide />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar dataKey="total_citas" fill="var(--color-total_citas)" radius={4}>
+                <LabelList
+                  dataKey="profesional"
+                  position="insideLeft"
+                  offset={8}
+                  className="fill-[--color-label]"
+                  fontSize={12}
+                />
+                <LabelList dataKey="total_citas" position="right" offset={8} className="fill-foreground" fontSize={12} />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </ChartContainer>
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 text-sm">

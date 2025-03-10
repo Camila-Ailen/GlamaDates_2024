@@ -1430,7 +1430,6 @@ async getPerProfessionalStatistics(begin: string, end: string): Promise<any> {
           }
       });
   
-      console.log('openDaysOfWeek: ', openDaysOfWeek);
       return openDaysOfWeek;
   }
 
