@@ -1246,15 +1246,8 @@ export class AppointmentService {
 
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
-  private formatDate(date: string): string {
-    const [day, month, year] = date.split('/');
-    return `${year}/${month}/${day}`;
-  }
-
   async getDatesStatistics(begin: string, end: string): Promise<any> {
     const endDate = end + ' 23:00:00';
-    // const formattedBegin = this.formatDate(begin);
-    // const formattedEnd = this.formatDate(end) + ' 23:00:00';
 
     const result = await this.appointmentRepository
       .createQueryBuilder('appointments')
