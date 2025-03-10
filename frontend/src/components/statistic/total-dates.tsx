@@ -154,9 +154,10 @@ export function TotalDates() {
                 <p>No completadas: {appointmentTotal.totals.total_moroso_inactivo_cancelado}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 leading-none text-muted-foreground">
-              {format(new Date(startDate), "dd/MM/yyyy")} - {format(new Date(endDate), "dd/MM/yyyy")}
-            </div>
+            {/* <div className="flex items-center gap-2 leading-none text-muted-foreground">
+              <p>aca {startDate} y aca {endDate}</p>
+              {format(startDate, "dd/MM/yyyy")} - {format(endDate, "dd/MM/yyyy")}
+            </div> */}
           </div>
         </div>
       </CardFooter>

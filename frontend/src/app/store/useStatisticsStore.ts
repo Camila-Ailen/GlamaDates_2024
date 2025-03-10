@@ -41,14 +41,18 @@ export const useStatisticsStore = create<StatisticsState>((set, get) => ({
   perDay: { totals: {} },
 
   setStartDate: (date: string) => {
-    // Aseguramos que la fecha se guarde en formato yyyy-MM-dd para la API
-    const formattedDate = format(new Date(date), "yyyy-MM-dd")
-    set({ startDate: formattedDate })
+    // console.log('date en setStartDate', date)
+    // // Aseguramos que la fecha se guarde en formato yyyy-MM-dd para la API
+    // const formattedDate = format(new Date(date), "yyyy-MM-dd")
+    // console.log('formattedDate en setStartDate', formattedDate)
+    set({ startDate: date })
   },
   setEndDate: (date: string) => {
-    // Aseguramos que la fecha se guarde en formato yyyy-MM-dd para la API
-    const formattedDate = format(new Date(date), "yyyy-MM-dd")
-    set({ endDate: formattedDate })
+    // console.log('date en setEndDate', date)
+    // // Aseguramos que la fecha se guarde en formato yyyy-MM-dd para la API
+    // const formattedDate = format(new Date(date), "yyyy-MM-dd")
+    // console.log('formattedDate en setEndDate', formattedDate)
+    set({ endDate: date })
   },
 
   setError: (error: string | null) => set({ error }),
@@ -76,7 +80,6 @@ export const useStatisticsStore = create<StatisticsState>((set, get) => ({
       }
       const data = await response.json()
       set({ appointmentTotal: data, isLoading: false })
-      console.log(data)
     } catch (error) {
       console.error(error)
       set({ error: (error as any).message, isLoading: false })

@@ -117,7 +117,7 @@ export class AppointmentController extends BaseController {
 
   ////////////////////////////////////////////////////
   ////////////////////////////////////////////////////
-  @Get('isAvailable')
+  @Get('isAvailable')  
   @Auth('read:availableappointments')
   async checkAvailability(
     @Query('packageId') packageId: number,
@@ -222,6 +222,8 @@ export class AppointmentController extends BaseController {
   @Get('statistics/payMethod')
   @Auth('read:appointments')
   async getPayMethodStatistics(@Query('begin') begin: string, @Query('end') end: string): Promise<any> {
+    console.log('begin: ', begin);
+    console.log('end: ', end);
     const statistics = await this.appointmentService.getPayMethodStatistics(begin, end);
     return statistics;
   }
