@@ -31,7 +31,8 @@ export function TotalDates() {
 
   const chartData =
     appointmentTotal.result?.map((item: any) => ({
-      fecha: format(new Date(item.fecha), "dd/MM/yyyy"),
+      // fecha: format(new Date(item.fecha), "dd/MM/yyyy"),
+      fecha: item.fecha,
       total_completado: item.total_completado,
       total_pendiente_seniado_activo: item.total_pendiente_seniado_activo,
       total_moroso_inactivo_cancelado: item.total_moroso_inactivo_cancelado,

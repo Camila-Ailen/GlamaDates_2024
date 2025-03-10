@@ -12,10 +12,12 @@ import useStatisticsStore from "../store/useStatisticsStore"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { CalendarIcon } from "lucide-react"
+import { CalendarIcon, FileText } from "lucide-react"
 import { format } from "date-fns"
 import type { DateRange } from "react-day-picker"
 import { Calendar } from "@/components/ui/calendar"
+import ReportButton from "@/components/statistic/report-button"
+import Link from "next/link"
 
 const PrincipalStatistic = () => {
   const {
@@ -108,7 +110,7 @@ const PrincipalStatistic = () => {
           setError("La fecha de inicio debe ser anterior a la fecha de fin")
         } else {
           setError("")
-          
+
           fetchTotalDates(formattedStartDate, formattedEndDate)
           fetchPayMethod(formattedStartDate, formattedEndDate)
           fetchPerDay(formattedStartDate, formattedEndDate)
@@ -121,8 +123,20 @@ const PrincipalStatistic = () => {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4">
-      <h1 className="text-3xl font-bold text-center text-pink-700 mb-6">Estadisticas</h1>
-      <h2 className="text-3xl font-bold text-center text-pink-700 mb-6">Estadisticas Generales</h2>
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-pink-700">Estadísticas</h1>
+        <div className="flex gap-2">
+          <ReportButton companyName="Tu Empresa" companyLogo="/logo.png" />
+          <Link href="/statistic/report">
+            <Button variant="default" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Ver Informe Completo
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      <h2 className="text-2xl font-bold text-center text-pink-700 mb-6">Estadísticas Generales</h2>
       <p className="text-center mb-4">Seleccione el rango de fechas a analizar:</p>
       <div className="flex flex-row justify-center items-center gap-4 mb-6">
         <div className="flex flex-col items-center">
