@@ -81,13 +81,13 @@ export function PayMethod() {
   }, [chartData])
 
   return (
-    <Card className="flex flex-col">
+    <Card className="card flex flex-col" id="pay-method-card">
       <CardHeader className="items-center pb-0">
-        <CardTitle>Métodos de Pago</CardTitle>
+        <CardTitle className="card-title">Métodos de Pago</CardTitle>
         <CardDescription>Distribución de pagos</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
-        <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[250px]">
+        <ChartContainer id="pay-method-chart" config={chartConfig} className="mx-auto aspect-square max-h-[250px]">
           <PieChart>
             <ChartTooltip cursor={false} content={<CustomTooltip />} />
             <Pie data={chartData} dataKey="visitors" nameKey="browser" innerRadius={60} strokeWidth={5}>

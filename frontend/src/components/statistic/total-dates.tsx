@@ -3,20 +3,19 @@ import { Area, AreaChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } fro
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import useStatisticsStore from "@/app/store/useStatisticsStore"
-import { format } from "date-fns"
 
 const chartConfig = {
   total_completado: {
     label: "Completado",
-    color: "hsl(347, 77%, 50%)",  // Tono rosa principal
+    color: "hsl(347, 77%, 50%)", // Tono rosa principal
   },
   total_pendiente_seniado_activo: {
     label: "Pendiente",
-    color: "hsl(352, 83%, 91%)",  // Tono rosa más claro
+    color: "hsl(352, 83%, 91%)", // Tono rosa más claro
   },
   total_moroso_inactivo_cancelado: {
     label: "No Completado",
-    color: "hsl(350, 80%, 72%)",  // Tono rosa más oscuro
+    color: "hsl(350, 80%, 72%)", // Tono rosa más oscuro
   },
 } satisfies ChartConfig
 
@@ -39,15 +38,15 @@ export function TotalDates() {
     })) || []
 
   return (
-    <Card>
+    <Card className="card" id="total-dates-card">
       <CardHeader>
-        <CardTitle>Completitud de citas</CardTitle>
+        <CardTitle className="card-title">Completitud de citas</CardTitle>
         <CardDescription>
           Se muestra la cantidad de citas completadas, pendientes y no completadas en el rango de fechas seleccionado.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="aspect-auto h-[400px] w-full">
+        <ChartContainer id="total-dates-chart" config={chartConfig} className="aspect-auto h-[400px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               accessibilityLayer
@@ -165,3 +164,4 @@ export function TotalDates() {
     </Card>
   )
 }
+

@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import StatisticsReport from "./statistics-report"
+import StatisticsReportImproved from "./statistics-report-improved"
 
 interface ReportButtonProps {
   companyName?: string
@@ -34,7 +34,7 @@ const ReportButton = ({ companyName = "GlamaDates", companyLogo }: ReportButtonP
           <DialogTitle>Informe de Estadísticas</DialogTitle>
           <DialogDescription>Visualiza y exporta el informe completo de estadísticas en formato PDF.</DialogDescription>
         </DialogHeader>
-        <StatisticsReport companyName={companyName} companyLogo={companyLogo} />
+        <StatisticsReportImproved companyName={companyName} companyLogo={companyLogo} />
       </DialogContent>
     </Dialog>
   )

@@ -169,15 +169,15 @@ const StatisticsReport = ({
     console.log("Capturando gráficos para el informe")
 
     // Ejemplo de implementación:
-    // const chartElements = document.querySelectorAll('.recharts-wrapper');
-    // const chartImages = [];
+    const chartElements = document.querySelectorAll('.recharts-wrapper');
+    const chartImages = [];
 
-    // for (let i = 0; i < chartElements.length; i++) {
-    //   const canvas = await html2canvas(chartElements[i] as HTMLElement);
-    //   chartImages.push(canvas.toDataURL('image/png'));
-    // }
+    for (let i = 0; i < chartElements.length; i++) {
+      const canvas = await html2canvas(chartElements[i] as HTMLElement);
+      chartImages.push(canvas.toDataURL('image/png'));
+    }
 
-    // return chartImages;
+    return chartImages;
   }
 
   return (

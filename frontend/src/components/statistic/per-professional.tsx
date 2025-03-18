@@ -70,15 +70,15 @@ export function PerProfessional() {
   }, [chartData])
 
   return (
-    <Card>
+    <Card className="card" id="per-professional-card">
       <CardHeader>
-        <CardTitle>Citas por Profesional</CardTitle>
+        <CardTitle className="card-title">Citas por Profesional</CardTitle>
         <CardDescription>
           Total: {totalCitas} citas - ${totalIngresos} en ingresos
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="aspect-auto h-[400px] w-full">
+        <ChartContainer id="per-professional-chart" config={chartConfig} className="aspect-auto h-[400px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               accessibilityLayer
@@ -103,7 +103,13 @@ export function PerProfessional() {
                   className="fill-[--color-label]"
                   fontSize={12}
                 />
-                <LabelList dataKey="total_citas" position="right" offset={8} className="fill-foreground" fontSize={12} />
+                <LabelList
+                  dataKey="total_citas"
+                  position="right"
+                  offset={8}
+                  className="fill-foreground"
+                  fontSize={12}
+                />
               </Bar>
             </BarChart>
           </ResponsiveContainer>

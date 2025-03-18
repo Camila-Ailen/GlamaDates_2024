@@ -104,13 +104,13 @@ export function WeekDay() {
   }, [chartData])
 
   return (
-    <Card className="flex flex-col">
+    <Card className="card flex flex-col" id="week-day-card">
       <CardHeader className="items-center pb-0">
-        <CardTitle>Citas por Día</CardTitle>
+        <CardTitle className="card-title">Citas por Día</CardTitle>
         <CardDescription>Distribución semanal (No se incluyen citas canceladas)</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
-        <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[250px]">
+        <ChartContainer id="week-day-chart" config={chartConfig} className="mx-auto aspect-square max-h-[250px]">
           <PieChart>
             <ChartTooltip cursor={false} content={<CustomTooltip />} />
             <Pie data={chartData} dataKey="count" nameKey="day" innerRadius={60} strokeWidth={5}>

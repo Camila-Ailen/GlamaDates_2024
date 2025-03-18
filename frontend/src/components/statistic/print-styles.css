@@ -1,0 +1,52 @@
+@media print {
+    /* Estilos generales para impresión */
+    body {
+      background-color: white !important;
+      color: black !important;
+      font-size: 12pt !important;
+    }
+  
+    /* Asegurarse de que las imágenes se impriman correctamente */
+    img {
+      max-width: 100% !important;
+      page-break-inside: avoid !important;
+    }
+  
+    /* Evitar saltos de página dentro de secciones */
+    section {
+      page-break-inside: avoid !important;
+    }
+  
+    /* Asegurarse de que las tablas se impriman correctamente */
+    table {
+      page-break-inside: avoid !important;
+      border-collapse: collapse !important;
+    }
+  
+    /* Añadir números de página */
+    .print-page-number:after {
+      content: "Página " counter(page) " de " counter(pages);
+      display: block;
+      text-align: center;
+      margin-top: 10px;
+    }
+  
+    /* Ocultar elementos que no deben imprimirse */
+    .print:hidden {
+      display: none !important;
+    }
+  
+    /* Asegurarse de que los fondos y colores se impriman */
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+  
+    /* Ajustar márgenes de página */
+    @page {
+      margin: 1cm;
+      size: A4 portrait;
+    }
+  }
+  
+  

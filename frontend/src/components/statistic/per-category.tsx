@@ -46,7 +46,10 @@ export function PerCategory() {
   const chartData = React.useMemo(() => {
     if (!perCategory || !perCategory.totals || !perCategory.totals.length) return []
 
-    const totalCitas = perCategory.totals.reduce((acc: number, curr: { total_citas?: number }) => acc + (curr.total_citas || 0), 0)
+    const totalCitas = perCategory.totals.reduce(
+      (acc: number, curr: { total_citas?: number }) => acc + (curr.total_citas || 0),
+      0,
+    )
 
     return perCategory.totals.map((item: { categoria: string; total_citas?: number; total_ingresos?: number }) => ({
       categoria: item.categoria,
@@ -67,15 +70,15 @@ export function PerCategory() {
   }, [chartData])
 
   return (
-    <Card>
+    <Card className="card" id="per-category-card">
       <CardHeader>
-        <CardTitle>Citas por Categoría</CardTitle>
+        <CardTitle className="card-title">Citas por Categoría</CardTitle>
         <CardDescription>
           Total: {totalCitas} citas - ${totalIngresos} en ingresos
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="aspect-auto h-[400px] w-full">
+        <ChartContainer id="per-category-chart" config={chartConfig} className="aspect-auto h-[400px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               accessibilityLayer
@@ -123,17 +126,19 @@ export function PerCategory() {
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 text-sm">
         <div className="grid grid-cols-2 w-full gap-4">
-          {chartData.map((item: { categoria: string; total_citas: number; total_ingresos: number; percentage: string }) => (
-            <div key={item.categoria} className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full" style={{ backgroundColor: "var(--color-total_citas)" }} />
-              <div className="flex flex-col">
-                <span className="font-medium">{item.categoria}</span>
-                <span className="text-xs text-muted-foreground">
-                  {item.total_citas} citas ({item.percentage}%) - ${item.total_ingresos}
-                </span>
+          {chartData.map(
+            (item: { categoria: string; total_citas: number; total_ingresos: number; percentage: string }) => (
+              <div key={item.categoria} className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full" style={{ backgroundColor: "var(--color-total_citas)" }} />
+                <div className="flex flex-col">
+                  <span className="font-medium">{item.categoria}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {item.total_citas} citas ({item.percentage}%) - ${item.total_ingresos}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            ),
+          )}
         </div>
       </CardFooter>
     </Card>
