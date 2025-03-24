@@ -46,6 +46,19 @@ export class AppointmentController extends BaseController {
   ////////////////////////////////////////////////////
   ////////////////////////////////////////////////////
 
+  @Get('updatePendingToInactive')
+@Auth('update:appointments') // Asegúrate de que el usuario tenga permisos para esta acción
+async updatePendingToDelinquent(): Promise<ResposeDTO> {
+  await this.appointmentService.updatePendingToInactive();
+  return {
+    status: 'success',
+    // message: 'Citas pendientes actualizadas a moroso correctamente.',
+  };
+}
+
+  ////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
+
 
   // Trae los horarios disponibles para un paquete
   @Get('availability2/:packageId')
@@ -84,7 +97,6 @@ export class AppointmentController extends BaseController {
   async allByUser(@Req() request: { user: User }, @Query() query: PaginationAppointmentDto): Promise<ResposeDTO> {
     const user = request.user;
     const appointments = await this.appointmentService.allByUser(user, { query });
-    console.log('data: ', appointments);
     return { status: 'success', data: appointments };
   }
 
@@ -96,7 +108,6 @@ export class AppointmentController extends BaseController {
   async allByUserDates(@Req() request: { user: User }): Promise<ResposeDTO> {
     const user = request.user;
     const appointments = await this.appointmentService.allByUserDates(user);
-    console.log('data: ', appointments);
     return { status: 'success', data: appointments };
   }
 

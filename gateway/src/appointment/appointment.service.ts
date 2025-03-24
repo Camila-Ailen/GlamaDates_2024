@@ -27,12 +27,13 @@ import { MailerService } from "@/mailer/mailer.service";
 import * as fs from 'fs';
 import * as path from 'path';
 import { ok } from "assert";
+import { Cron } from "@nestjs/schedule";
 
 @Injectable()
 export class AppointmentService {
   // @Inject((forwardRef(() => MercadopagoService)))
-  @Inject(MercadopagoService)
-  private mercadopagoService: MercadopagoService;
+  // @Inject(MercadopagoService)
+  // private mercadopagoService: MercadopagoService;
 
   @Inject(PaymentService)
   private paymentService: PaymentService;
@@ -42,6 +43,8 @@ export class AppointmentService {
 
   constructor(
 
+    @Inject(forwardRef(() => MercadopagoService))
+    private readonly mercadopagoService: MercadopagoService,
 
     @InjectRepository(Appointment)
     private readonly appointmentRepository: Repository<Appointment>,
@@ -934,6 +937,49 @@ export class AppointmentService {
   }
 
 
+  //////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+  // Funcion para actualizar a inactiva la cita
+  @Cron("11 19 * * *") // Se ejecuta cada dia a las 23:59
+  async updatePendingToInactive(): Promise<void> {
+    try {
+      console.log('Actualizando citas de PENDIENTE a INACTIVO...');
+      const todayStart = startOfDay(new Date());
+      const todayEnd = endOfDay(new Date());
+
+      console.log('Hoy inicio: ', todayStart);
+      console.log('Hoy fin: ', todayEnd);
+
+      // Encuentra todas las citas pendientes que se realizaron hoy
+      const pendingAppointments = await this.appointmentRepository.find({
+        where: {
+          state: AppointmentState.PENDING,
+          datetimeStart: Between(todayStart, todayEnd),
+        },
+      });
+
+      // Cambia el estado de las citas encontradas a "INACTIVO"
+      for (const appointment of pendingAppointments) {
+        appointment.state = AppointmentState.INACTIVE;
+        await this.appointmentRepository.save(appointment);
+      }
+
+      console.log(
+        `Se actualizaron ${pendingAppointments.length} citas de PENDIENTE a INACTIVO.`
+      );
+    } catch (error) {
+      console.error(
+        "Error al actualizar las citas de PENDIENTE a INACTIVO:",
+        error
+      );
+      throw new HttpException(
+        "Error al actualizar las citas",
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+
 
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
@@ -1313,16 +1359,16 @@ export class AppointmentService {
     //     .getRawMany();
 
     const totals = await this.appointmentRepository
-        .createQueryBuilder('appointments')
-        .leftJoin('appointments.payments', 'payments')
-        .select(`SUM(CASE WHEN "payments"."status" = 'PENDIENTE' AND "appointments"."state" != 'CANCELADO' THEN 1 ELSE 0 END)::int`, 'total_pendiente_pago')
-        .addSelect(`SUM(CASE WHEN "payments"."amount" > 0 AND "payments"."payment_method" = 'EFECTIVO' THEN 1 ELSE 0 END)::int`, 'total_efectivo')
-        // .addSelect(`SUM(CASE WHEN "payments"."amount" > 0 AND "payments"."payment_method" = 'TRANSFERENCIA' THEN 1 ELSE 0 END)::int`, 'total_transferencia')
-        // .addSelect(`SUM(CASE WHEN "payments"."amount" > 0 AND "payments"."payment_method" = 'TARJETA DEBITO' THEN 1 ELSE 0 END)::int`, 'total_tarjeta_debito')
-        // .addSelect(`SUM(CASE WHEN "payments"."amount" > 0 AND "payments"."payment_method" = 'TARJETA CREDITO' THEN 1 ELSE 0 END)::int`, 'total_tarjeta_credito')
-        .addSelect(`SUM(CASE WHEN "payments"."amount" > 0 AND "payments"."payment_method" = 'MERCADOPAGO' THEN 1 ELSE 0 END)::int`, 'total_mercadopago')
-        .where(`"appointments"."datetimeStart" BETWEEN '${begin}' AND '${endDate}'`)
-        .getRawOne();
+      .createQueryBuilder('appointments')
+      .leftJoin('appointments.payments', 'payments')
+      .select(`SUM(CASE WHEN "payments"."status" = 'PENDIENTE' AND "appointments"."state" != 'CANCELADO' THEN 1 ELSE 0 END)::int`, 'total_pendiente_pago')
+      .addSelect(`SUM(CASE WHEN "payments"."amount" > 0 AND "payments"."payment_method" = 'EFECTIVO' THEN 1 ELSE 0 END)::int`, 'total_efectivo')
+      // .addSelect(`SUM(CASE WHEN "payments"."amount" > 0 AND "payments"."payment_method" = 'TRANSFERENCIA' THEN 1 ELSE 0 END)::int`, 'total_transferencia')
+      // .addSelect(`SUM(CASE WHEN "payments"."amount" > 0 AND "payments"."payment_method" = 'TARJETA DEBITO' THEN 1 ELSE 0 END)::int`, 'total_tarjeta_debito')
+      // .addSelect(`SUM(CASE WHEN "payments"."amount" > 0 AND "payments"."payment_method" = 'TARJETA CREDITO' THEN 1 ELSE 0 END)::int`, 'total_tarjeta_credito')
+      .addSelect(`SUM(CASE WHEN "payments"."amount" > 0 AND "payments"."payment_method" = 'MERCADOPAGO' THEN 1 ELSE 0 END)::int`, 'total_mercadopago')
+      .where(`"appointments"."datetimeStart" BETWEEN '${begin}' AND '${endDate}'`)
+      .getRawOne();
 
     return { totals };
   }
@@ -1331,7 +1377,7 @@ export class AppointmentService {
   //////////////////////////////////////////////////////////
   async getDelinquentClientStatistics(begin: string, end: string): Promise<any> {
     const result = await this.appointmentRepository
-       
+
   }
 
   //////////////////////////////////////////////////////////
@@ -1355,41 +1401,41 @@ export class AppointmentService {
     //     .getRawMany();
 
     const totals = await this.appointmentRepository
-        .createQueryBuilder('appointments')
-        .leftJoin('appointments.package', 'package')
-        .leftJoin('package.services', 'services')
-        .leftJoin('services.category', 'category')
-        .select('category.name', 'categoria')
-        .addSelect('COUNT(*)::int', 'total_citas')
-        .addSelect('SUM("appointments"."total")::float', 'total_ingresos')
-        .where(`"appointments"."datetimeStart" BETWEEN '${begin}' AND '${endDate}'`)
-        .andWhere(`"appointments"."state" NOT IN ('CANCELADO', 'INACTIVO')`)
-        .groupBy('category.name')
-        .getRawMany();
+      .createQueryBuilder('appointments')
+      .leftJoin('appointments.package', 'package')
+      .leftJoin('package.services', 'services')
+      .leftJoin('services.category', 'category')
+      .select('category.name', 'categoria')
+      .addSelect('COUNT(*)::int', 'total_citas')
+      .addSelect('SUM("appointments"."total")::float', 'total_ingresos')
+      .where(`"appointments"."datetimeStart" BETWEEN '${begin}' AND '${endDate}'`)
+      .andWhere(`"appointments"."state" NOT IN ('CANCELADO', 'INACTIVO')`)
+      .groupBy('category.name')
+      .getRawMany();
 
     return { totals };
-}
+  }
 
-////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////
-async getPerProfessionalStatistics(begin: string, end: string): Promise<any> {
-  const endDate = end + ' 23:00:00';
-  // const result = await this.appointmentRepository
-  //     .createQueryBuilder('appointments')
-  //     .leftJoin('appointments.details', 'details')
-  //     .leftJoin('details.employee', 'employee')
-  //     .select('DATE_TRUNC(\'day\', "appointments"."datetimeStart")', 'fecha')
-  //     .addSelect('employee.email', 'correo')
-  //     .addSelect('CONCAT(employee.firstName, \' \', employee.lastName)', 'profesional')
-  //     .addSelect('COUNT(*)::int', 'total_citas')
-  //     .addSelect('SUM("appointments"."total")::float', 'total_ingresos')
-  //     .where(`"appointments"."datetimeStart" BETWEEN '${begin}' AND '${endDate}'`)
-  //     .andWhere(`"appointments"."state" NOT IN ('CANCELADO', 'INACTIVO')`)
-  //     .groupBy('DATE_TRUNC(\'day\', "appointments"."datetimeStart"), employee.email, employee.firstName, employee.lastName')
-  //     .orderBy('fecha')
-  //     .getRawMany();
+  ////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+  async getPerProfessionalStatistics(begin: string, end: string): Promise<any> {
+    const endDate = end + ' 23:00:00';
+    // const result = await this.appointmentRepository
+    //     .createQueryBuilder('appointments')
+    //     .leftJoin('appointments.details', 'details')
+    //     .leftJoin('details.employee', 'employee')
+    //     .select('DATE_TRUNC(\'day\', "appointments"."datetimeStart")', 'fecha')
+    //     .addSelect('employee.email', 'correo')
+    //     .addSelect('CONCAT(employee.firstName, \' \', employee.lastName)', 'profesional')
+    //     .addSelect('COUNT(*)::int', 'total_citas')
+    //     .addSelect('SUM("appointments"."total")::float', 'total_ingresos')
+    //     .where(`"appointments"."datetimeStart" BETWEEN '${begin}' AND '${endDate}'`)
+    //     .andWhere(`"appointments"."state" NOT IN ('CANCELADO', 'INACTIVO')`)
+    //     .groupBy('DATE_TRUNC(\'day\', "appointments"."datetimeStart"), employee.email, employee.firstName, employee.lastName')
+    //     .orderBy('fecha')
+    //     .getRawMany();
 
-  const totals = await this.appointmentRepository
+    const totals = await this.appointmentRepository
       .createQueryBuilder('appointments')
       .leftJoin('appointments.details', 'details')
       .leftJoin('details.employee', 'employee')
@@ -1402,54 +1448,54 @@ async getPerProfessionalStatistics(begin: string, end: string): Promise<any> {
       .groupBy('employee.email, employee.firstName, employee.lastName')
       .getRawMany();
 
-  return { totals };
-}
+    return { totals };
+  }
 
-////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
   async getPerDayStatistics(begin: string, end: string): Promise<any> {
-      const endDate = end + ' 23:00:00';
-  
-      // Obtener los días abiertos desde la configuración del sistema
-      const config = await this.configService.getSystemConfig();
-      const openDays = config.openDays;
-  
-      // Crear una estructura para almacenar los resultados, incluyendo los días con 0 citas
-      const daysOfWeek = [
-          { day: 'Sunday', count: 0 },
-          { day: 'Monday', count: 0 },
-          { day: 'Tuesday', count: 0 },
-          { day: 'Wednesday', count: 0 },
-          { day: 'Thursday', count: 0 },
-          { day: 'Friday', count: 0 },
-          { day: 'Saturday', count: 0 },
-      ];
-  
-      // Filtrar los días abiertos
-      const openDaysOfWeek = daysOfWeek.filter(day => openDays.includes(DaysOfWeek[day.day.toUpperCase() as keyof typeof DaysOfWeek]));
-  
-      // Realizar la consulta para obtener la cantidad de detalles de turno por día
-      const result = await this.appointmentRepository
-          .createQueryBuilder('appointments')
-          .leftJoin('appointments.details', 'details')
-          .select('DATE_TRUNC(\'day\', "appointments"."datetimeStart")', 'fecha')
-          .addSelect('COUNT(details.id)::int', 'total_detalles')
-          .where(`"appointments"."datetimeStart" BETWEEN '${begin}' AND '${endDate}'`)
-          .andWhere(`"appointments"."state" NOT IN ('CANCELADO', 'INACTIVO')`)
-          .groupBy('DATE_TRUNC(\'day\', "appointments"."datetimeStart")')
-          .orderBy('fecha')
-          .getRawMany();
-  
-      // Combinar los resultados de la consulta con la estructura inicial
-      result.forEach(row => {
-          const dayOfWeek = format(new Date(row.fecha), 'EEEE');
-          const day = openDaysOfWeek.find(d => d.day === dayOfWeek);
-          if (day) {
-              day.count += row.total_detalles;
-          }
-      });
-  
-      return openDaysOfWeek;
+    const endDate = end + ' 23:00:00';
+
+    // Obtener los días abiertos desde la configuración del sistema
+    const config = await this.configService.getSystemConfig();
+    const openDays = config.openDays;
+
+    // Crear una estructura para almacenar los resultados, incluyendo los días con 0 citas
+    const daysOfWeek = [
+      { day: 'Sunday', count: 0 },
+      { day: 'Monday', count: 0 },
+      { day: 'Tuesday', count: 0 },
+      { day: 'Wednesday', count: 0 },
+      { day: 'Thursday', count: 0 },
+      { day: 'Friday', count: 0 },
+      { day: 'Saturday', count: 0 },
+    ];
+
+    // Filtrar los días abiertos
+    const openDaysOfWeek = daysOfWeek.filter(day => openDays.includes(DaysOfWeek[day.day.toUpperCase() as keyof typeof DaysOfWeek]));
+
+    // Realizar la consulta para obtener la cantidad de detalles de turno por día
+    const result = await this.appointmentRepository
+      .createQueryBuilder('appointments')
+      .leftJoin('appointments.details', 'details')
+      .select('DATE_TRUNC(\'day\', "appointments"."datetimeStart")', 'fecha')
+      .addSelect('COUNT(details.id)::int', 'total_detalles')
+      .where(`"appointments"."datetimeStart" BETWEEN '${begin}' AND '${endDate}'`)
+      .andWhere(`"appointments"."state" NOT IN ('CANCELADO', 'INACTIVO')`)
+      .groupBy('DATE_TRUNC(\'day\', "appointments"."datetimeStart")')
+      .orderBy('fecha')
+      .getRawMany();
+
+    // Combinar los resultados de la consulta con la estructura inicial
+    result.forEach(row => {
+      const dayOfWeek = format(new Date(row.fecha), 'EEEE');
+      const day = openDaysOfWeek.find(d => d.day === dayOfWeek);
+      if (day) {
+        day.count += row.total_detalles;
+      }
+    });
+
+    return openDaysOfWeek;
   }
 
 
