@@ -404,7 +404,7 @@ export class AppointmentService {
 
       suggestions.push(...futureAppointments);
     }
-    console.log('sugerencias buscadas')
+    // console.log('sugerencias buscadas')
 
     return suggestions;
   }
@@ -414,7 +414,7 @@ export class AppointmentService {
     console.log('Notificando a los clientes para reacomodar la cita');
     const suggestions = await this.suggestReappointments(cancelledAppointment);
 
-    console.log('Sugerencias:', suggestions.length);
+    // console.log('Sugerencias:', suggestions.length);
     if (suggestions.length === 0) {
       return;
     }

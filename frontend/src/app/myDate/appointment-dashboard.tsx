@@ -7,6 +7,7 @@ import { PendingAppointments } from "@/components/appointments/pending-appointme
 import { useMyDatesStore } from "@/app/store/useMyDatesStore"
 import useAuthStore from "@/app/store/useAuthStore"
 import { toast } from "sonner"
+import RearrangeForm from "@/components/edit/rearrange"
 
 export function AppointmentDashboard() {
   const {
@@ -114,6 +115,7 @@ export function AppointmentDashboard() {
           }}
         />
       </div>
+      <RearrangeForm />
     </div>
   )
 }

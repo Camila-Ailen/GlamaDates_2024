@@ -16,7 +16,7 @@ export class PackageController {
 //   @Auth('read:users')
   @ApiOperation({ summary: 'Get all packages' })
   async all(@Query() query: PaginationPackageDto): Promise<ResposeDTO> {
-    console.log("desde el controlador: ", query);
+    // console.log("desde el controlador: ", query);
     const packages = await this.packageService.all({ query });
     return { status: 'success', data: packages };
   }

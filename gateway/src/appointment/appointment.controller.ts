@@ -124,6 +124,7 @@ export class AppointmentController extends BaseController {
     @Query('datetimeStart') datetimeStart: string
   ): Promise<{ available: boolean }> {
     const available = await this.appointmentService.isPackageAssignable(packageId, new Date(datetimeStart));
+    console.log('available: ', available);
     return { available };
   }
 

@@ -64,7 +64,7 @@ export const useMyDatesStore = create<MyDatesState>((set, get) => ({
                 return;
             } 
 
-            console.log('response.status: ', response);
+            // console.log('response.status: ', response);
             
             if (!response.ok) throw new Error("Error al obtener mis citas");
             const data = await response.json();
