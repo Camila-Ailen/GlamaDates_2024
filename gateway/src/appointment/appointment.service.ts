@@ -1098,6 +1098,25 @@ export class AppointmentService {
     }
   }
 
+  //////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+  async allByUserDates(user: User): Promise<Appointment[]> {
+    try {
+      const [appointments, total] = await this.appointmentRepository.findAndCount({
+        where: {
+          deletedAt: IsNull(),
+          state: Not(AppointmentState.CANCELLED),
+          client: { id: user.id },
+        },
+        relations: ['details', 'details.employee', 'details.workstation', 'details.service', 'client', 'package', 'package.services', 'package.services.category', 'payments'],
+      });
+
+      return appointments;
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
 
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////

@@ -39,9 +39,6 @@ export function AppointmentDashboard() {
     return null
   }
 
-    // Filtrar citas canceladas
-    const activeAppointments = myDates.filter((appointment) => appointment.state !== "CANCELLED")
-
   // Convertir las fechas de string a objetos Date
   const appointmentsWithDates = myDates.map((appointment) => ({
     ...appointment,

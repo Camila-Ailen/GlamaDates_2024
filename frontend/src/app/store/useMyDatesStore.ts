@@ -47,9 +47,7 @@ export const useMyDatesStore = create<MyDatesState>((set, get) => ({
             const response = await fetch(
                 `${
                     process.env.NEXT_PUBLIC_BACKEND_URL
-                }/api/appointment/user?orderBy=${orderBy}&orderType=${orderType}&offset=${
-                    (currentPage - 1) * pageSize
-                }&pageSize=${pageSize}&filter=${filter}`,
+                }/api/appointment/userDates`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -68,10 +66,11 @@ export const useMyDatesStore = create<MyDatesState>((set, get) => ({
             
             if (!response.ok) throw new Error("Error al obtener mis citas");
             const data = await response.json();
+            console.log('data: ', data);
             set({
-                myDates: data.data.results,
-                total: data.data.total,
-                currentPage,
+                myDates: data.data,
+                // total: data.data.total,
+                // currentPage,
                 isLoading: false,
             });
         } catch (error) {
