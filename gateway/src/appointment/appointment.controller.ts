@@ -47,14 +47,20 @@ export class AppointmentController extends BaseController {
   ////////////////////////////////////////////////////
 
   @Get('updatePendingToInactive')
-@Auth('update:appointments') // Asegúrate de que el usuario tenga permisos para esta acción
-async updatePendingToDelinquent(): Promise<ResposeDTO> {
-  await this.appointmentService.updatePendingToInactive();
-  return {
-    status: 'success',
-    // message: 'Citas pendientes actualizadas a moroso correctamente.',
-  };
-}
+  @Auth('update:appointments') // Asegúrate de que el usuario tenga permisos para esta acción
+  async updatePendingToDelinquent(): Promise<ResposeDTO> {
+    await this.appointmentService.updatePendingToInactive();
+    return {
+      status: 'success',
+      // message: 'Citas pendientes actualizadas a moroso correctamente.',
+    };
+  }
+
+  /////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
+  // Cambiar estado desde el profesional //
+  @Get('changeState/:id')
+  @Auth('update:appointments')
 
   ////////////////////////////////////////////////////
   ////////////////////////////////////////////////////
@@ -103,7 +109,7 @@ async updatePendingToDelinquent(): Promise<ResposeDTO> {
   ////////////////////////////////////////////////////
   ////////////////////////////////////////////////////
   // Trae los turnos de un usuario para el calendario
-  @Get('userDates') 
+  @Get('userDates')
   @Auth('read:mydate-calendar')
   async allByUserDates(@Req() request: { user: User }): Promise<ResposeDTO> {
     const user = request.user;
@@ -140,7 +146,7 @@ async updatePendingToDelinquent(): Promise<ResposeDTO> {
 
   ////////////////////////////////////////////////////
   ////////////////////////////////////////////////////
-  @Get('isAvailable')  
+  @Get('isAvailable')
   @Auth('read:availableappointments')
   async checkAvailability(
     @Query('packageId') packageId: number,
@@ -181,7 +187,7 @@ async updatePendingToDelinquent(): Promise<ResposeDTO> {
       status: 'success',
       data: await this.appointmentService.rearrange({ id: params.id, body: body }),
     };
-  } 
+  }
 
   ////////////////////////////////////////////////////
   ////////////////////////////////////////////////////
@@ -238,7 +244,7 @@ async updatePendingToDelinquent(): Promise<ResposeDTO> {
   @Auth('read:appointments')
   async getDatesStatistics(@Query('begin') begin: string, @Query('end') end: string): Promise<any> {
     const statistics = await this.appointmentService.getDatesStatistics(begin, end);
-    return statistics; 
+    return statistics;
   }
 
   ////////////////////////////////////////////////////

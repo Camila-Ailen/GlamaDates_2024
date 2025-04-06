@@ -93,7 +93,7 @@ const usePackageStore = create<PackageState>((set, get) => ({
             console.log("response: ", response);
             if (!response.ok) throw new Error('Error al obtener paquetes')
             const data = await response.json()
-        console.log("data: ", data);
+        // console.log("data: ", data);
             set({ packages: data.data.results, total: data.data.total, currentPage, isLoading: false })
         } catch (error) {
             set({ error: (error as any).message, isLoading: false })
