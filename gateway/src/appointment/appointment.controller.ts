@@ -65,8 +65,15 @@ export class AppointmentController extends BaseController {
     const appointment = await this.appointmentService.progressState(params.id);
     return {
       status: 'success',
-      data: appointment,
     };
+  }
+
+  // Cambiar estado de completado del servicio desde el profesional //
+  @Get('complete/:id')
+  @Auth('update:appointments')
+  async complete(@Param() params: IdDTO): Promise<ResposeDTO> {
+    const appointment = await this.appointmentService.completedService(params.id);
+    return { status: 'success', data: appointment };
   }
 
   ////////////////////////////////////////////////////

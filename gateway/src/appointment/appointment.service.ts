@@ -979,7 +979,7 @@ export class AppointmentService {
     }
   }
 
-  /////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
   // Funcion para actualizar a cita en progreso
   async progressState(id: number): Promise<void> {
@@ -1005,6 +1005,86 @@ export class AppointmentService {
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
+
+  /////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////
+  // Marcar como completado el servicio de un turno (desde el profesional)
+  async completedService(id: number) {
+    try {
+      const detailappointment = await this.detailsAppointmentRepository.findOne({
+        where: { id },
+        relations: ['appointment'],
+      });
+
+      if (!detailappointment) {
+        throw new HttpException('Detail Appointment not found', HttpStatus.NOT_FOUND);
+      }
+
+      detailappointment.isCompleted = true;
+      await this.detailsAppointmentRepository.save(detailappointment);
+
+
+      const appointment = await this.appointmentRepository.findOne({
+        where: { id: detailappointment.appointment.id },
+        relations: ['details', 'details.service'],
+      });
+      if (!appointment) {
+        throw new HttpException('Appointment not found', HttpStatus.NOT_FOUND);
+      }
+
+      if (appointment.state === AppointmentState.COMPLETED) {
+        throw new HttpException('Appointment already completed', HttpStatus.BAD_REQUEST);
+      }
+      if (appointment.state === AppointmentState.CANCELLED) {
+        throw new HttpException('Appointment already cancelled', HttpStatus.BAD_REQUEST);
+      }
+      if (appointment.state === AppointmentState.INACTIVE) {
+        throw new HttpException('Appointment already inactive', HttpStatus.BAD_REQUEST);
+      }
+      if (appointment.state === AppointmentState.DELINQUENT) {
+        throw new HttpException('Appointment already delinquent', HttpStatus.BAD_REQUEST);
+      }
+
+      if (appointment.state === AppointmentState.PENDING) {
+        appointment.state = AppointmentState.IN_PROGRESS_UNPAID;
+      }
+      if (appointment.state === AppointmentState.ACTIVE) {
+        appointment.state = AppointmentState.IN_PROGRESS_PAY;
+      }
+
+      // queda moroso
+      if (appointment.state === AppointmentState.IN_PROGRESS_UNPAID)  {
+        const allDetailsCompleted = appointment.details.every(detail => detail.isCompleted);
+        if (allDetailsCompleted) {
+          appointment.state = AppointmentState.DELINQUENT;
+        } else {
+          appointment.state = AppointmentState.IN_PROGRESS_UNPAID;
+        }
+      }
+
+      // queda completado
+      if (appointment.state === AppointmentState.IN_PROGRESS_PAY) {
+        const allDetailsCompleted = appointment.details.every(detail => detail.isCompleted);
+        if (allDetailsCompleted) {
+          appointment.state = AppointmentState.COMPLETED;
+        } else {
+          appointment.state = AppointmentState.IN_PROGRESS_PAY;
+        }
+      }
+
+      await this.appointmentRepository.save(appointment);
+
+    }
+    catch (error) {
+      console.error(error);
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////
+  // cambiar estado del turno (con analisis de servicios en el turno)
+
 
 
   //////////////////////////////////////////////////////////
