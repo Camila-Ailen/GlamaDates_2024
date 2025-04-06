@@ -59,13 +59,13 @@ export function ProfessionalDashboard() {
 
   // Filtrar citas de la semana
   const weeklyAppointments = appointmentsWithDates.filter(
-    (appointment) => isThisWeek(appointment.dateObj, { weekStartsOn: 1 }), // Semana comienza el lunes
+    (appointment) => isThisWeek(appointment.dateObj, { weekStartsOn: 0 }), // Semana comienza el domingo
   )
 
   // Agrupar citas por día de la semana
   const today = new Date()
-  const weekStart = startOfWeek(today, { weekStartsOn: 1 }) // Lunes
-  const weekEnd = endOfWeek(today, { weekStartsOn: 1 }) // Domingo
+  const weekStart = startOfWeek(today, { weekStartsOn: 0 }) // Domingo
+  const weekEnd = endOfWeek(today, { weekStartsOn: 0 }) // Sabado
 
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const day = addDays(weekStart, i)

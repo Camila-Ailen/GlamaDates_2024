@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -47,7 +46,7 @@ export function ProfessionalAppointmentCard({
   return (
     <Card
       className={cn(
-        "transition-colors border-l-4",
+        "transition-colors border-l-4 w-full",
         getStatusColor(appointment.state),
         compact ? "p-2" : "",
         onClick ? "cursor-pointer" : "",
@@ -55,8 +54,10 @@ export function ProfessionalAppointmentCard({
       onClick={onClick}
     >
       <CardHeader className={cn("pb-2", compact ? "p-2" : "")}>
-        <div className="flex justify-between items-start">
-          <CardTitle className={cn("text-blue-700", compact ? "text-sm" : "")}>{appointment.package.name}</CardTitle>
+        <div className="flex justify-between items-start flex-wrap">
+          <CardTitle className={cn("text-primary", compact ? "text-sm" : "", "break-words")}>
+            {appointment.package.name}
+          </CardTitle>
           <span
             className={cn(
               "inline-block px-2 py-1 rounded-full text-xs font-medium",
@@ -72,15 +73,19 @@ export function ProfessionalAppointmentCard({
             {appointment.state}
           </span>
         </div>
-        <CardDescription className={cn(compact ? "text-xs" : "")}>
-          <div className="flex items-center gap-1 mt-1">
-            <Clock className="h-3 w-3" />
-            {format(new Date(appointment.datetimeStart), "d MMM", { locale: es })} •
-            {format(new Date(appointment.datetimeStart), " HH:mm")} hs
+        <CardDescription className={cn(compact ? "text-xs" : "", "break-words")}>
+          <div className="flex items-center gap-1 mt-1 flex-wrap">
+            <Clock className="h-3 w-3 flex-shrink-0" />
+            <span className="truncate">
+              {format(new Date(appointment.datetimeStart), "d MMM", { locale: es })} •
+              {format(new Date(appointment.datetimeStart), " HH:mm")} hs
+            </span>
           </div>
-          <div className="flex items-center gap-1 mt-1">
-            <User className="h-3 w-3" />
-            {appointment.client.firstName} {appointment.client.lastName}
+          <div className="flex items-center gap-1 mt-1 flex-wrap">
+            <User className="h-3 w-3 flex-shrink-0" />
+            <span className="truncate">
+              {appointment.client.firstName} {appointment.client.lastName}
+            </span>
           </div>
         </CardDescription>
       </CardHeader>
