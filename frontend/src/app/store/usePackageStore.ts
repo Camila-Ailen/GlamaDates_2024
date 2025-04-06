@@ -3,27 +3,27 @@ import useAuthStore from './useAuthStore'
 import { toast } from 'sonner'
 import { off } from 'process'
 
-  
-  export interface Service {
-      id: number;
-      name: string;
-      description: string;
-      price: number;
-      duration: number;
-      category: {
+
+export interface Service {
+    id: number;
+    name: string;
+    description: string;
+    price: number;
+    duration: number;
+    category: {
         id: number;
         name: string;
         description: string;
-      }
-  }
-  export interface Package {
-      id: number;
-      name: string;
-      description: string;
-      duration: number;
-      price: number;
-      services: Service[];
-  }
+    }
+}
+export interface Package {
+    id: number;
+    name: string;
+    description: string;
+    duration: number;
+    price: number;
+    services: Service[];
+}
 
 interface PackageState {
     packages: Package[]
@@ -52,7 +52,7 @@ const usePackageStore = create<PackageState>((set, get) => ({
     packages: [],
     total: 0,
     currentPage: 1,
-    pageSize: 20,
+    pageSize: 100,
     isLoading: false,
     error: null,
     orderBy: 'id',
@@ -66,7 +66,7 @@ const usePackageStore = create<PackageState>((set, get) => ({
         const packageData = get().packages.find((packageItem) => packageItem.id === packageId);
         set({ selectedPackage: packageData });
     },
-    
+
 
     fetchPackage: async (page?: number) => {
         const { pageSize, orderBy, orderType, filter } = get()
@@ -90,10 +90,10 @@ const usePackageStore = create<PackageState>((set, get) => ({
                 return;
             }
 
-            console.log("response: ", response);
+
             if (!response.ok) throw new Error('Error al obtener paquetes')
             const data = await response.json()
-        // console.log("data: ", data);
+            console.log("data: ", data);
             set({ packages: data.data.results, total: data.data.total, currentPage, isLoading: false })
         } catch (error) {
             set({ error: (error as any).message, isLoading: false })
