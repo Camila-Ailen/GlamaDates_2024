@@ -118,7 +118,11 @@ export function ProfessionalAppointmentCard({
             </div>
           </CardDescription>
         </CardHeader>
-        {showActions && appointment.state === "PENDIENTE" && (
+        {showActions && appointment.state !== "CANCELADO" 
+                     && appointment.state !== "INACTIVO" 
+                     && appointment.state !== "COMPLETADO" 
+                     && appointment.state !== "MOROSO"
+                     && (
           <CardContent className="pt-0 flex justify-end">
             <Button
               variant="outline"

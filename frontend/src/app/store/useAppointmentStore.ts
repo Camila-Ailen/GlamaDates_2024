@@ -112,7 +112,6 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
 
     fetchCompletedAppointment: async (id: number) => {
         try {
-            console.log('id desde fetchcompleted: ', id);
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/appointment/complete/${id}`,
                 {
