@@ -1009,12 +1009,22 @@ export class AppointmentService {
   /////////////////////////////////////////////////////
   /////////////////////////////////////////////////////
   // Marcar como completado el servicio de un turno (desde el profesional)
-  async completedService(id: number) {
+  async completedService(id: number, user: number) {
     try {
-      const detailappointment = await this.detailsAppointmentRepository.findOne({
-        where: { id },
-        relations: ['appointment'],
-      });
+      // Busca el appointment con sus detalles
+    const appointment = await this.appointmentRepository.findOne({
+      where: { id },
+      relations: ['details', 'details.employee'],
+    });
+
+    if (!appointment) {
+      throw new HttpException('Appointment not found', HttpStatus.NOT_FOUND);
+    }
+
+    // Encuentra el detail relacionado con el empleado logueado
+    const detailappointment = appointment.details.find(
+      (detail) => detail.employee.id === user
+    );
 
       if (!detailappointment) {
         throw new HttpException('Detail Appointment not found', HttpStatus.NOT_FOUND);
@@ -1024,13 +1034,13 @@ export class AppointmentService {
       await this.detailsAppointmentRepository.save(detailappointment);
 
 
-      const appointment = await this.appointmentRepository.findOne({
+      /*const appointment = await this.appointmentRepository.findOne({
         where: { id: detailappointment.appointment.id },
         relations: ['details', 'details.service'],
       });
       if (!appointment) {
         throw new HttpException('Appointment not found', HttpStatus.NOT_FOUND);
-      }
+      }*/
 
       if (appointment.state === AppointmentState.COMPLETED) {
         throw new HttpException('Appointment already completed', HttpStatus.BAD_REQUEST);

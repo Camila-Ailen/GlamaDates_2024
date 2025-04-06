@@ -53,8 +53,8 @@ interface Service {
 }
 
 interface AppointmentHistoryItem {
-  fecha: string;
-  total_turnos: number;
+    fecha: string;
+    total_turnos: number;
 }
 
 interface AppointmentState {
@@ -72,7 +72,8 @@ interface AppointmentState {
     thisMonthAppointments: number
     thisWeekAppointments: number
     lastMonthAppointments: number
-    appointmentHistory: [] 
+    appointmentHistory: []
+    fetchCompletedAppointment: (id: number) => Promise<void>
     fetchOneAppointment: (id: number) => Promise<Appointment | null>
     setSelectedServices: (services: Service[]) => void
     fetchPackageAvailability: (packageId: number, orderBy: string, orderType: 'ASC' | 'DESC', offset: number, pageSize: number) => Promise<string[]>
@@ -108,6 +109,36 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
 
     selectedServices: [],
     setSelectedServices: (services) => set({ selectedServices: services }),
+
+    fetchCompletedAppointment: async (id: number) => {
+        try {
+            console.log('id desde fetchcompleted: ', id);
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/appointment/complete/${id}`,
+                {
+                    method: 'GET',
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            if (response.status === 403) {
+                toast.error("Sesión expirada");
+                useAuthStore.getState().logout();
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error('Error al completar la cita');
+            }
+            toast.success("Cita completada con éxito")
+            return;
+        }
+        catch (error) {
+            console.error(error);
+            return;
+        }
+    },
 
 
     fetchOneAppointment: async (id: number) => {
@@ -345,25 +376,25 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
     fetchAppointmentHistory: async (timeRange) => {
         set({ isLoading: true, error: null });
         try {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/appointment/history?range=${timeRange}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-          if (response.status === 403) {
-            toast.error("Sesión expirada");
-            useAuthStore.getState().logout();
-            return;
-          }
-          if (!response.ok) throw new Error('Error al obtener el historial de turnos');
-          const data = await response.json();
-          console.log(data);
-          set({ appointmentHistory: data, isLoading: false });
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/appointment/history?range=${timeRange}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            if (response.status === 403) {
+                toast.error("Sesión expirada");
+                useAuthStore.getState().logout();
+                return;
+            }
+            if (!response.ok) throw new Error('Error al obtener el historial de turnos');
+            const data = await response.json();
+            console.log(data);
+            set({ appointmentHistory: data, isLoading: false });
         } catch (error) {
-          console.error(error);
-        //   set({ isLoading: false, error: error.message });
+            console.error(error);
+            //   set({ isLoading: false, error: error.message });
         }
-      },
+    },
 
 
 

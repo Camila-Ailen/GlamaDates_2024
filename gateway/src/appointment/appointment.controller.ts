@@ -70,9 +70,9 @@ export class AppointmentController extends BaseController {
 
   // Cambiar estado de completado del servicio desde el profesional //
   @Get('complete/:id')
-  @Auth('update:appointments')
-  async complete(@Param() params: IdDTO): Promise<ResposeDTO> {
-    const appointment = await this.appointmentService.completedService(params.id);
+   @Auth('update:completedappointments')
+  async complete(@Param() params: IdDTO, @Req() request: { user: User }): Promise<ResposeDTO> {
+    const appointment = await this.appointmentService.completedService(params.id, request.user.id);
     return { status: 'success', data: appointment };
   }
 
@@ -140,7 +140,6 @@ export class AppointmentController extends BaseController {
     const user = request.user;
     console.log('user: ', user.id);
     const appointments = await this.appointmentService.allByProfessional(user, { query });
-    console.log('data: ', appointments);
     return { status: 'success', data: appointments };
   }
 
