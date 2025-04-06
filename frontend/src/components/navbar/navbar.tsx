@@ -251,7 +251,7 @@ export function Navbar() {
 
           <div className="ml-auto flex items-center space-x-4">
             <div className="mr-2 text-primary font-semibold">
-              <p>Bienvendi@, {user.firstName} {user.lastName}</p>
+              <p>Hola, {user.firstName} {user.lastName}</p>
             </div>
 
             <ModeToggle />

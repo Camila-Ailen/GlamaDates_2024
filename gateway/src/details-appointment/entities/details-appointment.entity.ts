@@ -27,6 +27,9 @@ import { Appointment } from '@/appointment/entities/appointment.entity';
     @Column({ type: 'timestamp', nullable: true })
     datetimeStart: Date | null;
 
+    @Column({ type: 'boolean', nullable: false, default: false })
+    isCompleted: boolean;
+
     // Relacion con turno
     @ManyToOne(() => Appointment, (appointment) => appointment.details, {
         nullable: false,

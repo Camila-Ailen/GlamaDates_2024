@@ -979,6 +979,32 @@ export class AppointmentService {
     }
   }
 
+  /////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+  // Funcion para actualizar a cita en progreso
+  async progressState(id: number): Promise<void> {
+    try {
+      const appointment = await this.appointmentRepository.findOne({
+        where: { id },
+        relations: ['details', 'details.service', 'details.service.category', 'details.employee'],
+      });
+
+      if (!appointment) {
+        throw new HttpException('Appointment not found', HttpStatus.NOT_FOUND);
+      }
+
+      if (appointment.state === AppointmentState.ACTIVE) {
+        throw new HttpException('Appointment already in progress', HttpStatus.BAD_REQUEST);
+      }
+
+      appointment.state = AppointmentState.ACTIVE;
+      await this.appointmentRepository.save(appointment);
+    }
+    catch (error) {
+      console.error(error);
+      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
 
 
   //////////////////////////////////////////////////////////

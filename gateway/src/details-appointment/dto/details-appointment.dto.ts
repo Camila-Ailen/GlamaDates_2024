@@ -1,6 +1,6 @@
 
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDate, IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsDate, IsEnum, IsOptional, IsString } from 'class-validator';
 import { App } from 'supertest/types';
 import { User } from '@/users/entities/user.entity';
 import { Workstation } from '@/workstation/entities/workstation.entity';
@@ -25,6 +25,11 @@ export class DetailsAppointmentDto {
     @Transform(({ value }) => new Date(value))
     @IsDate()
     datetimeStart: Date;
+
+    @ApiProperty({ required: false, type: 'boolean' })
+    @IsOptional()
+    @IsBoolean()
+    isCompleted: boolean;
 
     @ApiProperty({ required: false, type: 'string' })
     @IsOptional()

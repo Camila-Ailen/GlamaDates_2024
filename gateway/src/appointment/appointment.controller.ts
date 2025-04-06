@@ -47,7 +47,7 @@ export class AppointmentController extends BaseController {
   ////////////////////////////////////////////////////
 
   @Get('updatePendingToInactive')
-  @Auth('update:appointments') // Asegúrate de que el usuario tenga permisos para esta acción
+  @Auth('update:appointments') 
   async updatePendingToDelinquent(): Promise<ResposeDTO> {
     await this.appointmentService.updatePendingToInactive();
     return {
@@ -59,8 +59,15 @@ export class AppointmentController extends BaseController {
   /////////////////////////////////////////////////////
   ////////////////////////////////////////////////////
   // Cambiar estado desde el profesional //
-  @Get('changeState/:id')
+  @Get('progressState/:id')
   @Auth('update:appointments')
+  async progressState(@Param() params: IdDTO): Promise<ResposeDTO> {
+    const appointment = await this.appointmentService.progressState(params.id);
+    return {
+      status: 'success',
+      data: appointment,
+    };
+  }
 
   ////////////////////////////////////////////////////
   ////////////////////////////////////////////////////
