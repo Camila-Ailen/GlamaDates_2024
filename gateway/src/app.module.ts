@@ -15,6 +15,7 @@ import { DetailsAppointmentModule } from './details-appointment/details-appointm
 import { PaymentModule } from './payment/payment.module';
 import { MercadopagoModule } from './mercadopago/mercadopago.module';
 import { MailerService } from './mailer/mailer.service';
+import { AuditoriaModule } from './auditoria/auditoria.module';
 
 @Module({
     imports: [
@@ -35,6 +36,7 @@ import { MailerService } from './mailer/mailer.service';
         DetailsAppointmentModule,
         PaymentModule,
         MercadopagoModule,
+        AuditoriaModule,
     ],
     providers: [MailerService],
     exports: [MailerService],
