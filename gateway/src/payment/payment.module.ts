@@ -16,11 +16,13 @@ import { PaymentService } from "./payment.service";
 import { AppointmentService } from "@/appointment/appointment.service";
 import { MercadopagoModule } from "@/mercadopago/mercadopago.module";
 import { MailerService } from "@/mailer/mailer.service";
+import { AuditoriaService } from "@/auditoria/auditoria.service";
+import { Auditoria } from "@/auditoria/entities/auditoria.entity";
 
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([Payment, Appointment, User, Package, Workstation, SystemConfig, DetailsAppointment, Service]),
+        TypeOrmModule.forFeature([Payment, Appointment, User, Package, Workstation, SystemConfig, DetailsAppointment, Service, Auditoria]),
         SystemConfigModule,
         UsersModule,
         MercadopagoModule,
@@ -30,7 +32,7 @@ import { MailerService } from "@/mailer/mailer.service";
               }),
     ],
     controllers: [PaymentController],
-    providers: [PaymentService, PaymentController, Service, AppointmentService, MailerService],
+    providers: [PaymentService, PaymentController, Service, AppointmentService, MailerService, AuditoriaService],
     exports: [PaymentService],
 })
 

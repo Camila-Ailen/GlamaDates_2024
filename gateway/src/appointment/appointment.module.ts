@@ -18,10 +18,12 @@ import { MercadopagoService } from '@/mercadopago/mercadopago.service';
 import { PaymentModule } from '@/payment/payment.module';
 import { Payment } from '@/payment/entities/payment.entity';
 import { MailerService } from '@/mailer/mailer.service';
+import { Auditoria } from '@/auditoria/entities/auditoria.entity';
+import { AuditoriaService } from '@/auditoria/auditoria.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Appointment, User, Package, Workstation, SystemConfig, DetailsAppointment, Service, Payment]),
+    TypeOrmModule.forFeature([Appointment, User, Package, Workstation, SystemConfig, DetailsAppointment, Service, Payment, Auditoria]),
     SystemConfigModule,
     UsersModule,
     PaymentModule,
@@ -33,7 +35,7 @@ import { MailerService } from '@/mailer/mailer.service';
       }),
 ],
    controllers: [AppointmentController],
-   providers: [AppointmentService, AppointmentController, Service, MercadopagoService, MailerService],
+   providers: [AppointmentService, AppointmentController, Service, MercadopagoService, MailerService, AuditoriaService],
    exports: [AppointmentService],
 })
 export class AppointmentModule {}
