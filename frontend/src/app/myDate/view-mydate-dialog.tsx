@@ -1,131 +1,214 @@
-'use client'
+"use client"
 
-import { useEffect, useState } from 'react'
+import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog"
-import { CreditCard, Eye, Frown, Link, Smile, Trash, UserPen, View } from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { format } from 'date-fns/format'
-import { usePaymentStore } from '../store/usePaymentStore'
-import { PaymentButton } from '@/components/mercadopago/PaymentButton'
-import useMyDatesStore from '../store/useMyDatesStore'
-
-// import { DetailsAppointment } from '../store/useAppointmentStore'
+import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { format } from "date-fns/format"
+import { es } from "date-fns/locale"
+import { usePaymentStore } from "@/app/store/usePaymentStore"
+import { PaymentButton } from "@/components/mercadopago/PaymentButton"
+import useMyDatesStore from "@/app/store/useMyDatesStore"
+import { Badge } from "@/components/ui/badge"
+import { Calendar, Clock, CreditCard, Frown, MapPin, Scissors, Smile, User } from "lucide-react"
 
 export function ViewMydateDialog({ appointment }) {
-    const { cancelAppointment } = useMyDatesStore();
-    const fetchPaymentUrl = usePaymentStore((state) => state.fetchPaymentUrl)
-    // const paymentUrl = usePaymentStore((state) => state.paymentUrl)
-    const paymentUrl = null
+  const { cancelAppointment } = useMyDatesStore()
+  const fetchPaymentUrl = usePaymentStore((state) => state.fetchPaymentUrl)
+  const paymentUrl = null
 
-    const baseURL = "https://sandbox.mercadopago.com.ar/checkout/v1/redirect?pref_id=";
+  useEffect(() => {
+    fetchPaymentUrl(appointment.id)
+  }, [appointment.id, fetchPaymentUrl])
 
+  const handleCancel = async () => {
+    await cancelAppointment(appointment.id)
+    window.location.reload()
+  }
 
+  const getStatusColor = (state: string) => {
+    switch (state) {
+      case "COMPLETADO":
+        return "bg-green-100 text-green-800 border-green-200"
+      case "INACTIVO":
+      case "CANCELADO":
+        return "bg-gray-100 text-gray-800 border-gray-200"
+      case "MOROSO":
+        return "bg-red-100 text-red-800 border-red-200"
+      case "PENDIENTE":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200"
+      default:
+        return "bg-pink-100 text-pink-800 border-pink-200"
+    }
+  }
 
-    useEffect(() => {
-        fetchPaymentUrl(appointment.id)
-    }, [appointment.id, fetchPaymentUrl])
+  // Calcular el precio total sumando todos los servicios si no está disponible directamente
+  const calculateTotalPrice = () => {
+    if (appointment.total) return appointment.total
+    if (appointment.package && appointment.package.price) return appointment.package.price
 
-
-    const handleCancel = async () => {
-        await cancelAppointment(appointment.id);
-        window.location.reload();
+    let total = 0
+    if (appointment.details && Array.isArray(appointment.details)) {
+      appointment.details.forEach((detail) => {
+        if (detail.service && detail.service.price) {
+          total += detail.service.price
+        }
+      })
+    } else if (appointment.package && appointment.package.services && Array.isArray(appointment.package.services)) {
+      appointment.package.services.forEach((service) => {
+        if (service.price) {
+          total += service.price
+        }
+      })
     }
 
+    return total
+  }
 
-    const fullURL = `${baseURL}${paymentUrl}`;
+  // Obtener todos los servicios, ya sea de details o directamente del paquete
+  const getAllServices = () => {
+    if (appointment.details && Array.isArray(appointment.details) && appointment.details.length > 0) {
+      return appointment.details
+    } else if (appointment.package && appointment.package.services && Array.isArray(appointment.package.services)) {
+      // Convertir servicios del paquete a un formato similar a details para renderizar
+      return appointment.package.services.map((service) => ({
+        service: service,
+        datetimeStart: appointment.datetimeStart,
+        // Valores por defecto para evitar errores
+        employee: { firstName: "Por asignar", lastName: "" },
+        workstation: { id: "-", description: "Por asignar" },
+      }))
+    }
+    return []
+  }
 
-    return (
+  const services = getAllServices()
+  const totalPrice = calculateTotalPrice()
 
-        <DialogContent>
-            <DialogHeader>
-                <DialogTitle>CITA NUMERO <strong>{appointment.id},</strong> {format(new Date(appointment.datetimeStart), 'dd/MM/yyyy')} a las {format(new Date(appointment.datetimeStart), 'HH:mm')}hs</DialogTitle>
-            </DialogHeader>
-            <div className="flex flex-col items-center">
-                <div className="max-w-md mx-auto mt- p-6 flex justify-between bg-white rounded-lg shadow-xl" >
-                    <div className="custom-dialog-content">
-                        <div className="appointment-details">
-                            <p><strong>Paquete:</strong> {appointment.package.name.toUpperCase()}</p>
-                            {/* <p><strong>Cliente:</strong> {appointment.client.firstName.toUpperCase()} {appointment.client.lastName.toUpperCase()}</p> */}
-                            <p><strong>Fecha:</strong> {format(new Date(appointment.datetimeStart), 'dd/MM/yyyy')}</p>
-                            <p><strong>Hora:</strong> {format(new Date(appointment.datetimeStart), 'HH:mm')}hs</p>
-                            <p><strong>Estado:</strong> {appointment.state}</p>
-                            {/* <p><strong>Estado pago:</strong> {appointment.payment.status}</p> */}
-                            <p><strong>Servicios:</strong></p>
-                            <ul>
-                                {appointment &&
-                                    Array.isArray(appointment.details) &&
-                                    appointment.details.map((detail, index) => (
-                                        <Card>
-                                            <CardHeader>
-                                                <CardTitle>{detail.service.name}</CardTitle>
+  return (
+    <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogHeader className="bg-gradient-to-r from-pink-50 to-purple-50 p-6 rounded-t-lg">
+        <div className="flex items-center justify-between">
+          <div>
+            <Badge className="mb-2 bg-pink-100 text-pink-700 border-pink-200">Cita #{appointment.id}</Badge>
+            <DialogTitle className="text-2xl font-bold text-pink-700">
+              {appointment.package.name.toUpperCase()}
+            </DialogTitle>
+          </div>
+          <Badge className={`text-sm px-3 py-1 ${getStatusColor(appointment.state)}`}>{appointment.state}</Badge>
+        </div>
+      </DialogHeader>
 
-                                                <CardDescription>
-                                                    <li key={index}>
-                                                        <ul>
-                                                            <li><strong>{detail.service.name}</strong></li>
-                                                            {/* <li>Categoria: {detail.service.category.name}</li> */}
-                                                            <li>Precio: {detail.service.price.toFixed(2)}</li>
-                                                            <li>Inicio: {format(new Date(detail.datetimeStart), 'HH:mm')}hs</li>
-                                                            <li>Duracion: {detail.service.duration} minutos</li>
-                                                            <li>Descripcion: {detail.service.description}</li>
-                                                            <li>Empleado: {detail.employee.firstName} {detail.employee.lastName}</li>
-                                                            <li>Estacion de trabajo: {detail.workstation.id}, {detail.workstation.description}</li>
-                                                        </ul>
-                                                    </li>
-                                                </CardDescription>
-                                            </CardHeader>
-                                        </Card>
-                                    ))}
-                            </ul>
-                        </div>
-
-                        {appointment.state !== "COMPLETADO" && appointment.state !== "ACTIVO" && (
-                            <>
-                                <PaymentButton source="later" />
-                            </>
-                        )}
-
-                        {appointment.state === "PENDIENTE" && (
-                            <>
-                                <Button
-                                    onClick={handleCancel}
-                                >
-                                    <Frown className="mr-2 h-4 w-4" />
-                                    Cancelar cita
-                                </Button>
-                            </>
-                        )}
-
-                        {appointment.state === "COMPLETADO" || appointment.state === "ACTIVO" && (
-                            <Button
-                                className="w-full justify-center"
-                            >
-                                <Smile className="mr-2 h-4 w-4" />
-                                Ya has abonado esta cita
-                                <Smile className="mr-2 ml-2 h-4 w-4" />
-                            </Button>
-                        )}
-                        {/* {appointment.state === "PENDIENTE" && (
-                            <Button
-                                className="w-full justify-start"
-                            >
-                                <Trash className="mr-2 h-4 w-4" />
-                                Cancelar cita
-                            </Button>
-                        )} */}
-
-                    </div>
-                </div>
+      <div className="flex-1 overflow-y-auto p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="bg-purple-50 p-4 rounded-lg flex items-center gap-3">
+            <Calendar className="h-6 w-6 text-purple-600" />
+            <div>
+              <p className="text-sm text-purple-700">Fecha y hora</p>
+              <p className="font-medium text-purple-800">
+                {format(new Date(appointment.datetimeStart), "EEEE d 'de' MMMM, yyyy", { locale: es })}
+                <br />
+                {format(new Date(appointment.datetimeStart), "HH:mm")} hs
+              </p>
             </div>
-        </DialogContent>
-    )
+          </div>
 
+          <div className="bg-pink-50 p-4 rounded-lg flex items-center gap-3">
+            <CreditCard className="h-6 w-6 text-pink-600" />
+            <div>
+              <p className="text-sm text-pink-700">Precio total</p>
+              <p className="font-medium text-pink-800">${totalPrice.toFixed(2)}</p>
+            </div>
+          </div>
+        </div>
+
+        <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+          <Scissors className="h-5 w-5 text-pink-600" />
+          Servicios incluidos 
+        </h3>
+
+        <div className="space-y-4">
+          {services.length > 0 ? (
+            services.map((detail, index) => (
+              <Card
+                key={index}
+                className="overflow-hidden border-l-4 border-l-pink-400 hover:shadow-md transition-shadow"
+              >
+                <div className="flex flex-col md:flex-row">
+                  <div className="bg-gradient-to-r from-pink-100 to-purple-100 p-4 flex items-center justify-center md:w-1/4">
+                    <div className="text-center">
+                      <p className="text-sm text-pink-700">Inicio</p>
+                      <p className="text-lg font-bold text-pink-800">
+                        {format(new Date(detail.datetimeStart), "HH:mm")} hs
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex-1">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-pink-700">{detail.service.name}</CardTitle>
+                      <CardDescription className="text-gray-600">{detail.service.description}</CardDescription>
+                    </CardHeader>
+
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        {detail.employee && (
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-gray-600" />
+                            <span>
+                              Profesional: {detail.employee.firstName} {detail.employee.lastName}
+                            </span>
+                          </div>
+                        )}
+                        {detail.workstation && (
+                          <div className="flex items-center gap-2">
+                            <MapPin className="h-4 w-4 text-gray-600" />
+                            <span>Estación {detail.workstation.id}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-gray-600" />
+                          <span>{detail.service.duration} minutos</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <CreditCard className="h-4 w-4 text-gray-600" />
+                          <span>${detail.service.price?.toFixed(2) || "0.00"}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </div>
+                </div>
+              </Card>
+            ))
+          ) : (
+            <p className="text-center text-gray-500 py-4">No hay servicios disponibles para mostrar</p>
+          )}
+        </div>
+
+        <div className="mt-6 space-y-3">
+          {appointment.state !== "COMPLETADO" && appointment.state !== "ACTIVO" && <PaymentButton source="later" />}
+
+          {appointment.state === "PENDIENTE" && (
+            <Button
+              variant="outline"
+              className="w-full border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
+              onClick={handleCancel}
+            >
+              <Frown className="mr-2 h-5 w-5" />
+              Cancelar cita
+            </Button>
+          )}
+
+          {(appointment.state === "COMPLETADO" || appointment.state === "ACTIVO") && (
+            <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+              <Smile className="mr-2 h-5 w-5" />
+              Ya has abonado esta cita
+              <Smile className="ml-2 h-5 w-5" />
+            </Button>
+          )}
+        </div>
+      </div>
+    </DialogContent>
+  )
 }
 
