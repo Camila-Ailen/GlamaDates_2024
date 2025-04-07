@@ -1,3 +1,4 @@
+// src/auditoria/auditoria.interceptor.ts
 import {
   CallHandler,
   ExecutionContext,
@@ -5,15 +6,9 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Observable, tap } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { AuditoriaService } from './auditoria.service';
-import { Request } from 'express';
-
-declare module 'express' {
-  export interface Request {
-    user?: any; // Adjust the type of 'user' based on your application's requirements
-  }
-}
+import { AUDITABLE_METADATA, AuditableMetadata } from './auditable.decorator';
 
 @Injectable()
 export class AuditoriaInterceptor implements NestInterceptor {
@@ -23,52 +18,59 @@ export class AuditoriaInterceptor implements NestInterceptor {
   ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const request: Request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest();
     const method = request.method;
-    const user = request.user as any; // Si usás JWT, esto debería ser tu payload
-    const url = request.originalUrl;
 
-    const entity = this.extractEntityName(url); // ejemplo: '/usuarios/3' => 'usuarios'
-
-    const shouldAudit = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method);
-
-    let oldData: any = null;
-
-    if (shouldAudit && (method === 'PUT' || method === 'PATCH' || method === 'DELETE')) {
-      const entityId = this.extractEntityId(url);
-      if (entityId) {
-        const repo = this.auditoriaService.getRepositoryForEntity(entity);
-        if (repo) {
-          repo.findOne({ where: { id: entityId } }).then((found) => {
-            oldData = found;
-          });
-        }
-      }
+    // Solo auditar si es una acción de cambio
+    if (!['POST', 'PUT', 'DELETE'].includes(method)) {
+      return next.handle();
     }
 
+    const auditableMetadata: AuditableMetadata = this.reflector.get(
+      AUDITABLE_METADATA,
+      context.getHandler(),
+    ) || {};
+
+    // Intentar inferir entidad desde el controlador
+    const controllerName = context.getClass().name.replace('Controller', '');
+    const defaultEntity = controllerName.charAt(0).toUpperCase() + controllerName.slice(1);
+
+    // Inferir acción desde el método HTTP
+    const defaultAction = this.getActionFromMethod(method);
+
+    const entity = auditableMetadata.entity || defaultEntity;
+    const action = auditableMetadata.action || defaultAction;
+    const description = auditableMetadata.description || '';
+
+    const userId = request.user?.id || null;
+    const oldData = request.oldData || null;
+    const bodyData = request.body || null;
+
     return next.handle().pipe(
-      tap(async (responseBody) => {
-        if (shouldAudit) {
-          await this.auditoriaService.create({
-            userId: user?.id || null,
-            entity,
-            accion: method,
-            description: `Acción ${method} en ${entity}`,
-            oldData,
-            newData: responseBody,
-          });
-        }
+      map((responseData) => {
+        this.auditoriaService.create({
+          userId,
+          entity,
+          accion: action,
+          description,
+          oldData,
+          newData: bodyData,
+        });
+        return responseData;
       }),
     );
   }
 
-  private extractEntityName(url: string): string {
-    const parts = url.split('/').filter((p) => p.length > 0);
-    return parts[0]; // asumiendo estructura /entidad/:id
-  }
-
-  private extractEntityId(url: string): string | null {
-    const parts = url.split('/').filter((p) => p.length > 0);
-    return parts.length > 1 ? parts[1] : null;
+  private getActionFromMethod(method: string): string {
+    switch (method) {
+      case 'POST':
+        return 'CREAR';
+      case 'PUT':
+        return 'ACTUALIZAR';
+      case 'DELETE':
+        return 'BORRAR';
+      default:
+        return 'DESCONOCIDO';
+    }
   }
 }

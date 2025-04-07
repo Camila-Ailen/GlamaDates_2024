@@ -11,9 +11,17 @@ export class AuditoriaService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async create(data: Partial<Auditoria>) {
+  async create(data: {
+    userId: number | null;
+    entity: string;
+    idEntity?: number | string;
+    accion: string;
+    description?: string;
+    oldData?: any;
+    newData?: any;
+  }) {
     const auditoria = this.auditoriaRepo.create(data);
-    return this.auditoriaRepo.save(auditoria);
+    await this.auditoriaRepo.save(auditoria);
   }
 
   getRepositoryForEntity(entity: string): Repository<any> | null {
