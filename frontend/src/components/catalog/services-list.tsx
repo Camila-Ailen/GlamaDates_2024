@@ -9,7 +9,7 @@ import MultiStepForm from "@/components/multistep/MultiStepForm"
 import { useFormStore } from "@/app/store/formStore"
 import useAuthStore from "@/app/store/useAuthStore"
 import { Badge } from "@/components/ui/badge"
-import { Clock, DollarSign, Sparkles } from "lucide-react"
+import { Clock, DollarSign } from "lucide-react"
 import {
   Pagination,
   PaginationContent,
@@ -18,6 +18,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
+import { CategoryIcon, getCategoryGradient } from "./category-icon"
 
 interface ServicesListProps {
   services: Package[]
@@ -54,63 +55,71 @@ export function ServicesList({ services, onPackageSelect, availability }: Servic
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {currentServices.map((service) => (
-          <Dialog
-            key={service.id}
-            open={isDialogOpen && selectedPackage?.id === service.id}
-            onOpenChange={setIsDialogOpen}
-          >
-            <DialogTrigger asChild>
-              <Card
-                className="h-full flex flex-col overflow-hidden transition-all duration-300 hover:shadow-lg border-pink-100 hover:border-pink-300 cursor-pointer"
-                onClick={() => handleCardClick(service)}
-              >
-                <div className="h-40 bg-gradient-to-r from-pink-100 to-purple-100 flex items-center justify-center">
-                  <Sparkles className="h-16 w-16 text-pink-400 opacity-70" />
-                </div>
+        {currentServices.map((service) => {
+          // Determinar la categoría del servicio
+          const categoryName = service.services?.[0]?.category?.name || "default"
+          const gradientClass = getCategoryGradient(categoryName)
 
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-lg font-semibold text-pink-700">{service.name}</CardTitle>
-                    <Badge variant="outline" className="bg-pink-50 text-pink-700 border-pink-200">
-                      Servicio
-                    </Badge>
+          return (
+            <Dialog
+              key={service.id}
+              open={isDialogOpen && selectedPackage?.id === service.id}
+              onOpenChange={setIsDialogOpen}
+            >
+              <DialogTrigger asChild>
+                <Card
+                  className="h-full flex flex-col overflow-hidden transition-all duration-300 hover:shadow-lg border-pink-100 hover:border-pink-300 cursor-pointer"
+                  onClick={() => handleCardClick(service)}
+                >
+                  <div className={`h-40 bg-gradient-to-r ${gradientClass} flex items-center justify-center`}>
+                    <div className="h-20 w-20 rounded-full bg-white/50 flex items-center justify-center">
+                      <CategoryIcon category={categoryName} size={40} />
+                    </div>
                   </div>
-                  <CardDescription className="text-gray-600 line-clamp-2">{service.description}</CardDescription>
-                </CardHeader>
 
-                <CardContent className="flex-grow">
-                  <div className="flex items-center gap-2 mb-2">
-                    <DollarSign className="h-4 w-4 text-green-600" />
-                    <span className="font-medium text-green-700">${service.price.toFixed(2)}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-blue-600" />
-                    <span className="text-blue-700">{service.duration} minutos</span>
-                  </div>
-                </CardContent>
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start">
+                      <CardTitle className="text-lg font-semibold text-pink-700">{service.name}</CardTitle>
+                      <Badge variant="outline" className="bg-pink-50 text-pink-700 border-pink-200">
+                        {categoryName !== "default" ? categoryName : "Servicio"}
+                      </Badge>
+                    </div>
+                    <CardDescription className="text-gray-600 line-clamp-2">{service.description}</CardDescription>
+                  </CardHeader>
 
-                <CardFooter className="pt-0 pb-4">
-                  <div onClick={(e) => e.stopPropagation()} className="w-full">
-                    {hasPermission("read:mydate") && (
-                      <MultiStepForm
-                        availability={availability}
-                        selectedPackage={service}
-                        onClose={() => {
-                          setSelectedPackage(null)
-                          resetForm()
-                        }}
-                        onPackageSelect={() => handlePackageSelect(service)}
-                      />
-                    )}
-                  </div>
-                </CardFooter>
-              </Card>
-            </DialogTrigger>
+                  <CardContent className="flex-grow">
+                    <div className="flex items-center gap-2 mb-2">
+                      <DollarSign className="h-4 w-4 text-green-600" />
+                      <span className="font-medium text-green-700">${service.price.toFixed(2)}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-blue-600" />
+                      <span className="text-blue-700">{service.duration} minutos</span>
+                    </div>
+                  </CardContent>
 
-            {selectedPackage && selectedPackage.id === service.id && <ViewMydateDialog _package={selectedPackage} />}
-          </Dialog>
-        ))}
+                  <CardFooter className="pt-0 pb-4">
+                    <div onClick={(e) => e.stopPropagation()} className="w-full">
+                      {hasPermission("read:mydate") && (
+                        <MultiStepForm
+                          availability={availability}
+                          selectedPackage={service}
+                          onClose={() => {
+                            setSelectedPackage(null)
+                            resetForm()
+                          }}
+                          onPackageSelect={() => handlePackageSelect(service)}
+                        />
+                      )}
+                    </div>
+                  </CardFooter>
+                </Card>
+              </DialogTrigger>
+
+              {selectedPackage && selectedPackage.id === service.id && <ViewMydateDialog _package={selectedPackage} />}
+            </Dialog>
+          )
+        })}
       </div>
 
       {totalPages > 1 && (
