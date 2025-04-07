@@ -1,9 +1,12 @@
+"use client"
+
 import type React from "react"
 import { useFormStore } from "@/app/store/formStore"
 import { Calendar } from "react-calendar"
 import "react-calendar/dist/Calendar.css"
 import "@/components/multistep/calendar-appointment-dialog.css"
 import { useEffect, useState } from "react"
+import { CalendarDays, CalendarCheck } from "lucide-react"
 
 export interface InitialFormData {
   availableDates: Date[]
@@ -21,7 +24,6 @@ const Step1: React.FC<InitialFormData> = ({ availableDates }) => {
         .map((d) => new Date(d).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }))
       updateFormData("step1", { date: selectedDate, availableTimes: times })
     }
-    // console.log("Paquete seleccionado: ", formData.selectedPackage?.name)
   }, [selectedDate, availableDates, updateFormData])
 
   const tileClassName = ({ date, view }: { date: Date; view: string }) => {
@@ -45,9 +47,41 @@ const Step1: React.FC<InitialFormData> = ({ availableDates }) => {
   }
 
   return (
-    <div className="custom-dialog-content calendar-container">
-      <h3 className="custom-dialog-title">Seleccione la fecha</h3>
-      <Calendar onChange={handleDateChange} tileClassName={tileClassName} locale="es-AR" className="custom-calendar" />
+    <div className="space-y-4">
+      <div className="flex items-center justify-center gap-2 mb-4">
+        <CalendarDays className="h-5 w-5 text-pink-600" />
+        <h3 className="text-lg font-medium text-gray-800">Seleccione una fecha disponible</h3>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-md p-4 border border-pink-100">
+        <Calendar
+          onChange={handleDateChange}
+          tileClassName={tileClassName}
+          locale="es-AR"
+          className="custom-calendar w-full"
+          prevLabel={<span className="text-pink-600">←</span>}
+          nextLabel={<span className="text-pink-600">→</span>}
+          prev2Label={null}
+          next2Label={null}
+        />
+      </div>
+
+      {selectedDate && (
+        <div className="mt-4 p-3 bg-pink-50 rounded-lg border border-pink-100 flex items-center gap-2">
+          <CalendarCheck className="h-5 w-5 text-pink-600 flex-shrink-0" />
+          <p className="text-sm text-pink-700">
+            Fecha seleccionada:{" "}
+            <span className="font-medium">
+              {selectedDate.toLocaleDateString("es-AR", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </span>
+          </p>
+        </div>
+      )}
     </div>
   )
 }
