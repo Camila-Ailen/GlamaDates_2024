@@ -1,26 +1,34 @@
 import { Injectable } from '@nestjs/common';
-import { CreateAuditoriaDto } from './dto/create-auditoria.dto';
-import { UpdateAuditoriaDto } from './dto/update-auditoria.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Auditoria } from './entities/auditoria.entity';
+import { Repository, DataSource } from 'typeorm';
 
 @Injectable()
 export class AuditoriaService {
-  create(createAuditoriaDto: CreateAuditoriaDto) {
-    return 'This action adds a new auditoria';
+  constructor(
+    @InjectRepository(Auditoria)
+    private readonly auditoriaRepo: Repository<Auditoria>,
+    private readonly dataSource: DataSource,
+  ) {}
+
+  async create(data: Partial<Auditoria>) {
+    const auditoria = this.auditoriaRepo.create(data);
+    return this.auditoriaRepo.save(auditoria);
   }
 
-  findAll() {
-    return `This action returns all auditoria`;
+  getRepositoryForEntity(entity: string): Repository<any> | null {
+    try {
+      const repo = this.dataSource.getRepository(entity);
+      return repo;
+    } catch (e) {
+      return null;
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} auditoria`;
+  async findAll() {
+    return this.auditoriaRepo.find({
+      order: { date: 'DESC' },
+    });
   }
-
-  update(id: number, updateAuditoriaDto: UpdateAuditoriaDto) {
-    return `This action updates a #${id} auditoria`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} auditoria`;
-  }
+  
 }

@@ -1,12 +1,14 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { join } from 'path';
 import { AppModule } from './app.module';
 import * as fs from 'fs';
+import { AuditoriaService } from './auditoria/auditoria.service';
+import { AuditoriaInterceptor } from './auditoria/auditoria.interceptor';
 
 const LOGGER = new Logger('API');
 if (!process.env.TZ) {
@@ -15,18 +17,11 @@ if (!process.env.TZ) {
 }
 
 async function bootstrap() {
-  // const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-  //   logger:
-  //     process.env.NODE_ENV === 'development'
-  //       ? ['log', 'debug', 'error', 'verbose', 'warn']
-  //       : ['log', 'error', 'warn'],
-  // });
-
   const httpsOptions = {
     key: fs.readFileSync('./certs/localhost-key.pem'),
     cert: fs.readFileSync('./certs/localhost.pem'),
   };
-  
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     httpsOptions,
     logger:
@@ -34,14 +29,20 @@ async function bootstrap() {
         ? ['log', 'debug', 'error', 'verbose', 'warn']
         : ['log', 'error', 'warn'],
   });
-  
 
-  // Get the ConfigService instance
+  //await app.listen(3000);
+  
+  // 🚨 Interceptor de auditoría
+  const reflector = app.get(Reflector);
+  const auditoriaService = app.get(AuditoriaService);
+  app.useGlobalInterceptors(new AuditoriaInterceptor(auditoriaService, reflector));
+
+  // 🔧 Configuración continua...
   const config: ConfigService = app.get(ConfigService);
 
-  // Set the global prefix
+  // ⚙️ Base path
   const envBasePath = config.get<string>('BASEPATH');
-  const basepath =
+  const basepath =  
     envBasePath && envBasePath.length > 1
       ? envBasePath.charAt(envBasePath.length - 1) === '/'
         ? envBasePath.substring(0, envBasePath.length - 1)
@@ -51,7 +52,7 @@ async function bootstrap() {
     app.setGlobalPrefix(basepath);
   }
 
-  // Security
+  // 🛡 Seguridad y CORS
   app.use(helmet());
 
   // CORS
@@ -76,18 +77,6 @@ async function bootstrap() {
       configCORS.origin = [config.get<string>('FRONT_URL')];
       break;
   }
-
-  // //   app.enableCors(configCORS);
-  // app.enableCors({
-  //   origin: '*',
-  //   methods: 'GET,PUT,PATCH,POST,DELETE,OPTIONS',
-  // });
-
-  // app.enableCors({
-  //   origin: [config.get<string>('FRONT_URL')],
-  //   credentials: true,
-  //   methods: 'GET,PUT,PATCH,POST,DELETE,OPTIONS',
-  // });
 
   app.enableCors(configCORS);
   
