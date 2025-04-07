@@ -1,96 +1,227 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import useServiceStore from '../store/useServiceStore'
-import { UserPen } from 'lucide-react'
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import useServiceStore from "../store/useServiceStore"
+import useCategoryStore from "../store/useCategoryStore"
+import { z } from "zod"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Loader2, Pencil } from "lucide-react"
 
 interface Service {
-    id: number;
-    name: string;
-    description: string;
-    duration: number;
-    price: number;
-    category: {
-        id: number;
-        name: string;
-        description: string;
-    };
+  id: number
+  name: string
+  description: string
+  duration: number
+  price: number
+  category: {
+    id: number
+    name: string
+    description: string
+  }
 }
+
+const serviceSchema = z.object({
+  name: z.string().min(3, { message: "El nombre debe tener al menos 3 caracteres" }),
+  description: z.string().min(10, { message: "La descripción debe tener al menos 10 caracteres" }),
+  duration: z.coerce.number().min(5, { message: "La duración mínima es de 5 minutos" }),
+  price: z.coerce.number().min(0, { message: "El precio no puede ser negativo" }),
+  category: z.string().min(1, { message: "Debe seleccionar una categoría" }),
+})
+
+type ServiceFormValues = z.infer<typeof serviceSchema>
 
 export function EditServiceDialog({ service }: { service: Service }) {
   const [isOpen, setIsOpen] = useState(false)
-  const updateService = useServiceStore(state => state.updateService)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const formData = new FormData(event.currentTarget)
-    const serviceData = Object.fromEntries(formData)
-    await updateService({ ...serviceData, id: service.id })
-    setIsOpen(false)
+  const updateService = useServiceStore((state) => state.updateService)
+  const { categories, isLoading: categoriesLoading, fetchCategories } = useCategoryStore()
+
+  const form = useForm<ServiceFormValues>({
+    resolver: zodResolver(serviceSchema),
+    defaultValues: {
+      name: service.name,
+      description: service.description,
+      duration: service.duration,
+      price: service.price,
+      category: service.category.id.toString(),
+    },
+  })
+
+  useEffect(() => {
+    fetchCategories()
+  }, [fetchCategories])
+
+  const onSubmit = async (data: ServiceFormValues) => {
+    setIsSubmitting(true)
+    try {
+      await updateService({ ...data, id: service.id })
+      setIsOpen(false)
+    } catch (error) {
+      console.error("Error updating service:", error)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="mr-2"><UserPen/></Button>
+        <Button variant="outline" size="icon" className="h-8 w-8 border-pink-200 text-pink-700 hover:bg-pink-50">
+          <Pencil className="h-4 w-4" />
+        </Button>
       </DialogTrigger>
-      <DialogContent>
+
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Editar Servicio</DialogTitle>
+          <DialogTitle className="text-xl font-semibold text-pink-700">Editar Servicio</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
-                Nombre
-              </Label>
-              <Input id="name" name="name" defaultValue={service.name} className="col-span-3" />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="description" className="text-right">
-                Descripcion
-              </Label>
-              <Input id="description" name="description" defaultValue={service.description} className="col-span-3" />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="duration" className="text-right">
-                Duracion
-              </Label>
-              <Input id="duration" name="duration" defaultValue={service.duration} className="col-span-3" />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="price" className="text-right">
-                Precio
-              </Label>
-              <Input id="price" name="price" defaultValue={service.price} className="col-span-3" />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="category" className="text-right">
-                Categoria
-              </Label>
-              <Input
-                id="category"
-                name="category"
-                defaultValue={service.category.id}
-                className="col-span-3"
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nombre</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Ej: Corte de cabello"
+                      {...field}
+                      className="border-pink-200 focus-visible:ring-pink-500"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Descripción</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Describa el servicio..."
+                      {...field}
+                      className="border-pink-200 focus-visible:ring-pink-500 min-h-[80px]"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="duration"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Duración (min)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={5}
+                        step={5}
+                        {...field}
+                        className="border-pink-200 focus-visible:ring-pink-500"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="price"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Precio ($)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={0}
+                        step={0.01}
+                        {...field}
+                        className="border-pink-200 focus-visible:ring-pink-500"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
-          </div>
-          <div className="flex justify-end">
-            <Button type="submit">Actualizar Servicio</Button>
-          </div>
-        </form>
+
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Categoría</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="border-pink-200 focus:ring-pink-500">
+                        <SelectValue placeholder="Seleccione una categoría" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {categoriesLoading ? (
+                        <div className="flex items-center justify-center p-2">
+                          <Loader2 className="h-4 w-4 animate-spin text-pink-500 mr-2" />
+                          <span>Cargando categorías...</span>
+                        </div>
+                      ) : categories.length === 0 ? (
+                        <div className="p-2 text-center text-gray-500">No hay categorías disponibles</div>
+                      ) : (
+                        categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id.toString()}>
+                            {category.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <DialogFooter className="pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsOpen(false)}
+                className="border-pink-200 text-pink-700 hover:bg-pink-50"
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={isSubmitting} className="bg-pink-600 hover:bg-pink-700">
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Actualizando...
+                  </>
+                ) : (
+                  "Actualizar Servicio"
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   )
 }
+
