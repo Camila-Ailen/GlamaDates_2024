@@ -24,20 +24,10 @@ const Step2: React.FC = () => {
   }
 
   // Agrupar horarios por mañana, tarde y noche
-  const groupedTimes = {
-    morning: availableTimes.filter((time) => {
-      const hour = Number.parseInt(time.split(":")[0])
-      return hour >= 8 && hour < 12
-    }),
-    afternoon: availableTimes.filter((time) => {
-      const hour = Number.parseInt(time.split(":")[0])
-      return hour >= 12 && hour < 18
-    }),
-    evening: availableTimes.filter((time) => {
-      const hour = Number.parseInt(time.split(":")[0])
-      return hour >= 18 && hour <= 23
-    }),
-  }
+    const groupedTimes = {
+    morning: availableTimes.filter((time) => time.includes('a. m.')),
+    afternoon: availableTimes.filter((time) => time.includes('p. m.')),
+  };
 
   return (
     <div className="space-y-4">
@@ -112,33 +102,7 @@ const Step2: React.FC = () => {
               </div>
             )}
 
-            {groupedTimes.evening.length > 0 && (
-              <div>
-                <h4 className="text-sm font-medium text-pink-700 mb-2">Noche</h4>
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                  {groupedTimes.evening.map((time, index) => (
-                    <Button
-                      key={index}
-                      variant={selectedTime === time ? "default" : "outline"}
-                      className={`
-                        relative h-10 transition-all duration-200
-                        ${
-                          selectedTime === time
-                            ? "bg-gradient-to-r from-pink-500 to-pink-600 text-white border-transparent"
-                            : "border-pink-200 text-pink-700 hover:bg-pink-50"
-                        }
-                      `}
-                      onClick={() => handleTimeChange(time)}
-                    >
-                      {time}
-                      {selectedTime === time && (
-                        <CheckCircle className="absolute -top-1 -right-1 h-4 w-4 bg-white rounded-full text-pink-500" />
-                      )}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
+            
           </div>
         ) : (
           <div className="p-4 text-center text-gray-500 bg-gray-50 rounded-lg">
