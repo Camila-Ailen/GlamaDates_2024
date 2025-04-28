@@ -74,7 +74,7 @@ export const useFormStore = create<FormStore>()((set, get) => ({
       const [timePart, modifier] = time.split(' ');
       let [hours, minutes] = timePart.split(':').map(Number);
 
-      if (modifier.replace(/\s+/g, '').trim() === 'p.m.') {
+      if (modifier.replace(/\s+/g, '').trim() === 'p.m.' && hours < 12) {
         hours += 12;
       }
       return { hours, minutes };
@@ -111,6 +111,8 @@ export const useFormStore = create<FormStore>()((set, get) => ({
         },
         body: JSON.stringify({ datetimeStart, package: _package, discount, advance }),
       })
+
+      console.log("fecha pasada", datetimeStart)
 
       if (response.status === 403) {
         toast.error("Sesión expirada")
