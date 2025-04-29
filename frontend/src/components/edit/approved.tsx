@@ -25,14 +25,11 @@ const Approved: React.FC = () => {
 
   useEffect(() => {
     const loadAppointment = async () => {
-      console.log('appointment', appointment)
       if (appointment !== null) {
         setIsLoading(true)
         const appointmentData = await fetchOneAppointment(appointment)
-        console.log('appointmentData', appointmentData)
         const data = await appointmentData;
           setCurrentAppointment(data?.data)
-          console.log('currentAppointment', data?.data)
         setIsLoading(false)
       }
     }
@@ -40,7 +37,6 @@ const Approved: React.FC = () => {
   }, [appointment, fetchOneAppointment])
 
   const handleRearrange = async () => {
-    console.log('Estoy en handleRearrange', currentAppointment)
     if (currentAppointment) {
       await rearrangeAppointment({
         id: currentAppointment.id,
@@ -49,6 +45,7 @@ const Approved: React.FC = () => {
         datetimeEnd: datetimeOld,
       })
       closeDialog()
+      window.location.reload()
     }
   }
 

@@ -34,7 +34,6 @@ export function EditAppointmentDialog({ appointmentId, packageId, currentDatetim
       resetForm()
       loadAvailability()
       loadAppointment()
-      console.log("Se abrio el modal de edición")
     }
   }, [isOpenEdit, packageId])
 
@@ -42,7 +41,6 @@ export function EditAppointmentDialog({ appointmentId, packageId, currentDatetim
     if (appointmentId) {
       const data = await fetchOneAppointment(appointmentId)
       if (data) {
-        console.log("Appointment data loaded:", data)
         setAppointment(data)
       }
     }
@@ -52,7 +50,6 @@ export function EditAppointmentDialog({ appointmentId, packageId, currentDatetim
     setLoading(true)
     try {
       const availabilityData = await fetchPackageAvailability(packageId, "datetimeStart", "ASC", 1, 1000)
-      console.log("Availability data loaded:", availabilityData.length)
       if (availabilityData && availabilityData.length > 0) {
         const dates = availabilityData.map((dateStr) => new Date(dateStr))
         setAvailability(dates)
@@ -190,7 +187,6 @@ export function EditAppointmentDialog({ appointmentId, packageId, currentDatetim
                 />
               ) : (
                 <>
-                  <ProgressBar currentStep={currentStep} totalSteps={2} />
                   <div className="mt-4 mb-6">{renderStep()}</div>
                   <div className="flex justify-between mt-8">
                     {currentStep > 1 && (

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,6 +13,8 @@ import { Badge } from "@/components/ui/badge"
 import { Calendar, Clock, CreditCard, Frown, MapPin, Scissors, Smile, User } from "lucide-react"
 import { EditAppointmentDialog } from "@/components/appointments/edit-appointment-dialog"
 import useEditStore from "@/app/store/useEditStore"
+import { CancelConfirmationDialog } from "@/components/appointments/cancel-confirmation-dialog"
+
 
 function canEditAppointment(appointment) {
   // Solo se puede editar si:
@@ -37,19 +39,23 @@ export function ViewMydateDialog({ appointment }) {
   const fetchPaymentUrl = usePaymentStore((state) => state.fetchPaymentUrl)
   const paymentUrl = null
   const { openEditDialog, setAppointment } = useEditStore()
+  const [showCancelConfirmation, setShowCancelConfirmation] = useState(false)
+
 
   useEffect(() => {
-    console.log(">Estoy en el useEffect de ViewMydateDialog")
     fetchPaymentUrl(appointment.id)
   }, [appointment.id, fetchPaymentUrl])
 
-  const handleCancel = async () => {
+  const handleCancelClick = () => {
+    setShowCancelConfirmation(true)
+  }
+
+  const handleConfirmCancel = async () => {
     await cancelAppointment(appointment.id)
     window.location.reload()
   }
 
   const handleEdit = () => {
-    console.log("Edit appointment:", appointment.id)
     setAppointment(appointment.id)
     openEditDialog()
   }
@@ -231,7 +237,7 @@ export function ViewMydateDialog({ appointment }) {
             <Button
               variant="outline"
               className="w-full border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
-              onClick={handleCancel}
+              onClick={handleCancelClick}
             >
               <Frown className="mr-2 h-5 w-5" />
               Cancelar cita
@@ -247,6 +253,12 @@ export function ViewMydateDialog({ appointment }) {
           )}
         </div>
       </div>
+      <CancelConfirmationDialog
+        isOpen={showCancelConfirmation}
+        onClose={() => setShowCancelConfirmation(false)}
+        onConfirm={handleConfirmCancel}
+        appointmentDate={format(new Date(appointment.datetimeStart), "EEEE d 'de' MMMM, yyyy", { locale: es })}
+      />
       <EditAppointmentDialog
         appointmentId={appointment.id}
         packageId={appointment.package.id}
