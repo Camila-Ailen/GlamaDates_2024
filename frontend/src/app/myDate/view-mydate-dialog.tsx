@@ -11,19 +11,47 @@ import { PaymentButton } from "@/components/mercadopago/PaymentButton"
 import useMyDatesStore from "@/app/store/useMyDatesStore"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Clock, CreditCard, Frown, MapPin, Scissors, Smile, User } from "lucide-react"
+import { EditAppointmentDialog } from "@/components/appointments/edit-appointment-dialog"
+import useEditStore from "@/app/store/useEditStore"
+
+function canEditAppointment(appointment) {
+  // Solo se puede editar si:
+  // 1. Ya está abonado (estado ACTIVO o COMPLETADO)
+  // 2. No ha sido completado (estado diferente a COMPLETADO)
+  // 3. Faltan más de 30 minutos para la cita
+
+  const isPaid = appointment.state === "ACTIVO"
+  const isNotCompleted = appointment.state !== "COMPLETADO"
+
+  // Calcular si faltan más de 30 minutos
+  const appointmentTime = new Date(appointment.datetimeStart)
+  const now = new Date()
+  const diffInMinutes = (appointmentTime.getTime() - now.getTime()) / (1000 * 60)
+  const hasEnoughTimeLeft = diffInMinutes > 40
+
+  return isPaid && isNotCompleted && hasEnoughTimeLeft
+}
 
 export function ViewMydateDialog({ appointment }) {
   const { cancelAppointment } = useMyDatesStore()
   const fetchPaymentUrl = usePaymentStore((state) => state.fetchPaymentUrl)
   const paymentUrl = null
+  const { openEditDialog, setAppointment } = useEditStore()
 
   useEffect(() => {
+    console.log(">Estoy en el useEffect de ViewMydateDialog")
     fetchPaymentUrl(appointment.id)
   }, [appointment.id, fetchPaymentUrl])
 
   const handleCancel = async () => {
     await cancelAppointment(appointment.id)
     window.location.reload()
+  }
+
+  const handleEdit = () => {
+    console.log("Edit appointment:", appointment.id)
+    setAppointment(appointment.id)
+    openEditDialog()
   }
 
   const getStatusColor = (state: string) => {
@@ -124,7 +152,7 @@ export function ViewMydateDialog({ appointment }) {
 
         <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
           <Scissors className="h-5 w-5 text-pink-600" />
-          Servicios incluidos 
+          Servicios incluidos
         </h3>
 
         <div className="space-y-4">
@@ -188,6 +216,17 @@ export function ViewMydateDialog({ appointment }) {
         <div className="mt-6 space-y-3">
           {appointment.state !== "COMPLETADO" && appointment.state !== "ACTIVO" && <PaymentButton source="later" />}
 
+          {canEditAppointment(appointment) && (
+            <Button
+              variant="outline"
+              className="w-full border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
+              onClick={handleEdit}
+            >
+              <Calendar className="mr-2 h-5 w-5" />
+              Cambiar fecha y hora
+            </Button>
+          )}
+
           {appointment.state === "PENDIENTE" && (
             <Button
               variant="outline"
@@ -208,7 +247,11 @@ export function ViewMydateDialog({ appointment }) {
           )}
         </div>
       </div>
+      <EditAppointmentDialog
+        appointmentId={appointment.id}
+        packageId={appointment.package.id}
+        currentDatetime={appointment.datetimeStart}
+      />
     </DialogContent>
   )
 }
-
