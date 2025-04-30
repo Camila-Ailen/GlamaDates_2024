@@ -8,7 +8,7 @@ import { useMyCalendarStore } from "@/app/store/useMyCalendarStore"
 import useAuthStore from "@/app/store/useAuthStore"
 import { toast } from "sonner"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { startOfWeek, endOfWeek, addDays, isSameDay, isToday, isThisWeek } from "date-fns"
+import { startOfWeek, endOfWeek, addDays, isSameDay, isToday, isThisWeek, isAfter, endOfDay } from "date-fns"
 
 export function ProfessionalDashboard() {
   const {
@@ -113,7 +113,7 @@ export function ProfessionalDashboard() {
             <div className="md:col-span-1">
               <h2 className="text-lg font-medium mb-4 text-center">Próximas Citas</h2>
               <TodayAppointments
-                appointments={appointmentsWithDates.filter((a) => !isToday(a.dateObj))}
+                appointments={appointmentsWithDates.filter((a) => isAfter(a.dateObj, endOfDay(new Date())))}
                 onSort={(field) => {
                   if (field === orderBy) {
                     setOrderType(orderType === "ASC" ? "DESC" : "ASC")

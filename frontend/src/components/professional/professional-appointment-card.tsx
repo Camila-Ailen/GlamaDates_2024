@@ -6,7 +6,7 @@ import { es } from "date-fns/locale"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { CheckCircle, Clock, CreditCard, User } from "lucide-react"
+import { Calendar, CheckCircle, Clock, CreditCard, User } from "lucide-react"
 import { useAppointmentStore } from "@/app/store/useAppointmentStore"
 import {
   AlertDialog,
@@ -202,25 +202,51 @@ export function ProfessionalAppointmentCard({
       </Card>
 
       <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar acción</AlertDialogTitle>
-            <AlertDialogDescription>
-              ¿Estás seguro de que deseas marcar esta cita como completada?
-              <br />
-              <br />
-              <strong>Cita:</strong> {appointment.package.name}
-              <br />
-              <strong>Cliente:</strong> {appointment.client.firstName} {appointment.client.lastName}
-              <br />
-              <strong>Fecha:</strong> {format(new Date(appointment.datetimeStart), "d MMM yyyy", { locale: es })}
-              <br />
-              <strong>Hora:</strong> {format(new Date(appointment.datetimeStart), "HH:mm", { locale: es })} hs
+            <div className="bg-green-50 p-4 -m-6 mb-4 rounded-t-lg border-b border-green-100 flex items-center gap-3">
+              <div className="bg-green-100 rounded-full p-2">
+                <CheckCircle className="h-6 w-6 text-green-600" />
+              </div>
+              <AlertDialogTitle className="text-xl text-green-700 m-0">Confirmar acción</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="space-y-4">
+              <p className="text-gray-600">¿Estás seguro de que deseas marcar esta cita como completada?</p>
+
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 items-center">
+                  <div className="flex items-center justify-center bg-blue-100 rounded-full p-1.5">
+                    <CreditCard className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div className="font-medium">{appointment.package.name}</div>
+
+                  <div className="flex items-center justify-center bg-purple-100 rounded-full p-1.5">
+                    <User className="h-4 w-4 text-purple-600" />
+                  </div>
+                  <div>
+                    {appointment.client.firstName} {appointment.client.lastName}
+                  </div>
+
+                  <div className="flex items-center justify-center bg-amber-100 rounded-full p-1.5">
+                    <Calendar className="h-4 w-4 text-amber-600" />
+                  </div>
+                  <div>{format(new Date(appointment.datetimeStart), "d MMM yyyy", { locale: es })}</div>
+
+                  <div className="flex items-center justify-center bg-pink-100 rounded-full p-1.5">
+                    <Clock className="h-4 w-4 text-pink-600" />
+                  </div>
+                  <div>{format(new Date(appointment.datetimeStart), "HH:mm", { locale: es })} hs</div>
+                </div>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmComplete} className="bg-green-600 hover:bg-green-700">
+          <AlertDialogFooter className="mt-4">
+            <AlertDialogCancel className="border-gray-200 text-gray-700 hover:bg-gray-50">Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmComplete}
+              className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
+            >
+              <CheckCircle className="h-4 w-4 mr-2" />
               Confirmar
             </AlertDialogAction>
           </AlertDialogFooter>
