@@ -136,7 +136,7 @@ const MultiStepForm: React.FC<MultiStepFormProps> = ({ availability, selectedPac
           </DialogTitle>
         </DialogHeader>
 
-        <div className="p-6">
+        <div className="p-6 max-h-[90vh] overflow-y-auto pr-1">
           {availability.length > 0 ? (
             <>
               {showRecommendation ? (

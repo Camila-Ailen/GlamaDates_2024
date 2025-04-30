@@ -45,7 +45,7 @@ const Step2: React.FC = () => {
         </div>
 
         {availableTimes.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-1">
             {groupedTimes.morning.length > 0 && (
               <div>
                 <h4 className="text-sm font-medium text-pink-700 mb-2">Mañana</h4>

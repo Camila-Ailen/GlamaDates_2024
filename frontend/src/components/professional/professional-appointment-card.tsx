@@ -79,7 +79,7 @@ export function ProfessionalAppointmentCard({
     try {
       await fetchCompletedAppointment(appointment.id)
       toast.success("Cita marcada como completada")
-      setTimeout(() => {
+      setTimeout(() => { 
         window.location.reload()
       }, 1500)
     } catch (error) {
