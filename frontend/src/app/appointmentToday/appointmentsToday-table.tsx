@@ -1,290 +1,335 @@
-'use client'
+"use client"
 
-import { useEffect } from 'react'
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
-import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
-import { Button } from "@/components/ui/button"
+import { useEffect, useState } from "react"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { format } from "date-fns"
+import { es } from "date-fns/locale"
 import { Input } from "@/components/ui/input"
 import {
-    Pagination,
-    PaginationContent,
-    PaginationEllipsis,
-    PaginationItem,
-    PaginationLink,
-    PaginationNext,
-    PaginationPrevious,
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
 } from "@/components/ui/pagination"
-// import { EditPackageDialog } from './edit-package-dialog'
-// import { DeletePackageDialog } from './delete-package-dialog'
-import useAppointmentStore from '../store/useAppointmentStore'
-import { ArrowUpDown, View } from 'lucide-react'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-// import { CreatePackageDialog } from './create-package-dialog'
-import useAuthStore from '../store/useAuthStore'
-import { ViewAppointmentDialog } from '../appointment/view-appointment-dialog'
-import { PayCashDialog } from './pay-cash-dialog'
-import { ViewCashDialog } from './view-cash-dialog'
+import useAppointmentStore from "../store/useAppointmentStore"
+import { ArrowDown, ArrowUp, ArrowUpDown, Calendar, Search } from "lucide-react"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import useAuthStore from "../store/useAuthStore"
+import { ViewAppointmentDialog } from "../appointment/view-appointment-dialog"
+import { PayCashDialog } from "./pay-cash-dialog"
+import { ViewCashDialog } from "./view-cash-dialog"
+import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export function AppointmentsTodayTable() {
-    const {
-        appointments,
-        total,
-        currentPage,
-        pageSize,
-        isLoading,
-        error,
-        orderBy,
-        orderType,
-        filter,
-        fetchTodayAppointments,
-        setOrderBy,
-        setOrderType,
-        setFilter
-    } = useAppointmentStore()
+  const {
+    appointments,
+    total,
+    currentPage,
+    pageSize,
+    isLoading,
+    error,
+    orderBy,
+    orderType,
+    filter,
+    fetchTodayAppointments,
+    setOrderBy,
+    setOrderType,
+    setFilter,
+  } = useAppointmentStore()
 
-    const token = useAuthStore((state) => state.token);
-    const hasPermission = useAuthStore((state) => state.hasPermission);
+  const token = useAuthStore((state) => state.token)
+  const hasPermission = useAuthStore((state) => state.hasPermission)
+  const [filteredAppointments, setFilteredAppointments] = useState(appointments)
+  const [localFilter, setLocalFilter] = useState(filter)
+  const [statusFilter, setStatusFilter] = useState("all")
 
+  useEffect(() => {
+    if (token) {
+      fetchTodayAppointments()
+      console.log("Fetching today's appointments...", orderBy, orderType, filter)
+    }
+  }, [fetchTodayAppointments, token, orderBy, orderType, filter])
 
-    useEffect(() => {
-        if (token) {
-            fetchTodayAppointments()
-        }
-    }, [fetchTodayAppointments, token, orderBy, orderType, filter])
+  // Aplicar filtros locales
+  useEffect(() => {
+    let result = [...appointments]
 
-    if (isLoading) return <div>Cargando...</div>
-    if (error) return <div>Ocurrió un error: {error}</div>
+    // Filtro de texto
+    if (localFilter) {
+      const searchTerm = localFilter.toLowerCase()
+      result = result.filter(
+        (appointment) =>
+          appointment.client.firstName.toLowerCase().includes(searchTerm) ||
+          appointment.client.lastName.toLowerCase().includes(searchTerm) ||
+          appointment.package.name.toLowerCase().includes(searchTerm) ||
+          appointment.state.toLowerCase().includes(searchTerm) ||
+          appointment.id.toString().includes(searchTerm),
+      )
+    }
 
-    const totalPages = Math.ceil(total / pageSize)
+    // Filtro de estado
+    if (statusFilter !== "all") {
+      if (statusFilter === "pending") {
+        result = result.filter((appointment) => appointment.pending > 0)
+      } else if (statusFilter === "completed") {
+        result = result.filter((appointment) => appointment.pending <= 0)
+      } else if (statusFilter === "cancelled") {
+        result = result.filter((appointment) => appointment.state === "CANCELADO")
+      }
+    }
 
-    const handleSort = (field: string) => {
-        if (field === orderBy) {
-            setOrderType(orderType === 'ASC' ? 'DESC' : 'ASC')
-        } else {
-            setOrderBy(field)
-            setOrderType('ASC')
-        }
+    setFilteredAppointments(result)
+  }, [appointments, localFilter, statusFilter])
+
+  const handleSearch = () => {
+    setFilter(localFilter)
+  }
+
+  const handleSort = (field: string) => {
+    if (field === orderBy) {
+      setOrderType(orderType === "ASC" ? "DESC" : "ASC")
+    } else {
+      setOrderBy(field)
+      setOrderType("ASC")
+    }
+  }
+
+  const getSortIcon = (field: string) => {
+    if (field !== orderBy) return <ArrowUpDown className="ml-2 h-4 w-4 inline opacity-50" />
+    return orderType === "ASC" ? (
+      <ArrowUp className="ml-2 h-4 w-4 inline text-green-600" />
+    ) : (
+      <ArrowDown className="ml-2 h-4 w-4 inline text-green-600" />
+    )
+  }
+
+  const getStatusBadge = (state: string, pending: number) => {
+    if (state === "CANCELADO") {
+      return <Badge variant="destructive">CANCELADO</Badge>
+    }
+
+    if (pending > 0) {
+      return (
+        <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
+          PENDIENTE
+        </Badge>
+      )
     }
 
     return (
-        <div>
-            <Card>
-                <CardHeader className="flex-row justify-between">
-                    <div>
-                        <CardTitle>Citas para hoy {format(new Date(), "EEEE d 'de' MMMM 'del' yyyy", { locale: es })}</CardTitle>
-                        <CardDescription>Ver y actualizar citas de la plataforma</CardDescription>
-                    </div>
-                    <div className="flex flex-row">
-
-                        <Input
-                            placeholder="Filtrar citas"
-                            value={filter}
-                            onChange={(e) => setFilter(e.target.value)}
-                            className="max-w-sm"
-                        />
-
-                        {/* {hasPermission('create:packages') && <CreatePackageDialog />} */}
-
-                    </div>
-
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead
-                                    onClick={() => handleSort("id")}
-                                    className="cursor-pointer"
-                                >
-                                    ID <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-                                </TableHead>
-
-                                <TableHead
-                                    onClick={() => handleSort("appointment.client.firstName")}
-                                    className="cursor-pointer"
-                                >
-                                    Cliente <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-                                </TableHead>
-
-                                <TableHead
-                                    onClick={() => handleSort("package.name")}
-                                    className="cursor-pointer"
-                                >
-                                    Paquete <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-                                </TableHead>
-
-                                {/* <TableHead
-                                    onClick={() => handleSort("datetimeStart")}
-                                    className="cursor-pointer"
-                                >
-                                    Fecha <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-                                </TableHead> */}
-
-                                <TableHead
-                                    onClick={() => handleSort("datetimeStart")}
-                                    className="cursor-pointer"
-                                >
-                                    Hora Inicio <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-                                </TableHead>
-
-                                {/* <TableHead
-                                    onClick={() => handleSort("datetimeEnd")}
-                                    className="cursor-pointer"
-                                >
-                                    Hora Fin <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-                                </TableHead> */}
-
-                                <TableHead
-                                    onClick={() => handleSort("state")}
-                                    className="cursor-pointer"
-                                >
-                                    Estado <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-                                </TableHead>
-
-                                 <TableHead
-                                    onClick={() => handleSort("price")}
-                                    className="cursor-pointer"
-                                >
-                                    Precio <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-                                </TableHead>
-
-                                <TableHead
-                                    onClick={() => handleSort("pending")}
-                                    className="cursor-pointer"
-                                >
-                                    Pago <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-                                </TableHead>
-
-                                
-
-                               
-                                {/* <TableHead
-                  onClick={() => handleSort("category")}
-                  className="cursor-pointer"
-                >
-                  Servicios <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-                </TableHead> */}
-                                <TableHead>Acciones</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {appointments.map((appointment) => (
-                                <TableRow key={appointment.id}>
-                                    
-                                    <TableCell>{appointment.id}</TableCell>
-                                    <TableCell>{appointment.client.firstName.toUpperCase()} {appointment.client.lastName.toUpperCase()}</TableCell>
-                                    <TableCell>{appointment.package.name.toUpperCase()}</TableCell>
-                                    {/* <TableCell>{format(new Date(appointment.datetimeStart), 'dd/MM/yyyy')}</TableCell> */}
-                                    <TableCell>{new Date(appointment.datetimeStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
-                                    {/* <TableCell>{new Date(appointment.datetimeEnd).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell> */}
-                                    <TableCell>{appointment.state}</TableCell>
-                                    <TableCell>{appointment.total}</TableCell>
-                                    <TableCell>{appointment.pending > 0 ? (
-                                             <span className="text-red-600 font-bold">PENDIENTE</span>
-                                        ) : (
-                                            <span className="text-green-600 font-bold">COMPLETADO</span>
-                                    )}
-                                    </TableCell>
-                                    <TableCell>{appointment.pending > 0 ? (
-                                        <PayCashDialog appointment={appointment} />
-                                    ) : (
-                                        <ViewCashDialog appointment={appointment} />
-                                    )}
-                                        {hasPermission("read:appointments") && (
-                                            <ViewAppointmentDialog appointment={appointment} />
-                                        )}
-                                        {/* {hasPermission("update:appointments") && (
-                        <EditPackageDialog pkg={appointment.package} />
-                      )}
-                      {hasPermission("delete:appointments") && (
-                        <DeletePackageDialog packageId={appointment.package.id} />
-                      )} */}
-                                    </TableCell>
-                                </TableRow>
-                            ))
-
-                            }
-
-
-                        </TableBody>
-                    </Table>
-                </CardContent>
-                <CardFooter>
-                    <Pagination className="mt-4">
-                        <PaginationContent>
-                            <PaginationItem>
-                                <PaginationPrevious
-                                    onClick={() =>
-                                        fetchTodayAppointments(Math.max(currentPage - 1, 1), token || undefined)
-                                    }
-                                />
-                            </PaginationItem>
-                            {totalPages > 6 ? (
-                                <>
-                                    <PaginationItem></PaginationItem>
-                                    {currentPage > 3 && (
-                                        <PaginationItem>
-                                            <PaginationEllipsis />
-                                        </PaginationItem>
-                                    )}
-                                    {[...Array(totalPages)]
-                                        .map((_, i) => i + 1)
-                                        .filter(
-                                            (page) => 
-                                                page === 1 || 
-                                                page === totalPages || 
-                                                (page >= currentPage - 2 && page <= currentPage + 2))
-                                        .map((page) => (
-                                            <PaginationItem key={page}>
-                                                <PaginationLink 
-                                                    onClick={() => fetchTodayAppointments(page, token || undefined)} 
-                                                    isActive={currentPage === page}>
-                                                    {page}
-                                                </PaginationLink>
-                                            </PaginationItem>
-                                        ))}
-                                    {currentPage < totalPages - 2 && (
-                                        <PaginationItem>
-                                            <PaginationEllipsis />
-                                        </PaginationItem>
-                                    )}
-                                    {/* <PaginationItem>
-                <PaginationLink onClick={() => fetchUsers(totalPages)} isActive={currentPage === totalPages}>
-                  {totalPages}
-                </PaginationLink>
-              </PaginationItem> */}
-                                </>
-                            ) : (
-                                [...Array(totalPages)].map((_, i) => (
-                                    <PaginationItem key={i}>
-                                        <PaginationLink 
-                                            onClick={() => fetchTodayAppointments(i + 1, token || undefined)} 
-                                            isActive={currentPage === i + 1}>
-                                            {i + 1}
-                                        </PaginationLink>
-                                    </PaginationItem>
-                                ))
-                            )}
-                            <PaginationItem>
-                                <PaginationNext 
-                                    onClick={() => 
-                                        fetchTodayAppointments(
-                                            Math.min(currentPage + 1, totalPages), 
-                                            token || undefined)} />
-                            </PaginationItem>
-                        </PaginationContent>
-                    </Pagination>
-                </CardFooter>
-            </Card>
-
-        </div>
+      <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+        COMPLETADO
+      </Badge>
     )
+  }
+
+  if (isLoading)
+    return (
+      <Card className="w-full">
+        <CardContent className="p-8 flex justify-center items-center">
+          <div className="flex flex-col items-center gap-2">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+            <p className="text-muted-foreground">Cargando citas...</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+
+  if (error)
+    return (
+      <Card className="w-full border-red-200">
+        <CardContent className="p-8">
+          <div className="text-center text-red-500">
+            <p>Ocurrió un error: {error}</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+
+  const totalPages = Math.ceil(total / pageSize)
+
+  return (
+    <div>
+      <Card>
+        <CardHeader className="flex-row justify-between items-center">
+          <div>
+            <CardTitle className="flex items-center">
+              <Calendar className="mr-2 h-5 w-5 text-primary" />
+              Citas para hoy {format(new Date(), "EEEE d 'de' MMMM 'del' yyyy", { locale: es })}
+            </CardTitle>
+            <CardDescription>Ver y actualizar citas de la plataforma</CardDescription>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar citas..."
+                value={localFilter}
+                onChange={(e) => setLocalFilter(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                className="pl-9 w-full sm:w-[250px]"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Filtrar por estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los estados</SelectItem>
+                <SelectItem value="pending">Pendientes de pago</SelectItem>
+                <SelectItem value="completed">Pagos completados</SelectItem>
+                <SelectItem value="cancelled">Cancelados</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead onClick={() => handleSort("id")} className="cursor-pointer font-medium">
+                    ID {getSortIcon("id")}
+                  </TableHead>
+
+                  <TableHead
+                    onClick={() => handleSort("client.firstName")}
+                    className="cursor-pointer font-medium"
+                  >
+                    Cliente {getSortIcon("client.firstName")}
+                  </TableHead>
+
+                  <TableHead onClick={() => handleSort("package.name")} className="cursor-pointer font-medium">
+                    Paquete {getSortIcon("package.name")}
+                  </TableHead>
+
+                  <TableHead onClick={() => handleSort("datetimeStart")} className="cursor-pointer font-medium">
+                    Hora Inicio {getSortIcon("datetimeStart")}
+                  </TableHead>
+
+                  <TableHead onClick={() => handleSort("state")} className="cursor-pointer font-medium">
+                    Estado {getSortIcon("state")}
+                  </TableHead>
+
+                  <TableHead onClick={() => handleSort("price")} className="cursor-pointer font-medium text-right">
+                    Precio {getSortIcon("price")}
+                  </TableHead>
+
+                  <TableHead onClick={() => handleSort("pending")} className="cursor-pointer font-medium">
+                    Pago {getSortIcon("pending")}
+                  </TableHead>
+
+                  <TableHead className="text-center">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredAppointments.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="h-24 text-center">
+                      No se encontraron citas para hoy
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredAppointments.map((appointment) => (
+                    <TableRow key={appointment.id} className="hover:bg-muted/50">
+                      <TableCell className="font-medium">{appointment.id}</TableCell>
+                      <TableCell className="font-medium">
+                        {appointment.client.firstName.toUpperCase()} {appointment.client.lastName.toUpperCase()}
+                      </TableCell>
+                      <TableCell>{appointment.package.name.toUpperCase()}</TableCell>
+                      <TableCell>
+                        {new Date(appointment.datetimeStart).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </TableCell>
+                      <TableCell>{appointment.state}</TableCell>
+                      <TableCell className="text-right font-medium">${appointment.total.toFixed(2)}</TableCell>
+                      <TableCell>{getStatusBadge(appointment.state, appointment.pending)}</TableCell>
+                      <TableCell>
+                        <div className="flex justify-center space-x-1">
+                          {appointment.pending > 0 ? (
+                            <PayCashDialog appointment={appointment} />
+                          ) : (
+                            <ViewCashDialog appointment={appointment} />
+                          )}
+                          {hasPermission("read:appointments") && <ViewAppointmentDialog appointment={appointment} />}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-between items-center">
+          <div className="text-sm text-muted-foreground">
+            Mostrando {filteredAppointments.length} de {total} citas
+          </div>
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => fetchTodayAppointments(Math.max(currentPage - 1, 1), token || undefined)}
+                  className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
+                />
+              </PaginationItem>
+              {totalPages > 6 ? (
+                <>
+                  {currentPage > 3 && (
+                    <PaginationItem>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  )}
+                  {[...Array(totalPages)]
+                    .map((_, i) => i + 1)
+                    .filter(
+                      (page) =>
+                        page === 1 || page === totalPages || (page >= currentPage - 2 && page <= currentPage + 2),
+                    )
+                    .map((page) => (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          onClick={() => fetchTodayAppointments(page, token || undefined)}
+                          isActive={currentPage === page}
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                  {currentPage < totalPages - 2 && (
+                    <PaginationItem>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  )}
+                </>
+              ) : (
+                [...Array(totalPages)].map((_, i) => (
+                  <PaginationItem key={i}>
+                    <PaginationLink
+                      onClick={() => fetchTodayAppointments(i + 1, token || undefined)}
+                      isActive={currentPage === i + 1}
+                    >
+                      {i + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))
+              )}
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => fetchTodayAppointments(Math.min(currentPage + 1, totalPages), token || undefined)}
+                  className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </CardFooter>
+      </Card>
+    </div>
+  )
 }

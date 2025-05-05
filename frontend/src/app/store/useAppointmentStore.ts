@@ -233,6 +233,8 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
 
         set({ isLoading: true, error: null })
         try {
+            console.log('OrderBy:', orderBy);
+            console.log('OrderType:', orderType);
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_BACKEND_URL
                 }/api/appointment/today?orderBy=${orderBy}&orderType=${orderType}&offset=${(currentPage - 1) * pageSize
