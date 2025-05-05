@@ -73,6 +73,48 @@ export class AppointmentService {
     private readonly auditoriaService: AuditoriaService,
   ) { }
 
+  ////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////
+  // Registrar pago en efectivo
+  async registerCashPayment(appointmentId: number, body): Promise<void> {
+    const appointment = await this.appointmentRepository.findOne({ where: { id: appointmentId }, relations: ['payments'] });
+    if (!appointment) {
+      throw new HttpException('Appointment not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (appointment.pending <= 0) {
+      throw new HttpException('No pending amount to pay', HttpStatus.BAD_REQUEST);
+    }
+
+    const payment = new PaymentDto();
+    payment.datetime = new Date();
+    payment.amount = appointment.pending;
+    payment.paymentMethod = PaymentMethod.CASH;
+    payment.paymentType = PaymentType.TOTAL;
+    payment.status = PaymentStatus.COMPLETED;
+    payment.observation = body.observation || '';
+    payment.appointment = appointment;
+    payment.updated_at = new Date();
+
+    await this.paymentService.update({ id: appointment.payments[0].id, body: payment }); //siempre considerando un solo pago
+
+    appointment.pending = 0;
+    if (appointment.state === AppointmentState.PENDING) {
+      appointment.state = AppointmentState.ACTIVE;
+    } else if (appointment.state === AppointmentState.DELINQUENT) {
+      appointment.state = AppointmentState.COMPLETED;
+    } else if (appointment.state === AppointmentState.IN_PROGRESS_UNPAID) {
+      appointment.state = AppointmentState.IN_PROGRESS_PAY
+    } else {
+      console.log("Hay algun error con el cambio de estado del turno")
+    }
+
+    this.appointmentRepository.save(appointment);
+  }
+
+
+  ///////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////
   async getById(id: number): Promise<Appointment> {
     const appointment = await this.appointmentRepository.findOne({
       where: {
@@ -1019,54 +1061,54 @@ export class AppointmentService {
         where: { id },
         relations: ['details', 'details.employee'],
       });
-  
+
       if (!appointment) {
         throw new HttpException('Appointment not found', HttpStatus.NOT_FOUND);
       }
-  
+
       const detailappointment = appointment.details.find(
         (detail) => detail.employee.id === user
       );
-  
+
       if (!detailappointment) {
         throw new HttpException('Detail Appointment not found', HttpStatus.NOT_FOUND);
       }
-  
+
       // 🟡 GUARDAMOS COPIA DEL ESTADO ANTERIOR
       const oldAppointmentState = appointment.state;
       const oldDetail = { ...detailappointment };
-  
+
       // ✅ Actualizamos
       detailappointment.isCompleted = true;
       await this.detailsAppointmentRepository.save(detailappointment);
-  
+
       // Validaciones y cambios de estado...
       if (appointment.state === AppointmentState.COMPLETED ||
-          appointment.state === AppointmentState.CANCELLED ||
-          appointment.state === AppointmentState.INACTIVE ||
-          appointment.state === AppointmentState.DELINQUENT) {
+        appointment.state === AppointmentState.CANCELLED ||
+        appointment.state === AppointmentState.INACTIVE ||
+        appointment.state === AppointmentState.DELINQUENT) {
         throw new HttpException('Appointment cannot be updated', HttpStatus.BAD_REQUEST);
       }
-  
+
       if (appointment.state === AppointmentState.PENDING) {
         appointment.state = AppointmentState.IN_PROGRESS_UNPAID;
       }
       if (appointment.state === AppointmentState.ACTIVE) {
         appointment.state = AppointmentState.IN_PROGRESS_PAY;
       }
-  
+
       if (appointment.state === AppointmentState.IN_PROGRESS_UNPAID) {
         const allDetailsCompleted = appointment.details.every(detail => detail.isCompleted);
         appointment.state = allDetailsCompleted ? AppointmentState.DELINQUENT : AppointmentState.IN_PROGRESS_UNPAID;
       }
-  
+
       if (appointment.state === AppointmentState.IN_PROGRESS_PAY) {
         const allDetailsCompleted = appointment.details.every(detail => detail.isCompleted);
         appointment.state = allDetailsCompleted ? AppointmentState.COMPLETED : AppointmentState.IN_PROGRESS_PAY;
       }
-  
+
       await this.appointmentRepository.save(appointment);
-  
+
       // 🔵 GUARDAMOS AUDITORÍA
       await this.auditoriaService.create({
         entity: 'appointment',
@@ -1088,13 +1130,13 @@ export class AppointmentService {
           }
         }
       });
-  
+
     } catch (error) {
       console.error(error);
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
-  
+
 
   /////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////

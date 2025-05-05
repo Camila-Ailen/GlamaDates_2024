@@ -47,12 +47,28 @@ export class AppointmentController extends BaseController {
   ////////////////////////////////////////////////////
 
   @Get('updatePendingToInactive')
-  @Auth('update:appointments') 
+  @Auth('update:appointments')
   async updatePendingToDelinquent(): Promise<ResposeDTO> {
     await this.appointmentService.updatePendingToInactive();
     return {
       status: 'success',
       // message: 'Citas pendientes actualizadas a moroso correctamente.',
+    };
+  }
+
+  ////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
+  // registro de pago desde en efectivo
+  @Patch('registerPayment/:id')
+  @Auth('update:appointments')
+  async registerPayment(
+    @Param() params: IdDTO,
+    @Body() body: { observation: string },
+  ): Promise<ResposeDTO> {
+    const appointment = await this.appointmentService.registerCashPayment(params.id, body);
+    return {
+      status: 'success',
+      data: appointment,
     };
   }
 
@@ -70,7 +86,7 @@ export class AppointmentController extends BaseController {
 
   // Cambiar estado de completado del servicio desde el profesional //
   @Get('complete/:id')
-   @Auth('update:completedappointments')
+  @Auth('update:completedappointments')
   async complete(@Param() params: IdDTO, @Req() request: { user: User }): Promise<ResposeDTO> {
     const appointment = await this.appointmentService.completedService(params.id, request.user.id);
     return { status: 'success', data: appointment };

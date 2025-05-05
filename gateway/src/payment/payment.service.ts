@@ -48,8 +48,19 @@ export class PaymentService {
         await this.paymentRepository.save(payment);
         return await this.paymentRepository.findOne({
             where: { id: params.id, deletedAt: IsNull() },
-            relations: ['appointments'],
+            relations: ['appointment'],
         });
+    }
+
+    ////////////////////////////////////////////////
+    ////////////////////////////////////////////////
+    async findFromAppointmentId(appointmentId: number): Promise<number> {
+        const payment = await this.paymentRepository.findOne({
+            where: { appointment: { id: appointmentId } },
+            relations: ['appointment'],
+        });
+        if (!payment) throw new HttpException('Payment not found', HttpStatus.NOT_FOUND);
+        return payment.id;
     }
 
     ////////////////////////////////////////////////
