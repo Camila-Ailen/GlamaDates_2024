@@ -220,7 +220,15 @@ export function ViewMydateDialog({ appointment }) {
         </div>
 
         <div className="mt-6 space-y-3">
-          {appointment.state !== "COMPLETADO" && appointment.state !== "ACTIVO" && <PaymentButton source="later" />}
+          {appointment.state !== "COMPLETADO" && appointment.state !== "ACTIVO" && appointment.state !== "INACTIVO" && <PaymentButton source="later" />}
+
+          {appointment.state === "INACTIVO" && (
+            <Button className="w-full bg-yellow-600 hover:bg-yellow-700 text-white">
+            <Frown className="mr-2 h-5 w-5" />
+            Lo lamentamos, pero esta cita ya no está disponible por haber superado la fecha.
+            <Frown className="ml-2 h-5 w-5" />
+          </Button>
+          )}
 
           {canEditAppointment(appointment) && (
             <Button
