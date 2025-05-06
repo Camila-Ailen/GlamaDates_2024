@@ -46,13 +46,12 @@ export class AppointmentController extends BaseController {
   ////////////////////////////////////////////////////
   ////////////////////////////////////////////////////
 
-  @Get('updatePendingToInactive')
+  @Patch('updatePendingToInactive')
   @Auth('update:appointments')
   async updatePendingToDelinquent(): Promise<ResposeDTO> {
     await this.appointmentService.updatePendingToInactive();
     return {
       status: 'success',
-      // message: 'Citas pendientes actualizadas a moroso correctamente.',
     };
   }
 

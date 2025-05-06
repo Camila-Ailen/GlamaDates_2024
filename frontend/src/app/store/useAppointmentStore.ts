@@ -87,6 +87,7 @@ interface AppointmentState {
     thisWeekAppointments: number
     lastMonthAppointments: number
     appointmentHistory: []
+    fetchManualCron: () => Promise<void>
     fetchCashPayment: (id: number, observation: string) => Promise<void>
     fetchCompletedAppointment: (id: number) => Promise<void>
     fetchOneAppointment: (id: number) => Promise<Appointment | null>
@@ -124,6 +125,35 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
 
     selectedServices: [],
     setSelectedServices: (services) => set({ selectedServices: services }),
+
+    fetchManualCron: async () => {
+        try {
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/appointment/updatePendingToInactive`,
+                {
+                    method: 'PATCH',
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+            if (response.status === 403) {
+                toast.error("Sesión expirada");
+                useAuthStore.getState().logout();
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error('Error al ejecutar el cron manualmente');
+            }
+            toast.success("Ejecución del cron manual exitosa.")
+            toast.info('Se han actualizado los turnos pendientes a inactivos.')
+            return;
+        } catch (error) {
+            console.error(error);
+            return;
+        }
+    },
 
     fetchCashPayment: async (id: number, observation: string) => {
         try {

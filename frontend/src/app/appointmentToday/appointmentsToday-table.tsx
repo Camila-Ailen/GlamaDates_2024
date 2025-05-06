@@ -15,7 +15,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination"
 import useAppointmentStore from "../store/useAppointmentStore"
-import { ArrowDown, ArrowUp, ArrowUpDown, Calendar, Search } from "lucide-react"
+import { ArrowDown, ArrowUp, ArrowUpDown, Calendar, Clock, Loader2, Search } from "lucide-react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import useAuthStore from "../store/useAuthStore"
 import { ViewAppointmentDialog } from "../appointment/view-appointment-dialog"
@@ -23,6 +23,8 @@ import { PayCashDialog } from "./pay-cash-dialog"
 import { ViewCashDialog } from "./view-cash-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Button } from "@/components/ui/button"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 export function AppointmentsTodayTable() {
   const {
@@ -36,6 +38,7 @@ export function AppointmentsTodayTable() {
     orderType,
     filter,
     fetchTodayAppointments,
+    fetchManualCron,
     setOrderBy,
     setOrderType,
     setFilter,
@@ -46,6 +49,7 @@ export function AppointmentsTodayTable() {
   const [filteredAppointments, setFilteredAppointments] = useState(appointments)
   const [localFilter, setLocalFilter] = useState(filter)
   const [statusFilter, setStatusFilter] = useState("all")
+  const [isCronLoading, setIsCronLoading] = useState(false)
 
   useEffect(() => {
     if (token) {
@@ -95,6 +99,16 @@ export function AppointmentsTodayTable() {
     } else {
       setOrderBy(field)
       setOrderType("ASC")
+    }
+  }
+
+  const handleCron = async () => {
+    setIsCronLoading(true)
+    try {
+      await fetchManualCron()
+      await fetchTodayAppointments(currentPage, token || undefined)
+    } finally {
+      setIsCronLoading(false)
     }
   }
 
@@ -156,12 +170,37 @@ export function AppointmentsTodayTable() {
     <div>
       <Card>
         <CardHeader className="flex-row justify-between items-center">
-          <div>
-            <CardTitle className="flex items-center">
-              <Calendar className="mr-2 h-5 w-5 text-primary" />
-              Citas para hoy {format(new Date(), "EEEE d 'de' MMMM 'del' yyyy", { locale: es })}
-            </CardTitle>
-            <CardDescription>Ver y actualizar citas de la plataforma</CardDescription>
+          <div className="flex items-center gap-4">
+            <div>
+              <CardTitle className="flex items-center">
+                <Calendar className="mr-2 h-5 w-5 text-primary" />
+                Citas para hoy {format(new Date(), "EEEE d 'de' MMMM 'del' yyyy", { locale: es })}
+              </CardTitle>
+              <CardDescription>Ver y actualizar citas de la plataforma</CardDescription>
+            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCron}
+                    disabled={isCronLoading}
+                    className="h-9 px-3"
+                  >
+                    {isCronLoading ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Clock className="h-4 w-4 mr-2" />
+                    )}
+                    Actualizar estados
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Ejecutar actualización manual de estados de citas</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative">
@@ -196,10 +235,7 @@ export function AppointmentsTodayTable() {
                     ID {getSortIcon("id")}
                   </TableHead>
 
-                  <TableHead
-                    onClick={() => handleSort("client.firstName")}
-                    className="cursor-pointer font-medium"
-                  >
+                  <TableHead onClick={() => handleSort("client.firstName")} className="cursor-pointer font-medium">
                     Cliente {getSortIcon("client.firstName")}
                   </TableHead>
 

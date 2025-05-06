@@ -979,7 +979,7 @@ export class AppointmentService {
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
   // Funcion para actualizar a inactiva la cita
-  @Cron("11 19 * * *") // Se ejecuta cada dia a las 23:59
+  @Cron("59 23 * * *") // Se ejecuta cada dia a las 23:59
   async updatePendingToInactive(): Promise<void> {
     try {
       const todayStart = startOfDay(new Date());
