@@ -67,7 +67,7 @@ import { DiscountType } from './discountTypes';
     package: Package;
 
     // Relacion con pagos
-    @OneToMany(() => Payment, payment => payment.appointment)
+    @OneToMany(() => Payment, (payment) => payment.appointment)
     payments: Payment[];
 
 

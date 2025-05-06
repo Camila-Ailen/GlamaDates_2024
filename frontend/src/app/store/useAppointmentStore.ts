@@ -15,6 +15,18 @@ export interface DetailsAppointment {
     datetimeStart: Date,
 }
 
+export interface Payment {
+    id: number,
+    datetime: Date,
+    amount: number,
+    paymentMethod: string,
+    paymentType: string,
+    status: string,
+    observation: string,
+    transactionId: string,
+    appointment: Appointment,
+}
+
 export interface Appointment {
     id: number,
     datetimeStart: Date,
@@ -24,7 +36,9 @@ export interface Appointment {
     package: Package,
     details: DetailsAppointment[],
     total: number,
+    discount: number,
     pending: number,
+    payments: Payment[],
 }
 
 interface Category {
@@ -73,6 +87,7 @@ interface AppointmentState {
     thisWeekAppointments: number
     lastMonthAppointments: number
     appointmentHistory: []
+    fetchCashPayment: (id: number, observation: string) => Promise<void>
     fetchCompletedAppointment: (id: number) => Promise<void>
     fetchOneAppointment: (id: number) => Promise<Appointment | null>
     setSelectedServices: (services: Service[]) => void
@@ -110,9 +125,38 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
     selectedServices: [],
     setSelectedServices: (services) => set({ selectedServices: services }),
 
+    fetchCashPayment: async (id: number, observation: string) => {
+        try {
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/appointment/registerCashPayment/${id}`,
+                {
+                    method: 'PATCH',
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ observation }),
+                }
+            );
+            if (response.status === 403) {
+                toast.error("Sesión expirada");
+                useAuthStore.getState().logout();
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error('Error al registrar el pago en efectivo');
+            }
+            toast.success("Pago en efectivo registrado con éxito")
+            return;
+        } catch (error) {
+            console.error(error);
+            return;
+        }
+    },
+
     fetchCompletedAppointment: async (id: number) => {
         try {
-            console.log('Completing appointment with ID:', id);
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/appointment/complete/${id}`,
                 {
@@ -233,8 +277,6 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
 
         set({ isLoading: true, error: null })
         try {
-            console.log('OrderBy:', orderBy);
-            console.log('OrderType:', orderType);
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_BACKEND_URL
                 }/api/appointment/today?orderBy=${orderBy}&orderType=${orderType}&offset=${(currentPage - 1) * pageSize
@@ -252,7 +294,6 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
 
             if (!response.ok) throw new Error('Error al obtener citas')
             const data = await response.json()
-            console.log('data: ', data);
             set({ appointments: data.data.results, total: data.data.total, currentPage, isLoading: false })
         } catch (error) {
             set({ error: (error as any).message, isLoading: false })
@@ -390,7 +431,6 @@ export const useAppointmentStore = create<AppointmentState>((set, get) => ({
             }
             if (!response.ok) throw new Error('Error al obtener el historial de turnos');
             const data = await response.json();
-            console.log(data);
             set({ appointmentHistory: data, isLoading: false });
         } catch (error) {
             console.error(error);

@@ -8,47 +8,53 @@ import { format } from "date-fns"
 import type { Appointment } from "../store/useAppointmentStore"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { AlertCircle, CircleDollarSign, Wallet } from "lucide-react"
+import { CircleDollarSign, Loader2, Wallet } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Textarea } from "@/components/ui/textarea"
+import useAppointmentStore from "../store/useAppointmentStore"
 
 interface CashPaymentDialogProps {
   appointment: Appointment
-  isOpen: boolean
-  onClose: () => void
-  onSubmit: (amount: number) => void
 }
 
 const formSchema = z.object({
-  amount: z.number().positive().min(0.01).max(1000000),
+  observation: z.string().optional(),
 })
 
-export function PayCashDialog({ appointment }) {
-  const [error, setError] = useState<string | null>(null)
+export function PayCashDialog({ appointment }: CashPaymentDialogProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { fetchCashPayment, fetchTodayAppointments, fetchAppointments } = useAppointmentStore()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      amount: appointment.pending,
+      observation: "",
     },
   })
 
-  const handleSubmit = (values: z.infer<typeof formSchema>) => {
-    if (values.amount > appointment.pending) {
-      setError(`El monto no puede ser mayor a ${appointment.pending}`)
-      return
+  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      setIsSubmitting(true)
+      await fetchCashPayment(appointment.id, values.observation || "")
+      setIsSubmitting(false)
+      setIsOpen(false)
+      if (window.location.pathname.endsWith("/appointment")) {
+        fetchAppointments()
+      } else if (window.location.pathname.endsWith("/appointmentToday")) {
+        fetchTodayAppointments()
+      }
+    } catch (error) {
+      setIsSubmitting(false)
+      console.error("Error al procesar el pago:", error)
     }
-    setError(null)
-    // onSubmit(values.amount)
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={(open) => !isSubmitting && setIsOpen(open)}>
       <DialogTrigger asChild>
         <Button variant="outline" size="icon" className="mr-2" title="Registrar pago en efectivo">
           <Wallet className="h-4 w-4 text-amber-600" />
@@ -100,17 +106,37 @@ export function PayCashDialog({ appointment }) {
             <Separator />
 
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="total" className="text-right font-medium">
-                Total:
+              <Label htmlFor="package" className="text-right font-medium">
+                Paquete:
               </Label>
-              <div id="total" className="col-span-3">
-                ${appointment.total.toFixed(2)}
+              <div id="package" className="col-span-3">
+                {appointment.package.name}
               </div>
             </div>
 
             <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="total" className="text-right font-medium">
+                Total:
+              </Label>
+              <div id="total" className="col-span-3 font-medium">
+                ${appointment.total.toFixed(2)}
+              </div>
+            </div>
+
+            {appointment.discount > 0 && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="discount" className="text-right font-medium">
+                  Descuento:
+                </Label>
+                <div id="discount" className="col-span-3 text-green-600">
+                  -${appointment.discount.toFixed(2)}
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="pending" className="text-right font-medium">
-                Pendiente:
+                Monto a pagar:
               </Label>
               <div id="pending" className="col-span-3 font-semibold text-amber-600">
                 ${appointment.pending.toFixed(2)}
@@ -121,23 +147,18 @@ export function PayCashDialog({ appointment }) {
               <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
                 <FormField
                   control={form.control}
-                  name="amount"
+                  name="observation"
                   render={({ field }) => (
                     <FormItem>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <FormLabel className="text-right font-medium">Monto a pagar:</FormLabel>
+                      <div className="grid grid-cols-4 items-start gap-4">
+                        <FormLabel className="text-right font-medium pt-2">Observaciones:</FormLabel>
                         <div className="col-span-3">
                           <FormControl>
-                            <div className="relative">
-                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                              <Input
-                                type="number"
-                                step="0.01"
-                                className="pl-7"
-                                {...field}
-                                onChange={(e) => field.onChange(Number.parseFloat(e.target.value))}
-                              />
-                            </div>
+                            <Textarea
+                              placeholder="Observaciones opcionales sobre el pago"
+                              className="resize-none"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </div>
@@ -145,16 +166,20 @@ export function PayCashDialog({ appointment }) {
                     </FormItem>
                   )}
                 />
-                {error && (
-                  <Alert variant="destructive" className="mt-4">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                )}
+
                 <DialogFooter className="mt-6">
-                  <Button type="submit" className="w-full">
-                    <Wallet className="mr-2 h-4 w-4" />
-                    Registrar Pago
+                  <Button type="submit" className="w-full" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Procesando...
+                      </>
+                    ) : (
+                      <>
+                        <Wallet className="mr-2 h-4 w-4" />
+                        Registrar Pago de ${appointment.pending.toFixed(2)}
+                      </>
+                    )}
                   </Button>
                 </DialogFooter>
               </form>

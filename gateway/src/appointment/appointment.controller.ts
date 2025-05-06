@@ -59,7 +59,7 @@ export class AppointmentController extends BaseController {
   ////////////////////////////////////////////////////
   ////////////////////////////////////////////////////
   // registro de pago desde en efectivo
-  @Patch('registerPayment/:id')
+  @Patch('registerCashPayment/:id')
   @Auth('update:appointments')
   async registerPayment(
     @Param() params: IdDTO,
@@ -100,7 +100,6 @@ export class AppointmentController extends BaseController {
   @Get('availability2/:packageId')
   @Auth('read:availableappointments')
   async getAvailability2(@Param('packageId') packageId: number, @Query('offset') offset: number, @Query('pageSize') pageSize: number): Promise<Date[]> {
-    console.log('packageId desde el controlador: ', packageId);
     return this.appointmentService.getAvailableAppointments3(packageId, offset, pageSize);
   }
 
@@ -154,7 +153,6 @@ export class AppointmentController extends BaseController {
   @Auth('read:mycalendar')
   async allByProfesional(@Req() request: { user: User }, @Query() query: PaginationAppointmentDto): Promise<ResposeDTO> {
     const user = request.user;
-    console.log('user: ', user.id);
     const appointments = await this.appointmentService.allByProfessional(user, { query });
     return { status: 'success', data: appointments };
   }
@@ -182,7 +180,6 @@ export class AppointmentController extends BaseController {
     @Query('datetimeStart') datetimeStart: string
   ): Promise<{ available: boolean }> {
     const available = await this.appointmentService.isPackageAssignable(packageId, new Date(datetimeStart));
-    console.log('available: ', available);
     return { available };
   }
 
@@ -211,7 +208,6 @@ export class AppointmentController extends BaseController {
     @Body() body: AppointmentDto,
     @Req() request: { appointment: Appointment },
   ): Promise<ResposeDTO> {
-    console.log('body: ', body);
     return {
       status: 'success',
       data: await this.appointmentService.rearrange({ id: params.id, body: body }),
@@ -281,8 +277,6 @@ export class AppointmentController extends BaseController {
   @Get('statistics/payMethod')
   @Auth('read:appointments')
   async getPayMethodStatistics(@Query('begin') begin: string, @Query('end') end: string): Promise<any> {
-    console.log('begin: ', begin);
-    console.log('end: ', end);
     const statistics = await this.appointmentService.getPayMethodStatistics(begin, end);
     return statistics;
   }

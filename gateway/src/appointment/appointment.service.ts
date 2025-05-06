@@ -410,7 +410,6 @@ export class AppointmentService {
       appointment.state = AppointmentState.CANCELLED;
       await this.appointmentRepository.save(appointment);
       // Ahora se calcula a quienes se le puede recomendar la cita
-      console.log('hasta aqui ok')
       await this.notifyClientsForReappointments(appointment);
     }
 
@@ -453,7 +452,6 @@ export class AppointmentService {
 
       suggestions.push(...futureAppointments);
     }
-    // console.log('sugerencias buscadas')
 
     return suggestions;
   }
@@ -463,7 +461,6 @@ export class AppointmentService {
     console.log('Notificando a los clientes para reacomodar la cita');
     const suggestions = await this.suggestReappointments(cancelledAppointment);
 
-    // console.log('Sugerencias:', suggestions.length);
     if (suggestions.length === 0) {
       return;
     }
@@ -801,9 +798,7 @@ export class AppointmentService {
               if (colisionAppointmentsFuture.length < professionals.length && colisionAppointmentsFuture.length < workstations.length) {
                 // Como aqui todavia no se deben asignar, con saber que hay disponibles es suficiente
                 availableStartTimes.push(new Date(currentStartUTC));
-              } else {
-                // console.log('No hay suficientes turnos disponibles (colision futura)');
-              }
+              } 
 
             }
           }
@@ -818,9 +813,7 @@ export class AppointmentService {
             if (colisionAppointments.length < professionals.length && colisionAppointments.length < workstations.length) {
               // Como aqui todavia no se deben asignar, con saber que hay disponibles es suficiente
               availableStartTimes.push(new Date(currentStartUTC));
-            } else {
-              // console.log('No hay suficientes turnos disponibles (colision presente)');
-            }
+            } 
           }
         }
       }
@@ -989,12 +982,8 @@ export class AppointmentService {
   @Cron("11 19 * * *") // Se ejecuta cada dia a las 23:59
   async updatePendingToInactive(): Promise<void> {
     try {
-      console.log('Actualizando citas de PENDIENTE a INACTIVO...');
       const todayStart = startOfDay(new Date());
       const todayEnd = endOfDay(new Date());
-
-      console.log('Hoy inicio: ', todayStart);
-      console.log('Hoy fin: ', todayEnd);
 
       // Encuentra todas las citas pendientes que se realizaron hoy
       const pendingAppointments = await this.appointmentRepository.find({
@@ -1010,9 +999,7 @@ export class AppointmentService {
         await this.appointmentRepository.save(appointment);
       }
 
-      console.log(
-        `Se actualizaron ${pendingAppointments.length} citas de PENDIENTE a INACTIVO.`
-      );
+      console.log(`Se actualizaron ${pendingAppointments.length} citas de PENDIENTE a INACTIVO.`);
     } catch (error) {
       console.error(
         "Error al actualizar las citas de PENDIENTE a INACTIVO:",
@@ -1179,7 +1166,7 @@ export class AppointmentService {
         where: {
           deletedAt: IsNull(),
         },
-        relations: ['details', 'details.employee', 'details.workstation', 'details.service', 'client', 'package'],
+        relations: ['details', 'details.employee', 'details.workstation', 'details.service', 'client', 'package', 'payments'],
         order,
         take: forPage,
         skip,
@@ -1233,7 +1220,7 @@ export class AppointmentService {
           deletedAt: IsNull(),
           datetimeStart: Between(startOfDay(new Date()), endOfDay(new Date())),
         },
-        relations: ['details', 'details.employee', 'details.workstation', 'details.service', 'client', 'package'],
+        relations: ['details', 'details.employee', 'details.workstation', 'details.service', 'client', 'package', 'payments'],
         order,
         take: forPage,
         skip,
@@ -1371,7 +1358,6 @@ export class AppointmentService {
         take: forPage,
         skip,
       });
-      // console.log('appointments: ', appointments);
 
       return {
         total: total,
