@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 import { UserDto } from '@/users/dto/user.dto';
@@ -7,6 +7,8 @@ import { In, IsNull, Like, Repository } from 'typeorm';
 import { PaginationResponseDTO } from '@/base/dto/base.dto';
 import { UserPaginationDto } from './dto/pagination-user.dto';
 import { Category } from '@/category/entities/category.entity';
+import { RolesService } from '@/roles/roles.service';
+import { Role } from '@/roles/entities/role.entity';
 
 @Injectable()
 export class UsersService {
@@ -15,6 +17,9 @@ export class UsersService {
 
   @InjectRepository(Category)
   private readonly categoryRepository: Repository<Category>;
+
+  @InjectRepository(Role)
+  private readonly roleRepository: Repository<Role>;
 
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
@@ -114,19 +119,36 @@ export class UsersService {
         throw new HttpException('User already exists', HttpStatus.CONFLICT);
       }
     }
+
+    params.body.firstName = params.body.firstName.toUpperCase();
+    params.body.lastName = params.body.lastName.toUpperCase();
+
+    // Asignación de rol por defecto si no se proporciona
+    if (!params.body.role) {
+      const defaultRole = await this.roleRepository.findOne({ where: { id: 2 } });
+      if (!defaultRole) {
+        throw new HttpException('Default role not found', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+      params.body.role = defaultRole;
+    }
+
+    console.log('params.body', params.body);
+
     if (params.body.categories && params.body.categories.length > 0) {
       const categories = await this.categoryRepository.find({
         where: { id: In(params.body.categories) },
       });
       params.body.categories = categories;
     }
-    await this.userRepository.save(
-      this.userRepository.create({
-        ...params.body,
-        password: await this._hashPassword(params.body.password),
-        createdAt: new Date(),
-      }),
-    );
+
+    const user = this.userRepository.create({
+      ...params.body,
+      password: await this._hashPassword(params.body.password),
+      createdAt: new Date(),
+    });
+
+    await this.userRepository.save(user);
+
     return await this.userRepository.findOne({
       where: { email: params.body.email },
       relations: ['role', 'role.permissions', 'categories', 'appointmentClient'],

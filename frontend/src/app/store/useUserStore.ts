@@ -91,6 +91,7 @@ const useUserStore = create<UserState>((set, get) => ({
   createUser: async (userData) => {
     set({ isLoading: true, error: null });
     try {
+      console.log("userData", userData);
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users`,
         {

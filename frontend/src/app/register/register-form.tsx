@@ -5,20 +5,21 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { UserPlus } from "lucide-react"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import useAuthStore from "@/app/store/useAuthStore"
+import useUserStore from "@/app/store/useUserStore"
 
 export function RegisterForm() {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
-    birthDate: "",
+    birthdate: "",
     gender: "",
     phone: "",
     password: "",
@@ -26,8 +27,9 @@ export function RegisterForm() {
   })
   const [error, setError] = useState("")
   const [passwordMatch, setPasswordMatch] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
-  const register = useAuthStore((state) => state.register) || (() => Promise.resolve({}))
+  const createUser = useUserStore((state) => state.createUser)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -58,12 +60,35 @@ export function RegisterForm() {
       return
     }
 
+    // Validate birth date is not in the future
+    if (formData.birthdate && new Date(formData.birthdate) > new Date()) {
+      setError("La fecha de nacimiento no puede ser posterior a hoy")
+      return
+    }
+
     try {
-      // Assuming the register function exists in your auth store
-      await register(formData)
+      setIsSubmitting(true)
+
+      // Prepare user data for API
+      const userData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        // Include optional fields only if they have values
+        ...(formData.birthdate && { birthDate: formData.birthdate }),
+        ...(formData.gender && { gender: formData.gender }),
+        ...(formData.phone && { phone: formData.phone }),
+      }
+
+      await createUser(userData)
+      toast.success("Registro exitoso. Ahora puedes iniciar sesión.")
       router.push("/login") // Redirect to login after successful registration
     } catch (err) {
+      // Error is already handled by toast in the store
       setError("Error al registrar usuario. Por favor, intente de nuevo.")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -106,11 +131,11 @@ export function RegisterForm() {
                 id="birthDate"
                 name="birthDate"
                 type="date"
-                value={formData.birthDate}
+                value={formData.birthdate}
                 onChange={handleChange}
                 max={new Date().toISOString().split("T")[0]}
               />
-              {formData.birthDate && new Date(formData.birthDate) > new Date() && (
+              {formData.birthdate && new Date(formData.birthdate) > new Date() && (
                 <p className="text-red-500 text-sm">La fecha no puede ser posterior a hoy</p>
               )}
             </div>
@@ -163,9 +188,9 @@ export function RegisterForm() {
 
             {error && <p className="text-red-500">{error}</p>}
 
-            <Button type="submit" className="w-full">
-              Registrarse
-              <UserPlus className="ml-2" />
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? "Registrando..." : "Registrarse"}
+              {!isSubmitting && <UserPlus className="ml-2" />}
             </Button>
 
             <div className="text-center text-sm">
