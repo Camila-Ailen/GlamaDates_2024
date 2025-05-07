@@ -116,7 +116,7 @@ const useUserStore = create<UserState>((set, get) => ({
 
       if (!response.ok) toast.error("Error al crear usuario");
       console.log(response);
-      toast.success("Usuario creado correctamente");
+      toast.success("Registro exitoso. Ahora puedes iniciar sesión.")
       await get().fetchUsers(undefined);
     } catch (error) {
       set({ error: (error as Error).message, isLoading: false });

@@ -82,7 +82,6 @@ export function RegisterForm() {
       }
 
       await createUser(userData)
-      toast.success("Registro exitoso. Ahora puedes iniciar sesión.")
       router.push("/login") // Redirect to login after successful registration
     } catch (err) {
       // Error is already handled by toast in the store
