@@ -4,6 +4,7 @@ import { Role } from '@/roles/entities/role.entity';
 import { Category } from '@/category/entities/category.entity';
 import { Appointment } from '@/appointment/entities/appointment.entity';
 import { DetailsAppointment } from '@/details-appointment/entities/details-appointment.entity';
+import { Transform } from 'class-transformer';
 
 export class UserDto {
   @IsOptional()
@@ -37,6 +38,7 @@ export class UserDto {
   //fecha de nacimiento
   @ApiProperty({ required: false})
   @IsOptional()
+  @Transform(({ value }) => new Date(value))
   @IsDate()
   birthdate: Date;
 

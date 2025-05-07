@@ -76,7 +76,7 @@ export function RegisterForm() {
         email: formData.email,
         password: formData.password,
         // Include optional fields only if they have values
-        ...(formData.birthdate && { birthDate: formData.birthdate }),
+        ...(formData.birthdate && { birthdate: formData.birthdate }),
         ...(formData.gender && { gender: formData.gender }),
         ...(formData.phone && { phone: formData.phone }),
       }
@@ -126,10 +126,10 @@ export function RegisterForm() {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="birthDate">Fecha de Nacimiento (opcional)</Label>
+              <Label htmlFor="birthdate">Fecha de Nacimiento (opcional)</Label>
               <Input
-                id="birthDate"
-                name="birthDate"
+                id="birthdate"
+                name="birthdate"
                 type="date"
                 value={formData.birthdate}
                 onChange={handleChange}
