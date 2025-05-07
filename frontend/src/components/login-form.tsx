@@ -31,9 +31,9 @@ export function LoginForm() {
       const user = await login(email, password);
       if (user.role === "ADMIN" || user.role === "SECRETARIO") {
         router.push("/dashboard");
-      } else if (user.role === "CLIENTE"){
+      } else if (user.role === "CLIENTE") {
         router.push("/catalog");
-      } else if (user.role === "PROFESIONAL"){
+      } else if (user.role === "PROFESIONAL") {
         router.push("/myCalendar");
       } else {
         router.push("/catalog");
@@ -116,6 +116,12 @@ export function LoginForm() {
               Ingresar
               <LogIn />
             </Button>
+            <div className="mt-4 text-center text-sm">
+              ¿No tienes una cuenta?{" "}
+              <Link href="/register" className="text-primary underline">
+                Regístrate aquí
+              </Link>
+            </div>
           </form>
         </CardContent>
       </Card>
