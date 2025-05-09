@@ -134,6 +134,23 @@ export class PaymentService {
         return payment.id;
     }
 
+    /////////////////////////////////////////////////
+    ////////////////////////////////////////////////
+    async existsByTransaction(id: string): Promise<Boolean> {
+        console.log("getByTransaction id: ", id);
+        const payment = await this.paymentRepository.findOne({
+            where: { 
+                transactionId: id, 
+                deletedAt: IsNull() 
+            },
+        });
+        if (!payment) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     ////////////////////////////////////////////////
     ////////////////////////////////////////////////
     async confirm(paymentData) {

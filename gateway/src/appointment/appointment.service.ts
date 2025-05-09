@@ -93,6 +93,7 @@ export class AppointmentService {
     payment.paymentType = PaymentType.TOTAL;
     payment.status = PaymentStatus.COMPLETED;
     payment.observation = body.observation || '';
+    payment.transactionId = await this.generateTransactionId();
     payment.appointment = appointment;
     payment.updated_at = new Date();
 
@@ -110,6 +111,26 @@ export class AppointmentService {
     }
 
     this.appointmentRepository.save(appointment);
+  }
+
+  ////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////
+  async generateTransactionId(): Promise<string> {
+    let transactionId: string;
+    let exists = true;
+  
+    while (exists) {
+      // Generar un ID de transacción aleatorio
+      transactionId = `EF${Math.floor(10000000 + Math.random() * 90000000)}`; // Genera un número aleatorio de 8 cifras
+  
+      console.log("transactionId", transactionId)
+      // Verificar si ya existe en la base de datos
+      const existingPayment = await this.paymentService.existsByTransaction(transactionId);
+      console.log("existingPayment", existingPayment)
+      exists = !!existingPayment; // Si existe, repetir el ciclo
+    }
+  
+    return transactionId;
   }
 
 
