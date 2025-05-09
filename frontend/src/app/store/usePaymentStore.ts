@@ -35,6 +35,7 @@ interface PaymentState {
   fetchPaymentUrl: (appointmentId: string) => void
   setPaymentData: (id: string, amount: number) => void
   fetchPayments: (page?: number, token?: string) => Promise<void>
+  cancelPayment: (id: number, observation: string) => Promise<void>
 }
 
 const token = useAuthStore.getState().token;
@@ -99,7 +100,32 @@ export const usePaymentStore = create<PaymentState>((set, get) => ({
     }
   },
 
-
+  cancelPayment: async (id: number, observation: string) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/payment/cancel/${id}`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ observation }),
+      });
+      if (response.status === 403) {
+        toast.error("Sesión expirada");
+        useAuthStore.getState().logout();
+        return;
+      }
+      if (!response.ok) {
+        throw new Error('Error al cancelar el pago');
+      } else {
+        toast.success('Pago cancelado exitosamente');
+      }
+      const data = await response.json();
+      console.log(data);
+    } catch (error) {
+      console.error(error);
+    }
+  },
 
 
 }))

@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 import { Ban, Loader2 } from "lucide-react"
 import useAuthStore from "../store/useAuthStore"
+import { usePaymentStore } from "../store/usePaymentStore"
 
 interface Payment {
   id: number
@@ -37,6 +38,7 @@ interface CancelPaymentDialogProps {
 }
 
 export function CancelPaymentDialog({ payment, onCancel }: CancelPaymentDialogProps) {
+    const { cancelPayment } = usePaymentStore()
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [reason, setReason] = useState("")
@@ -50,28 +52,25 @@ export function CancelPaymentDialog({ payment, onCancel }: CancelPaymentDialogPr
 
     setIsLoading(true)
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/payment/cancel/${payment.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ observation: reason }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || "Error al cancelar el pago")
-      }
+      await cancelPayment(payment.id, reason)
 
       toast.success("Pago cancelado correctamente")
       setOpen(false)
-      onCancel()
+
+      // Asegurarse de que la actualización ocurra después de que el diálogo se cierre
+      setTimeout(() => {
+        onCancel()
+      }, 100)
     } catch (error) {
       toast.error((error as Error).message || "Error al cancelar el pago")
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const closeDialog = () => {
+    setReason("")
+    setOpen(false)
   }
 
   return (
@@ -120,7 +119,7 @@ export function CancelPaymentDialog({ payment, onCancel }: CancelPaymentDialogPr
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={isLoading}>
+          <Button variant="outline" onClick={closeDialog} disabled={isLoading}>
             Cancelar
           </Button>
           <Button variant="destructive" onClick={handleCancel} disabled={isLoading}>

@@ -39,19 +39,17 @@ export function PaymentsTable() {
   const [methodFilter, setMethodFilter] = useState("all")
   const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined)
   const [showFilters, setShowFilters] = useState(false)
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   useEffect(() => {
     if (token) {
       fetchPayments()
     }
-  }, [fetchPayments, token, orderBy, orderType, filter])
+  }, [fetchPayments, token, orderBy, orderType, filter, refreshTrigger])
 
   // Aplicar filtros locales
   useEffect(() => {
     let result = [...payments]
-
-    console.log("Aplicando filtros locales")
-    console.log("Pagos originales:", payments)
 
     // Filtro de texto
     if (localFilter) {
@@ -312,8 +310,8 @@ export function PaymentsTable() {
                     Observación {getSortIcon("observation")}
                   </TableHead>
 
-                  <TableHead onClick={() => handleSort("appointment.id")} className="cursor-pointer font-medium">
-                    ID Cita {getSortIcon("appointment.id")}
+                  <TableHead onClick={() => handleSort("appointmentId")} className="cursor-pointer font-medium">
+                    ID Cita {getSortIcon("appointmentId")}
                   </TableHead>
 
                   <TableHead className="text-center">Acciones</TableHead>
@@ -340,7 +338,13 @@ export function PaymentsTable() {
                       <TableCell>
                         <div className="flex justify-center">
                           {payment.status !== "CANCELADO" && hasPermission("cancel:payment") && (
-                            <CancelPaymentDialog payment={{ ...payment, appointmentId: payment.appointment.id }} onCancel={() => fetchPayments()} />
+                            <CancelPaymentDialog
+                              payment={{ ...payment, appointmentId: payment.appointment.id }}
+                              onCancel={() => {
+                                // Incrementar el trigger para forzar la actualización
+                                setRefreshTrigger((prev) => prev + 1)
+                              }}
+                            />
                           )}
                         </div>
                       </TableCell>
