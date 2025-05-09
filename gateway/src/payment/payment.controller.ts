@@ -1,10 +1,11 @@
 import { BaseController } from "@/base/base.controller";
-import { Body, Controller, Get, Inject, Post, Query } from "@nestjs/common";
+import { Body, Controller, Get, Inject, Param, Patch, Post, Query } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { In } from "typeorm";
 import { PaymentService } from "./payment.service";
 import { JwtService } from "@nestjs/jwt";
 import { ResposeDTO } from "@/base/dto/base.dto";
+import { Auth } from "@/auth/auth.decorator";
 
 
 @Controller('payment')
@@ -42,6 +43,16 @@ export class PaymentController extends BaseController {
   async findAll(): Promise<ResposeDTO> {
     const payments = await this.paymentService.findAll();
     return { status: 'success', data: payments };
+  }
+
+  @Patch('cancel/:id')
+  @Auth('cancel:payment')
+  async cancelPayment(
+    @Param('id') id: number,
+    @Body('observation') observation: string,
+  ): Promise<ResposeDTO> {
+    const canceledPayment = await this.paymentService.cancelPayment(id, observation);
+    return { status: 'success', data: canceledPayment };
   }
 
 

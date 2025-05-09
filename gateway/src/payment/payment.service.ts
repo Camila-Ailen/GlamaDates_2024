@@ -33,6 +33,22 @@ export class PaymentService {
             relations: ['appointment'],
         });
     }
+
+    ////////////////////////////////////////////////
+    ////////////////////////////////////////////////
+    async cancelPayment(paymentId: number, observation: string): Promise<Payment> {
+        const payment = await this.paymentRepository.findOne({
+            where: { id: paymentId, deletedAt: IsNull() },
+            relations: ['appointment'],
+        });
+        if (!payment) throw new HttpException('Payment not found', HttpStatus.NOT_FOUND);
+
+        payment.status = PaymentStatus.CANCELLED;
+        payment.datetime = new Date();
+        payment.observation = observation;
+        await this.paymentRepository.save(payment);
+        return payment;
+    }
     ////////////////////////////////////////////////
     ////////////////////////////////////////////////
     async create(params: { body: PaymentDto }): Promise<Payment> {
