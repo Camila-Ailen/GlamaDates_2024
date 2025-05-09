@@ -408,8 +408,18 @@ export class AppointmentService {
 
     if (appointment.state === AppointmentState.PENDING) {
       appointment.state = AppointmentState.CANCELLED;
+      appointment.pending = 0;
       await this.appointmentRepository.save(appointment);
+
+      var pay = new PaymentDto();
+      pay.id = appointment.payments[0].id;
+      pay.status = PaymentStatus.CANCELLED;
+      pay.datetime = new Date();
+
+      await this.paymentService.update({ id: pay.id, body: pay });
+
       // Ahora se calcula a quienes se le puede recomendar la cita
+      console.log("Appointment al cancelar", appointment);
       await this.notifyClientsForReappointments(appointment);
     }
 
@@ -712,29 +722,6 @@ export class AppointmentService {
     return packageData;
   }
 
-  private async fetchExistingAppointments(
-    maxReservationDays: number,
-    categoryIds: number[],
-  ): Promise<Appointment[]> {
-    const today = new Date();
-    const maxDate = new Date();
-    maxDate.setDate(today.getDate() + maxReservationDays);
-
-    return this.appointmentRepository.find({
-      where: {
-        datetimeStart: Between(today, maxDate),
-        package: {
-          services: {
-            category: {
-              id: In(categoryIds),
-            },
-          },
-        },
-      },
-      order: { datetimeStart: 'ASC' },
-    });
-  }
-
 
   private async generateAvailableStartTimes2(config: SystemConfig, existingAppointments: DetailsAppointment[], categoryId: number, serviceDuration: number): Promise<Date[]> {
     const { intervalMinutes, maxReservationDays, openingHour1, closingHour1, openingHour2, closingHour2, openDays } = config;
@@ -798,7 +785,7 @@ export class AppointmentService {
               if (colisionAppointmentsFuture.length < professionals.length && colisionAppointmentsFuture.length < workstations.length) {
                 // Como aqui todavia no se deben asignar, con saber que hay disponibles es suficiente
                 availableStartTimes.push(new Date(currentStartUTC));
-              } 
+              }
 
             }
           }
@@ -813,7 +800,7 @@ export class AppointmentService {
             if (colisionAppointments.length < professionals.length && colisionAppointments.length < workstations.length) {
               // Como aqui todavia no se deben asignar, con saber que hay disponibles es suficiente
               availableStartTimes.push(new Date(currentStartUTC));
-            } 
+            }
           }
         }
       }
@@ -991,13 +978,24 @@ export class AppointmentService {
           state: AppointmentState.PENDING,
           datetimeStart: Between(todayStart, todayEnd),
         },
+        relations: ['payments'],
       });
 
       // Cambia el estado de las citas encontradas a "INACTIVO"
       for (const appointment of pendingAppointments) {
         appointment.state = AppointmentState.INACTIVE;
+        appointment.pending = 0;
+
+        var pay = new PaymentDto();
+        pay.id = appointment.payments[0].id;
+        pay.status = PaymentStatus.CANCELLED;
+        pay.datetime = new Date();
+
         await this.appointmentRepository.save(appointment);
+        await this.paymentService.update({ id: pay.id, body: pay });
       }
+
+
 
       console.log(`Se actualizaron ${pendingAppointments.length} citas de PENDIENTE a INACTIVO.`);
     } catch (error) {
@@ -1677,7 +1675,7 @@ export class AppointmentService {
       let body = params.body;
       const appointment = await this.appointmentRepository.findOne({
         where: { id: params.id },
-        relations: ['package', 'package.services', 'package.services.category', 'details'],
+        relations: ['package', 'package.services', 'package.services.category', 'details', 'details.service', 'details.service.category'],
       });
       const isAvailable = await this.isPackageAssignable(appointment.package.id, body.datetimeStart);
       if (!isAvailable) {
@@ -1700,6 +1698,10 @@ export class AppointmentService {
         detail.datetimeStart = new Date(body.datetimeStart);
         await this.detailsAppointmentRepository.save(detail);
       }
+
+      // Ahora se calcula a quienes se le puede recomendar la cita
+      console.log("Appointment al editar: ", appointment);
+      await this.notifyClientsForReappointments(appointment);
 
     } catch (error) {
       console.error(error);

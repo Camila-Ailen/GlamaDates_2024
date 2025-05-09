@@ -50,7 +50,8 @@ export function AppointmentsTable() {
   // Estados locales para filtros
   const [filteredAppointments, setFilteredAppointments] = useState(appointments)
   const [localFilter, setLocalFilter] = useState(filter)
-  const [statusFilter, setStatusFilter] = useState("all")
+  const [appointmentStatusFilter, setAppointmentStatusFilter] = useState("all")
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState("all")
   const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined)
   const [showFilters, setShowFilters] = useState(false)
 
@@ -77,14 +78,17 @@ export function AppointmentsTable() {
       )
     }
 
-    // Filtro de estado
-    if (statusFilter !== "all") {
-      if (statusFilter === "pending") {
+    // Filtro de estado de cita
+    if (appointmentStatusFilter !== "all") {
+      result = result.filter((appointment) => appointment.state === appointmentStatusFilter)
+    }
+
+    // Filtro de estado de pago
+    if (paymentStatusFilter !== "all") {
+      if (paymentStatusFilter === "pending") {
         result = result.filter((appointment) => appointment.pending > 0)
-      } else if (statusFilter === "completed") {
+      } else if (paymentStatusFilter === "completed") {
         result = result.filter((appointment) => appointment.pending <= 0)
-      } else if (statusFilter === "cancelled") {
-        result = result.filter((appointment) => appointment.state === "CANCELADO")
       }
     }
 
@@ -101,7 +105,7 @@ export function AppointmentsTable() {
     }
 
     setFilteredAppointments(result)
-  }, [appointments, localFilter, statusFilter, dateFilter])
+  }, [appointments, localFilter, appointmentStatusFilter, paymentStatusFilter, dateFilter])
 
   const handleSearch = () => {
     setFilter(localFilter)
@@ -125,11 +129,42 @@ export function AppointmentsTable() {
     )
   }
 
-  const getStatusBadge = (state: string, pending: number) => {
+  const getStatus = (state: string) => {
     if (state === "CANCELADO") {
       return <Badge variant="destructive">CANCELADO</Badge>
     }
+    if (state === "PENDIENTE") {
+      return (
+        <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
+          PENDIENTE
+        </Badge>
+      )
+    }
+    if (state === "COMPLETADO") {
+      return (
+        <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+          COMPLETADO
+        </Badge>
+      )
+    }
+    if (state === "INACTIVO") {
+      return (
+        <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">
+          INACTIVO
+        </Badge>
+      )
+    }
+    if (state === "ACTIVO") {
+      return (
+        <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
+          ACTIVO
+        </Badge>
+      )
+    }
+    return <Badge variant="outline">{state}</Badge>
+  }
 
+  const getPaymentStatusBadge = (pending: number) => {
     if (pending > 0) {
       return (
         <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
@@ -137,7 +172,6 @@ export function AppointmentsTable() {
         </Badge>
       )
     }
-
     return (
       <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
         COMPLETADO
@@ -147,7 +181,8 @@ export function AppointmentsTable() {
 
   const clearFilters = () => {
     setLocalFilter("")
-    setStatusFilter("all")
+    setAppointmentStatusFilter("all")
+    setPaymentStatusFilter("all")
     setDateFilter(undefined)
     setFilter("")
   }
@@ -204,9 +239,11 @@ export function AppointmentsTable() {
                 <Button variant="outline" className="gap-2">
                   <SlidersHorizontal className="h-4 w-4" />
                   Filtros
-                  {(statusFilter !== "all" || dateFilter) && (
+                  {(appointmentStatusFilter !== "all" || paymentStatusFilter !== "all" || dateFilter) && (
                     <Badge variant="secondary" className="ml-1 h-5 px-1">
-                      {(statusFilter !== "all" ? 1 : 0) + (dateFilter ? 1 : 0)}
+                      {(appointmentStatusFilter !== "all" ? 1 : 0) +
+                        (paymentStatusFilter !== "all" ? 1 : 0) +
+                        (dateFilter ? 1 : 0)}
                     </Badge>
                   )}
                 </Button>
@@ -217,16 +254,32 @@ export function AppointmentsTable() {
                   <Separator />
 
                   <div className="space-y-2">
-                    <h5 className="text-sm font-medium">Estado</h5>
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <h5 className="text-sm font-medium">Estado de Cita</h5>
+                    <Select value={appointmentStatusFilter} onValueChange={setAppointmentStatusFilter}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Filtrar por estado" />
+                        <SelectValue placeholder="Estado de cita" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Todos los estados</SelectItem>
+                        <SelectItem value="all">Todas las citas</SelectItem>
+                        <SelectItem value="PENDIENTE">Pendientes</SelectItem>
+                        <SelectItem value="COMPLETADO">Completadas</SelectItem>
+                        <SelectItem value="CANCELADO">Canceladas</SelectItem>
+                        <SelectItem value="INACTIVO">Inactivas</SelectItem>
+                        <SelectItem value="ACTIVO">Activas</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h5 className="text-sm font-medium">Estado de Pago</h5>
+                    <Select value={paymentStatusFilter} onValueChange={setPaymentStatusFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Estado de pago" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos los pagos</SelectItem>
                         <SelectItem value="pending">Pendientes de pago</SelectItem>
                         <SelectItem value="completed">Pagos completados</SelectItem>
-                        <SelectItem value="cancelled">Cancelados</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -278,11 +331,15 @@ export function AppointmentsTable() {
                   </TableHead>
 
                   <TableHead onClick={() => handleSort("state")} className="cursor-pointer font-medium">
-                    Estado {getSortIcon("state")}
+                    Estado Cita {getSortIcon("state")}
                   </TableHead>
 
                   <TableHead onClick={() => handleSort("total")} className="cursor-pointer font-medium text-right">
                     Total {getSortIcon("total")}
+                  </TableHead>
+
+                  <TableHead onClick={() => handleSort("pending")} className="cursor-pointer font-medium">
+                    Estado Pago {getSortIcon("pending")}
                   </TableHead>
 
                   <TableHead className="text-center">Acciones</TableHead>
@@ -310,8 +367,9 @@ export function AppointmentsTable() {
                           minute: "2-digit",
                         })}
                       </TableCell>
-                      <TableCell>{getStatusBadge(appointment.state, appointment.pending || 0)}</TableCell>
+                      <TableCell>{getStatus(appointment.state)}</TableCell>
                       <TableCell className="text-right font-medium">${(appointment.total || 0).toFixed(2)}</TableCell>
+                      <TableCell>{getPaymentStatusBadge(appointment.pending || 0)}</TableCell>
                       <TableCell>
                         <div className="flex justify-center space-x-1">
                           {appointment.pending > 0 ? (
