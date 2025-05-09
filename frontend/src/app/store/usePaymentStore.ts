@@ -2,10 +2,11 @@
 import { create } from "zustand"
 import useAuthStore from "./useAuthStore"
 import { toast } from "sonner"
+import { Appointment } from "./useAppointmentStore"
 
 interface Payment {
   id: number
-  appointmentId: number
+  appointment: Appointment
   datetime: Date
   amount: number
   paymentMethod: string
@@ -33,7 +34,7 @@ interface PaymentState {
   filter: string
   fetchPaymentUrl: (appointmentId: string) => void
   setPaymentData: (id: string, amount: number) => void
-  fetchPayments: () => Promise<void>
+  fetchPayments: (page?: number, token?: string) => Promise<void>
 }
 
 const token = useAuthStore.getState().token;
