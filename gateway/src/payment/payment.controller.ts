@@ -38,5 +38,11 @@ export class PaymentController extends BaseController {
     return { status: 'success', data: paymentUrl };
   }
 
+  @Get('all')
+  async findAll(): Promise<ResposeDTO> {
+    const payments = await this.paymentService.findAll();
+    return { status: 'success', data: payments };
+  }
+
 
 }

@@ -1,7 +1,7 @@
 import { forwardRef, HttpException, HttpStatus, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Payment } from "./entities/payment.entity";
-import { IsNull, Repository } from "typeorm";
+import { IsNull, Not, Repository } from "typeorm";
 import { PaymentDto } from "./dto/payment.dto";
 import { PaymentStatus } from "./entities/payment-status.enum";
 import { AppointmentService } from "@/appointment/appointment.service";
@@ -22,6 +22,17 @@ export class PaymentService {
     private readonly paymentRepository: Repository<Payment>;
 
 
+    ////////////////////////////////////////////////
+    ////////////////////////////////////////////////
+    async findAll(): Promise<Payment[]> {
+        return await this.paymentRepository.find({
+            where: { 
+                deletedAt: IsNull() ,
+                datetime: Not(IsNull())
+            },
+            relations: ['appointment'],
+        });
+    }
     ////////////////////////////////////////////////
     ////////////////////////////////////////////////
     async create(params: { body: PaymentDto }): Promise<Payment> {
