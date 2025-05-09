@@ -137,7 +137,6 @@ export class PaymentService {
     /////////////////////////////////////////////////
     ////////////////////////////////////////////////
     async existsByTransaction(id: string): Promise<Boolean> {
-        console.log("getByTransaction id: ", id);
         const payment = await this.paymentRepository.findOne({
             where: { 
                 transactionId: id, 

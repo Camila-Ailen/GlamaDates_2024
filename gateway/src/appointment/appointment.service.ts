@@ -123,10 +123,8 @@ export class AppointmentService {
       // Generar un ID de transacción aleatorio
       transactionId = `EF${Math.floor(10000000 + Math.random() * 90000000)}`; // Genera un número aleatorio de 8 cifras
   
-      console.log("transactionId", transactionId)
       // Verificar si ya existe en la base de datos
       const existingPayment = await this.paymentService.existsByTransaction(transactionId);
-      console.log("existingPayment", existingPayment)
       exists = !!existingPayment; // Si existe, repetir el ciclo
     }
   
