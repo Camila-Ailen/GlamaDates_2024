@@ -93,14 +93,21 @@ export function PaymentsTable() {
     setLocalFilter(localFilter)
   }
 
+  // Modificar la función handleSort para que actualice el estado global
   const handleSort = (field: string) => {
-    // Esta función debería actualizar el estado global para ordenar desde el backend
-    // Por ahora, solo implementamos ordenamiento local
-    const newOrderType = field === orderBy && orderType === "ASC" ? "DESC" : "ASC"
+    // Si hacemos clic en el mismo campo, invertimos el orden
+    if (field === orderBy) {
+      const newOrderType = orderType === "ASC" ? "DESC" : "ASC"
+      // Actualizar el estado global y refrescar los datos
+      usePaymentStore.getState().setOrderType(newOrderType)
+    } else {
+      // Si es un campo diferente, establecemos el nuevo campo y orden ascendente por defecto
+      usePaymentStore.getState().setOrderBy(field)
+      usePaymentStore.getState().setOrderType("ASC")
+    }
 
-    // Aquí deberías actualizar el estado global y refrescar los datos
-    // setOrderBy(field)
-    // setOrderType(newOrderType)
+    // Refrescar los datos con el nuevo ordenamiento
+    fetchPayments(currentPage)
   }
 
   const getSortIcon = (field: string) => {
@@ -131,7 +138,7 @@ export function PaymentsTable() {
     switch (method.toUpperCase()) {
       case "EFECTIVO":
         return (
-          <Badge variant="outline" className="bg-gray-100 text-black-800 border-black-500">
+          <Badge variant="outline" className="bg-gray-100 text-black-800 border-black-300">
             EFECTIVO
           </Badge>
         )
@@ -296,8 +303,8 @@ export function PaymentsTable() {
                     Observación {getSortIcon("observation")}
                   </TableHead>
 
-                  <TableHead onClick={() => handleSort("appointmentId")} className="cursor-pointer font-medium">
-                    ID Cita {getSortIcon("appointmentId")}
+                  <TableHead onClick={() => handleSort("appointment.id")} className="cursor-pointer font-medium">
+                    ID Cita {getSortIcon("appointment.id")}
                   </TableHead>
 
                   <TableHead className="text-center">Acciones</TableHead>

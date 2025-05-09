@@ -36,6 +36,8 @@ interface PaymentState {
   setPaymentData: (id: string, amount: number) => void
   fetchPayments: (page?: number, token?: string) => Promise<void>
   cancelPayment: (id: number, observation: string) => Promise<void>
+  setOrderBy: (orderBy: string) => void
+  setOrderType: (orderType: "ASC" | "DESC") => void
 }
 
 const token = useAuthStore.getState().token;
@@ -127,6 +129,8 @@ export const usePaymentStore = create<PaymentState>((set, get) => ({
     }
   },
 
+  setOrderBy: (orderBy: string) => set({ orderBy }),
+  setOrderType: (orderType: "ASC" | "DESC") => set({ orderType }),
 
 }))
 
