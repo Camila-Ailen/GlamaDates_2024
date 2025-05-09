@@ -6,6 +6,7 @@ import { PaymentService } from "./payment.service";
 import { JwtService } from "@nestjs/jwt";
 import { ResposeDTO } from "@/base/dto/base.dto";
 import { Auth } from "@/auth/auth.decorator";
+import { PaginationPaymentDto } from "./dto/pagination-payment.dto";
 
 
 @Controller('payment')
@@ -40,8 +41,8 @@ export class PaymentController extends BaseController {
   }
 
   @Get('all')
-  async findAll(): Promise<ResposeDTO> {
-    const payments = await this.paymentService.findAll();
+  async findAll(@Query() query: PaginationPaymentDto): Promise<ResposeDTO> {
+    const payments = await this.paymentService.findAll({ query });
     return { status: 'success', data: payments };
   }
 

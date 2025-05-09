@@ -9,6 +9,8 @@ import { MercadopagoService } from "@/mercadopago/mercadopago.service";
 import { PaymentMethod } from "./entities/payment-method.enum";
 import { AppointmentModule } from "@/appointment/appointment.module";
 import { AppointmentState } from "@/appointment/entities/appointment-state.enum";
+import { PaginationPaymentDto } from "./dto/pagination-payment.dto";
+import { PaginationResponseDTO } from "@/base/dto/base.dto";
 
 
 @Injectable()
@@ -24,14 +26,56 @@ export class PaymentService {
 
     ////////////////////////////////////////////////
     ////////////////////////////////////////////////
-    async findAll(): Promise<Payment[]> {
-        return await this.paymentRepository.find({
-            where: { 
-                deletedAt: IsNull() ,
-                datetime: Not(IsNull())
-            },
-            relations: ['appointment'],
-        });
+    async findAll(params: {
+        query: PaginationPaymentDto;
+    }): Promise<PaginationResponseDTO> {
+        const emptyResponse = {
+            total: 0,
+            pageSize: 0,
+            offset: params.query.offset,
+            results: [],
+        };
+
+        try {
+            if (Object.keys(params.query).length === 0) {
+                return emptyResponse;
+            }
+            if (params.query.pageSize?.toString() === '0') {
+                return emptyResponse;
+            }
+
+            const order = {};
+            if (params.query.orderBy && params.query.orderType) {
+                order[params.query.orderBy] = params.query.orderType;
+            }
+
+            const forPage = params.query.pageSize
+                ? parseInt(params.query.pageSize.toString(), 10) || 10
+                : 10;
+            const skip = params.query.offset;
+
+            const [payments, total] = await this.paymentRepository.findAndCount({
+                where: {
+                    deletedAt: IsNull(),
+                    datetime: Not(IsNull())
+                },
+                relations: ['appointment'],
+                order,
+                take: forPage,
+                skip,
+            });
+
+            return {
+                total: total,
+                pageSize: forPage,
+                offset: params.query.offset,
+                results: payments,
+            };
+        } catch (error) {
+            console.error(error);
+            throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+        }
+
     }
 
     ////////////////////////////////////////////////
@@ -127,7 +171,7 @@ export class PaymentService {
         // console.log("appointmentDto: ", appointmentDto);
         await this.appointmentService.update({ id: appointment.id, body: appointmentDto });
 
-        
+
         // const amount = appointment.package.services.reduce((total, service) => total + service.price, 0);
 
         payment.datetime = new Date();
@@ -143,12 +187,12 @@ export class PaymentService {
     ////////////////////////////////////////////////
     async getPaymentUrl(appointmentId: number): Promise<string> {
         const payment = await this.paymentRepository.findOne({ where: { appointment: { id: appointmentId } } });
-    
+
         if (!payment) {
-          throw new NotFoundException('Payment not found');
+            throw new NotFoundException('Payment not found');
         }
-    
+
         return payment.paymentURL;
-      }
+    }
 
 }
