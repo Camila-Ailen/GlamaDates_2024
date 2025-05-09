@@ -121,16 +121,16 @@ export default function Component() {
               className="bg-primary text-primary-foreground"
               index={3}
             >
-              <Link href="/category">
+              <Link href="/payment">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-base font-medium">
-                      Categorias
+                      Pagos
                     </CardTitle>
                     <Package className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <CardDescription>Administración de categorias</CardDescription>
+                    <CardDescription>Administración de pagos</CardDescription>
                   </CardContent>
                 </Card>
               </Link>
