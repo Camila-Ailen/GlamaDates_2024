@@ -120,12 +120,6 @@ export function PaymentsTable() {
             COMPLETADO
           </Badge>
         )
-      case "PENDIENTE":
-        return (
-          <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
-            PENDIENTE
-          </Badge>
-        )
       case "CANCELADO":
         return <Badge variant="destructive">CANCELADO</Badge>
       default:
@@ -137,20 +131,14 @@ export function PaymentsTable() {
     switch (method.toUpperCase()) {
       case "EFECTIVO":
         return (
-          <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
+          <Badge variant="outline" className="bg-gray-100 text-black-800 border-black-500">
             EFECTIVO
           </Badge>
         )
-      case "TARJETA":
+      case "MERCADOPAGO":
         return (
-          <Badge variant="outline" className="bg-purple-100 text-purple-800 border-purple-300">
-            TARJETA
-          </Badge>
-        )
-      case "TRANSFERENCIA":
-        return (
-          <Badge variant="outline" className="bg-indigo-100 text-indigo-800 border-indigo-300">
-            TRANSFERENCIA
+          <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">
+            MERCADOPAGO
           </Badge>
         )
       default:
@@ -238,7 +226,6 @@ export function PaymentsTable() {
                       <SelectContent>
                         <SelectItem value="all">Todos los estados</SelectItem>
                         <SelectItem value="COMPLETADO">Completados</SelectItem>
-                        <SelectItem value="PENDIENTE">Pendientes</SelectItem>
                         <SelectItem value="CANCELADO">Cancelados</SelectItem>
                       </SelectContent>
                     </Select>
@@ -253,8 +240,7 @@ export function PaymentsTable() {
                       <SelectContent>
                         <SelectItem value="all">Todos los métodos</SelectItem>
                         <SelectItem value="EFECTIVO">Efectivo</SelectItem>
-                        <SelectItem value="TARJETA">Tarjeta</SelectItem>
-                        <SelectItem value="TRANSFERENCIA">Transferencia</SelectItem>
+                        <SelectItem value="MERCADOPAGO">Mercado Pago</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
