@@ -56,17 +56,18 @@ export function Navbar() {
             className="h-12 w-12 dark:brightness-[1.4]"
           />
           <strong className="text-xl font-bold">
-            <span className="text-primary">GLAMA </span>DATES
+            {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "see:dashboard") ? (
+              <Link href="/dashboard">
+                <span className="text-primary cursor-pointer">GLAMA </span>DATES
+              </Link>
+            ) : (
+              <>
+                <span className="text-primary">GLAMA </span>DATES
+              </>
+            )}
           </strong>
           <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6"></nav>
           <div className="flex items-center space-x-1">
-            {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "see:dashboard") && (
-              <Link href="/dashboard">
-                <Button variant="ghost" className="px-2">
-                  Dashboard
-                </Button>
-              </Link>
-            )}
             {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "see:catalog") && (
               <Link href="/catalog">
                 <Button variant="ghost" className="px-2">

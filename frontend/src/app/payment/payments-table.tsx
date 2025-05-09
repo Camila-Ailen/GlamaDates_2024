@@ -138,7 +138,7 @@ export function PaymentsTable() {
     switch (method.toUpperCase()) {
       case "EFECTIVO":
         return (
-          <Badge variant="outline" className="bg-gray-100 text-black-800 border-black-300">
+          <Badge variant="outline">
             EFECTIVO
           </Badge>
         )
