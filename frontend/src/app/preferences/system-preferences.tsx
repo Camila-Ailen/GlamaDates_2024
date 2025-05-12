@@ -444,7 +444,7 @@ export function SystemPreferences() {
                     name="dayTimeDiscount"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Descuento por día y horario (%)</FormLabel>
+                        <FormLabel>Descuento por día y horario recomendado (%)</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <Input
@@ -471,7 +471,7 @@ export function SystemPreferences() {
                     name="dayOnlyDiscount"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Descuento solo por día (recomendación) (%)</FormLabel>
+                        <FormLabel>Descuento solo por día recomendado (%)</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <Input

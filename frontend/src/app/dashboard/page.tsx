@@ -160,7 +160,7 @@ export default function Component() {
               className="bg-primary text-primary-foreground"
               index={5}
             >
-              <Link href="/#">
+              <Link href="/preferences">
               <Card onClick={handleCardClick}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-base font-medium">
