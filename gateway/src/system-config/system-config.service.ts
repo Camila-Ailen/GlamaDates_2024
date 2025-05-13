@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { SystemConfigDto } from './dto/system-config.dto';
 import { PaginationSystemConfigDto } from './dto/pagination-system-config.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -19,5 +19,28 @@ export class SystemConfigService {
       throw new Error('Configuration not found');
     }
     return config;
+  }
+
+  ////////////////////////////////////////////
+  ////////////////////////////////////////////
+  async getConfig(): Promise<SystemConfig> {
+    const config = await this.configRepository.findOne({
+          where: {
+            id: 1,
+          },
+        });
+        if (!config) throw new HttpException('Config not found', HttpStatus.NOT_FOUND);
+        return config;
+  }
+
+  ////////////////////////////////////////////
+  ////////////////////////////////////////////
+  async updateConfig(body: SystemConfigDto): Promise<SystemConfig> {
+    const config = await this.configRepository.findOne({ where: { id: 1 } });
+    if (!config) {
+      throw new HttpException('Configuration not found', HttpStatus.NOT_FOUND);
+    }
+    Object.assign(config, body);
+    return await this.configRepository.save(config);
   }
 }
