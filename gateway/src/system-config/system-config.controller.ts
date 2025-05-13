@@ -12,7 +12,6 @@ export class SystemConfigController {
   ////////////////////////////////////////////////
   @Get()
   async getCurrentConfig(): Promise<ResposeDTO> {
-    console.log('Fetching system configuration');
     const config = await this.systemConfigService.getConfig();
     return { status: 'success', data: config };
   }
@@ -23,7 +22,6 @@ export class SystemConfigController {
   async updateConfig(
     @Body() body: SystemConfigDto,
   ): Promise<ResposeDTO> {
-    console.log('Updating system configuration from controller:', body);
     const updatedConfig = await this.systemConfigService.updateConfig(body);
     return { status: 'success', data: updatedConfig };
   }

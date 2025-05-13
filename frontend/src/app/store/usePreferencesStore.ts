@@ -85,7 +85,6 @@ export const useSystemConfigStore = create<SystemConfigState>((set, get) => ({
 
     set({ isLoading: true, error: null })
     try {
-        console.log("Updating system config:", config)
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/system-config/1`, {
         method: "PATCH",
         headers: {
@@ -101,7 +100,6 @@ export const useSystemConfigStore = create<SystemConfigState>((set, get) => ({
         return false
       }
 
-      console.log("Response status:", response)
       if (!response.ok) throw new Error("Error al actualizar la configuración del sistema")
 
       const data = await response.json()
