@@ -43,10 +43,6 @@ const AnimatedCard = React.forwardRef<HTMLDivElement, AnimatedCardProps>(
 );
 AnimatedCard.displayName = "AnimatedCard";
 
-const handleCardClick = () => {
-  toast.info("Configuración no disponible");
-};
-
 export default function Component() {
   return (
     <div className="flex min-h-screen flex-col">
@@ -161,7 +157,7 @@ export default function Component() {
               index={5}
             >
               <Link href="/preferences">
-              <Card onClick={handleCardClick}>
+              <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-base font-medium">
                     Configuración

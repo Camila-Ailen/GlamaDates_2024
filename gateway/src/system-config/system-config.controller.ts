@@ -19,10 +19,11 @@ export class SystemConfigController {
 
   ///////////////////////////////////////////////
   ////////////////////////////////////////////////
-  @Patch()
+  @Patch(':id')
   async updateConfig(
     @Body() body: SystemConfigDto,
   ): Promise<ResposeDTO> {
+    console.log('Updating system configuration from controller:', body);
     const updatedConfig = await this.systemConfigService.updateConfig(body);
     return { status: 'success', data: updatedConfig };
   }

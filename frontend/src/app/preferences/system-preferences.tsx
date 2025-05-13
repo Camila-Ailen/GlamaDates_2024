@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { toast } from "sonner"
 import { Loader2, Save, Clock, Calendar, Store, Percent } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -17,6 +16,29 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TimePickerInput } from "./time-picker-input"
+import { useSystemConfigStore, type SystemConfig } from "../store/usePreferencesStore"
+
+// Mapeo de días en español a formato del backend
+const dayMapping: Record<string, string> = {
+  monday: "LUNES",
+  tuesday: "MARTES",
+  wednesday: "MIERCOLES",
+  thursday: "JUEVES",
+  friday: "VIERNES",
+  saturday: "SABADO",
+  sunday: "DOMINGO",
+}
+
+// Mapeo inverso para convertir del formato del backend al formato del formulario
+const reverseDayMapping: Record<string, string> = {
+  LUNES: "monday",
+  MARTES: "tuesday",
+  MIERCOLES: "wednesday",
+  JUEVES: "thursday",
+  VIERNES: "friday",
+  SABADO: "saturday",
+  DOMINGO: "sunday",
+}
 
 // Esquema de validación para las preferencias del sistema
 const systemPreferencesSchema = z
@@ -98,8 +120,21 @@ const daysOfWeek = [
   { id: "sunday", label: "Domingo" },
 ]
 
+// Función para formatear la hora del backend (HH:MM:SS) a formato del formulario (HH:MM)
+const formatTimeFromBackend = (time: string | null): string => {
+  if (!time) return ""
+  return time.substring(0, 5) // Tomar solo HH:MM
+}
+
+// Función para formatear la hora del formulario (HH:MM) a formato del backend (HH:MM:SS)
+const formatTimeForBackend = (time: string): string => {
+  if (!time) return ""
+  return `${time}:00` // Añadir segundos
+}
+
 export function SystemPreferences() {
-  const [isLoading, setIsLoading] = useState(false)
+  const { config, isLoading, fetchConfig, updateConfig } = useSystemConfigStore()
+  const [formLoaded, setFormLoaded] = useState(false)
 
   // Inicializar el formulario con valores predeterminados
   const form = useForm<z.infer<typeof systemPreferencesSchema>>({
@@ -108,77 +143,72 @@ export function SystemPreferences() {
       minuteInterval: "30",
       maxReservationDays: 30,
       scheduleType: "continuous",
-      openingTime1: "08:00",
-      closingTime1: "20:00",
+      openingTime1: "09:00",
+      closingTime1: "18:00",
       openDays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
-      dayTimeDiscount: 10,
-      dayOnlyDiscount: 5,
+      dayTimeDiscount: 0,
+      dayOnlyDiscount: 0,
     },
   })
 
   // Obtener el tipo de horario seleccionado
   const scheduleType = form.watch("scheduleType")
 
-  // Función para cargar las preferencias desde el servidor
-  const loadPreferences = async () => {
-    setIsLoading(true)
-    try {
-      // Aquí iría la llamada a la API para obtener las preferencias
-      // const response = await fetch('/api/preferences');
-      // const data = await response.json();
-
-      // Simulamos una carga de datos
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // Ejemplo de datos que vendrían del servidor
-      const mockData: z.infer<typeof systemPreferencesSchema> = {
-        minuteInterval: "30",
-        maxReservationDays: 30,
-        scheduleType: "continuous",
-        openingTime1: "08:00",
-        closingTime1: "20:00",
-        openDays: ["monday", "tuesday", "wednesday", "thursday", "friday"],
-        dayTimeDiscount: 10,
-        dayOnlyDiscount: 5,
-        // openingTime2 y closingTime2 pueden omitirse si no aplica
-      }
-
-      // Actualizar el formulario con los datos recibidos
-      form.reset(mockData)
-    } catch (error) {
-      console.error("Error al cargar las preferencias:", error)
-      toast.error("Error al cargar las preferencias del sistema")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // Cargar las preferencias al montar el componente
+  // Cargar la configuración al montar el componente
   useEffect(() => {
-    loadPreferences()
-  }, [])
+    fetchConfig()
+  }, [fetchConfig])
+
+  // Actualizar el formulario cuando se carga la configuración
+  useEffect(() => {
+    if (config && !formLoaded) {
+      // Determinar el tipo de horario
+      const hasSecondSchedule = config.openingHour2 !== null && config.closingHour2 !== null
+
+      // Convertir los días del formato del backend al formato del formulario
+      const formOpenDays = config.openDays.map((day) => reverseDayMapping[day])
+
+      form.reset({
+        minuteInterval: config.intervalMinutes.toString() as "10" | "20" | "30" | "40" | "50" | "60",
+        maxReservationDays: config.maxReservationDays,
+        scheduleType: hasSecondSchedule ? "split" : "continuous",
+        openingTime1: formatTimeFromBackend(config.openingHour1),
+        closingTime1: formatTimeFromBackend(config.closingHour1),
+        openingTime2: hasSecondSchedule ? formatTimeFromBackend(config.openingHour2) : undefined,
+        closingTime2: hasSecondSchedule ? formatTimeFromBackend(config.closingHour2) : undefined,
+        openDays: formOpenDays as any[],
+        dayTimeDiscount: config.descountFull,
+        dayOnlyDiscount: config.descountPartial,
+      })
+
+      setFormLoaded(true)
+    }
+  }, [config, form, formLoaded])
 
   // Función para guardar las preferencias
   const onSubmit = async (values: z.infer<typeof systemPreferencesSchema>) => {
-    setIsLoading(true)
-    try {
-      // Aquí iría la llamada a la API para guardar las preferencias
-      // await fetch('/api/preferences', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(values),
-      // });
-
-      // Simulamos una operación de guardado
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      toast.success("Preferencias guardadas correctamente")
-    } catch (error) {
-      console.error("Error al guardar las preferencias:", error)
-      toast.error("Error al guardar las preferencias del sistema")
-    } finally {
-      setIsLoading(false)
+    // Convertir los valores del formulario al formato esperado por el backend
+    const backendConfig: SystemConfig = {
+      intervalMinutes: Number.parseInt(values.minuteInterval),
+      maxReservationDays: values.maxReservationDays,
+      openingHour1: formatTimeForBackend(values.openingTime1),
+      closingHour1: formatTimeForBackend(values.closingTime1),
+      openingHour2:
+        values.scheduleType === "split" && values.openingTime2 ? formatTimeForBackend(values.openingTime2) : null,
+      closingHour2:
+        values.scheduleType === "split" && values.closingTime2 ? formatTimeForBackend(values.closingTime2) : null,
+      descountFull: values.dayTimeDiscount,
+      descountPartial: values.dayOnlyDiscount,
+      openDays: values.openDays.map((day) => dayMapping[day]),
     }
+
+    // Si hay un ID existente, mantenerlo
+    if (config?.id) {
+      backendConfig.id = config.id
+    }
+
+    // Enviar la configuración actualizada al backend
+    await updateConfig(backendConfig)
   }
 
   return (
@@ -444,7 +474,7 @@ export function SystemPreferences() {
                     name="dayTimeDiscount"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Descuento por día y horario recomendado (%)</FormLabel>
+                        <FormLabel>Descuento por día y horario (%)</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <Input
@@ -471,7 +501,7 @@ export function SystemPreferences() {
                     name="dayOnlyDiscount"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Descuento solo por día recomendado (%)</FormLabel>
+                        <FormLabel>Descuento solo por día (recomendación) (%)</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <Input
@@ -497,7 +527,7 @@ export function SystemPreferences() {
               </Tabs>
             </CardContent>
             <CardFooter className="flex justify-between">
-              <Button variant="outline" type="button" onClick={loadPreferences} disabled={isLoading}>
+              <Button variant="outline" type="button" onClick={() => fetchConfig()} disabled={isLoading}>
                 Restablecer
               </Button>
               <Button type="submit" disabled={isLoading}>

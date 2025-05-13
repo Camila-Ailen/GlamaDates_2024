@@ -12,7 +12,7 @@ export class SystemConfigDto {
 
     @ApiProperty({ required: false, type: 'number' })
     @IsOptional()
-    maxReservationsDays: number;
+    maxReservationDays: number;
 
     @ApiProperty({ required: false, type: 'string' })
     @IsOptional()
@@ -44,7 +44,7 @@ export class SystemConfigDto {
 
     @ApiProperty({ required: false, type: 'string' })
     @IsOptional()
-    @IsEnum(DaysOfWeek)
+    @IsEnum(DaysOfWeek, { each: true })
     openDays: DaysOfWeek[];
 
 

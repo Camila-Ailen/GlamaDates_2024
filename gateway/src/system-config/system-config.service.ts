@@ -40,6 +40,8 @@ export class SystemConfigService {
     if (!config) {
       throw new HttpException('Configuration not found', HttpStatus.NOT_FOUND);
     }
+    console.log('Updating system configuration:', body);
+    console.log('Current configuration:', config);
     Object.assign(config, body);
     return await this.configRepository.save(config);
   }
