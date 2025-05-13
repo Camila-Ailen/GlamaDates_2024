@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recordatorio de Cita</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+    
+    body {
+      font-family: 'Poppins', Arial, sans-serif;
+      line-height: 1.6;
+      color: #4a5568;
+      margin: 0;
+      padding: 0;
+      background-color: #f7fafc;
+    }
+    
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .email-header {
+      background: linear-gradient(to right, #3b82f6, #60a5fa);
+      padding: 30px 20px;
+      text-align: center;
+      color: white;
+    }
+    
+    .email-header h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
+    
+    .email-header p {
+      margin: 10px 0 0;
+      opacity: 0.9;
+      font-size: 16px;
+    }
+    
+    .email-body {
+      padding: 30px;
+    }
+    
+    .greeting {
+      font-size: 18px;
+      margin-bottom: 20px;
+      color: #2d3748;
+    }
+    
+    .message {
+      margin-bottom: 25px;
+    }
+    
+    .appointment-details {
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 25px;
+      border-left: 4px solid #3b82f6;
+    }
+    
+    .appointment-details h2 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #2d3748;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .detail-row {
+      display: flex;
+      margin-bottom: 12px;
+    }
+    
+    .detail-label {
+      width: 130px;
+      font-weight: 500;
+      color: #718096;
+    }
+    
+    .detail-value {
+      flex: 1;
+      color: #2d3748;
+    }
+    
+    .cta-button {
+      display: inline-block;
+      background: linear-gradient(to right, #3b82f6, #60a5fa);
+      color: white;
+      text-decoration: none;
+      padding: 12px 25px;
+      border-radius: 6px;
+      font-weight: 500;
+      text-align: center;
+      margin: 20px 0;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+    
+    .cta-button:hover {
+      background: linear-gradient(to right, #60a5fa, #3b82f6);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+    
+    .countdown {
+      text-align: center;
+      margin: 25px 0;
+    }
+    
+    .countdown-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: #3b82f6;
+      margin: 10px 0;
+    }
+    
+    .countdown-label {
+      font-size: 16px;
+      color: #718096;
+    }
+    
+    .email-footer {
+      background-color: #f8f9fa;
+      padding: 20px;
+      text-align: center;
+      font-size: 14px;
+      color: #718096;
+      border-top: 1px solid #e2e8f0;
+    }
+    
+    .social-links {
+      margin-top: 15px;
+    }
+    
+    .social-link {
+      display: inline-block;
+      margin: 0 8px;
+      color: #718096;
+      text-decoration: none;
+    }
+    
+    @media only screen and (max-width: 600px) {
+      .email-container {
+        width: 100%;
+        border-radius: 0;
+      }
+      
+      .email-body {
+        padding: 20px;
+      }
+      
+      .detail-row {
+        flex-direction: column;
+      }
+      
+      .detail-label {
+        width: 100%;
+        margin-bottom: 4px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="email-header">
+      <h1>¡Tu cita es mañana!</h1>
+      <p>Recordatorio de Beauty Salon & Spa</p>
+    </div>
+    
+    <div class="email-body">
+      <p class="greeting">Hola, {{clientName}}:</p>
+      
+      <div class="message">
+        <p>Te recordamos que tienes una cita programada para mañana. Aquí están los detalles para que puedas prepararte.</p>
+      </div>
+      
+      <div class="countdown">
+        <div class="countdown-label">Tu cita es en</div>
+        <div class="countdown-value">24 horas</div>
+      </div>
+      
+      <div class="appointment-details">
+        <h2>Detalles de tu cita</h2>
+        
+        <div class="detail-row">
+          <div class="detail-label">Servicio:</div>
+          <div class="detail-value">{{packageName}}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Fecha:</div>
+          <div class="detail-value">{{appointmentDate}}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Hora:</div>
+          <div class="detail-value">{{appointmentTime}} hs</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Duración:</div>
+          <div class="detail-value">{{duration}} minutos</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Profesional:</div>
+          <div class="detail-value">{{professionalName}}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Dirección:</div>
+          <div class="detail-value">Av. Ejemplo 1234, Ciudad</div>
+        </div>
+      </div>
+      
+      <div style="text-align: center;">
+        <a href="{{viewAppointmentLink}}" class="cta-button">Ver mi cita</a>
+      </div>
+      
+      <p>Si necesitas modificar o cancelar tu cita, puedes hacerlo a través de nuestra plataforma hasta 24 horas antes de la hora programada.</p>
+      
+      <p>¡Esperamos verte mañana!</p>
+    </div>
+    
+    <div class="email-footer">
+      <p>Beauty Salon & Spa</p>
+      <p>Av. Ejemplo 1234, Ciudad | Tel: (123) 456-7890</p>
+      
+      <div class="social-links">
+        <a href="#" class="social-link">Instagram</a>
+        <a href="#" class="social-link">Facebook</a>
+        <a href="#" class="social-link">WhatsApp</a>
+      </div>
+      
+      <p style="margin-top: 15px;">© 2025 Beauty Salon & Spa. Todos los derechos reservados.</p>
+    </div>
+  </div>
+</body>
+</html>

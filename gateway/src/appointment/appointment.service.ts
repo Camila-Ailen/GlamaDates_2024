@@ -118,16 +118,16 @@ export class AppointmentService {
   async generateTransactionId(): Promise<string> {
     let transactionId: string;
     let exists = true;
-  
+
     while (exists) {
       // Generar un ID de transacción aleatorio
       transactionId = `EF${Math.floor(10000000 + Math.random() * 90000000)}`; // Genera un número aleatorio de 8 cifras
-  
+
       // Verificar si ya existe en la base de datos
       const existingPayment = await this.paymentService.existsByTransaction(transactionId);
       exists = !!existingPayment; // Si existe, repetir el ciclo
     }
-  
+
     return transactionId;
   }
 
@@ -486,6 +486,7 @@ export class AppointmentService {
   }
 
 
+
   async notifyClientsForReappointments(cancelledAppointment: Appointment): Promise<void> {
     console.log('Notificando a los clientes para reacomodar la cita');
     const suggestions = await this.suggestReappointments(cancelledAppointment);
@@ -554,6 +555,64 @@ export class AppointmentService {
     }
   }
 
+
+  async sendAppointmentConfirmationEmail(appointmentId: number): Promise<void> {
+    // Busca la cita con todas las relaciones necesarias
+    const appointment = await this.appointmentRepository.findOne({
+      where: { id: appointmentId },
+      relations: [
+        'client',
+        'details',
+        'details.employee',
+        'package',
+        'package.services'
+      ],
+    });
+
+    if (!appointment) {
+      throw new HttpException('Appointment not found', HttpStatus.NOT_FOUND);
+    }
+
+    // Carga la plantilla
+    const emailTemplatePath = path.join(__dirname, '../mailer/templates/appointment-confirmation-email.html');
+    let emailTemplate = fs.readFileSync(emailTemplatePath, 'utf8');
+
+    // Datos para el mail
+    const client = appointment.client;
+    const packageName = appointment.package?.name || 'N/A';
+    const appointmentDate = new Date(appointment.datetimeStart).toLocaleDateString('es-ES', {
+      weekday: 'long', day: '2-digit', month: 'long', year: 'numeric'
+    });
+    const appointmentTime = new Date(appointment.datetimeStart).toLocaleTimeString('es-ES', {
+      hour: '2-digit', minute: '2-digit', hour12: true
+    });
+    const duration = appointment.details.reduce((sum, d) => sum + (d.durationNow || 0), 0);
+    const professionalName = appointment.details[0]?.employee
+      ? `${appointment.details[0].employee.firstName} ${appointment.details[0].employee.lastName}`
+      : 'A confirmar';
+    const price = appointment.total || 0;
+    const appointmentIdStr = appointment.id.toString();
+    const viewAppointmentLink = `${process.env.FRONTEND_URL}/appointment/${appointment.id}`;
+
+    // Reemplaza los placeholders
+    emailTemplate = emailTemplate.replace('{{clientName}}', `${client.firstName} ${client.lastName}`);
+    emailTemplate = emailTemplate.replace('{{packageName}}', packageName);
+    emailTemplate = emailTemplate.replace('{{appointmentDate}}', appointmentDate);
+    emailTemplate = emailTemplate.replace('{{appointmentTime}}', appointmentTime);
+    emailTemplate = emailTemplate.replace('{{duration}}', duration.toString());
+    emailTemplate = emailTemplate.replace('{{professionalName}}', professionalName);
+    emailTemplate = emailTemplate.replace('{{price}}', price.toString());
+    emailTemplate = emailTemplate.replace('{{appointmentId}}', appointmentIdStr);
+    emailTemplate = emailTemplate.replace('{{viewAppointmentLink}}', viewAppointmentLink);
+
+    // Envía el mail
+    await this.mailerService.sendEmail(
+      'info@glamadates.com',
+      'Confirmación de Cita',
+      [client.email],
+      emailTemplate
+    );
+  }
 
 
   async hasAppointments(id, workstationId, date) {

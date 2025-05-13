@@ -34,6 +34,14 @@ export class AppointmentController extends BaseController {
 
   ////////////////////////////////////////////////////
   ////////////////////////////////////////////////////
+  @Post('send-confirmation/:id')
+  async sendConfirmationEmail(@Param('id') id: number): Promise<ResposeDTO> {
+    await this.appointmentService.sendAppointmentConfirmationEmail(id);
+    return { status: 'success', data: 'Email enviado correctamente' };
+  }
+
+  ////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
   @Get('user/one/:id')
   // @Auth('read:appointments')
   async one(@Param() params: IdDTO): Promise<ResposeDTO> {
