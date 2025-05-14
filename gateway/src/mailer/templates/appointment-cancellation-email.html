@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cita Cancelada</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+    
+    body {
+      font-family: 'Poppins', Arial, sans-serif;
+      line-height: 1.6;
+      color: #4a5568;
+      margin: 0;
+      padding: 0;
+      background-color: #f7fafc;
+    }
+    
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .email-header {
+      background: linear-gradient(to right, #f59e0b, #fbbf24);
+      padding: 30px 20px;
+      text-align: center;
+      color: white;
+    }
+    
+    .email-header h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
+    
+    .email-header p {
+      margin: 10px 0 0;
+      opacity: 0.9;
+      font-size: 16px;
+    }
+    
+    .email-body {
+      padding: 30px;
+    }
+    
+    .greeting {
+      font-size: 18px;
+      margin-bottom: 20px;
+      color: #2d3748;
+    }
+    
+    .message {
+      margin-bottom: 25px;
+    }
+    
+    .appointment-details {
+      background-color: #fffbeb;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 25px;
+      border-left: 4px solid #f59e0b;
+    }
+    
+    .appointment-details h2 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #92400e;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .detail-row {
+      display: flex;
+      margin-bottom: 12px;
+    }
+    
+    .detail-label {
+      width: 130px;
+      font-weight: 500;
+      color: #92400e;
+    }
+    
+    .detail-value {
+      flex: 1;
+      color: #78350f;
+    }
+    
+    .cta-button {
+      display: inline-block;
+      background: linear-gradient(to right, #f59e0b, #fbbf24);
+      color: white;
+      text-decoration: none;
+      padding: 12px 25px;
+      border-radius: 6px;
+      font-weight: 500;
+      text-align: center;
+      margin: 20px 0;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+    
+    .cta-button:hover {
+      background: linear-gradient(to right, #fbbf24, #f59e0b);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+    
+    .cancellation-info {
+      background-color: #f8f9fa;
+      border-radius: 6px;
+      padding: 15px;
+      margin-top: 25px;
+    }
+    
+    .cancellation-info h3 {
+      margin-top: 0;
+      color: #4a5568;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    
+    .cancellation-info p {
+      margin-bottom: 0;
+      color: #4a5568;
+    }
+    
+    .email-footer {
+      background-color: #f8f9fa;
+      padding: 20px;
+      text-align: center;
+      font-size: 14px;
+      color: #718096;
+      border-top: 1px solid #e2e8f0;
+    }
+    
+    .social-links {
+      margin-top: 15px;
+    }
+    
+    .social-link {
+      display: inline-block;
+      margin: 0 8px;
+      color: #718096;
+      text-decoration: none;
+    }
+    
+    @media only screen and (max-width: 600px) {
+      .email-container {
+        width: 100%;
+        border-radius: 0;
+      }
+      
+      .email-body {
+        padding: 20px;
+      }
+      
+      .detail-row {
+        flex-direction: column;
+      }
+      
+      .detail-label {
+        width: 100%;
+        margin-bottom: 4px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="email-header">
+      <h1>Tu cita ha sido cancelada</h1>
+      <p>Confirmación de cancelación</p>
+    </div>
+    
+    <div class="email-body">
+      <p class="greeting">Hola, {{clientName}}:</p>
+      
+      <div class="message">
+        <p>Confirmamos que has cancelado tu cita exitosamente. A continuación, encontrarás los detalles de la cita cancelada.</p>
+      </div>
+      
+      <div class="appointment-details">
+        <h2>Detalles de la cita cancelada</h2>
+        
+        <div class="detail-row">
+          <div class="detail-label">Servicio:</div>
+          <div class="detail-value">{{packageName}}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Fecha:</div>
+          <div class="detail-value">{{appointmentDate}}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Hora:</div>
+          <div class="detail-value">{{appointmentTime}} hs</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Profesional:</div>
+          <div class="detail-value">{{professionalName}}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">ID de cita:</div>
+          <div class="detail-value">#{{appointmentId}}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Cancelada el:</div>
+          <div class="detail-value">{{cancellationDate}}</div>
+        </div>
+      </div>
+      
+      <div style="text-align: center;">
+        <a href="{{newAppointmentLink}}" class="cta-button">Reservar nueva cita</a>
+      </div>
+      
+      <div class="cancellation-info">
+        <h3>Información sobre la cancelación</h3>
+        <p>Tu cita ha sido cancelada según lo solicitado. Si deseas programar una nueva cita, puedes hacerlo a través de nuestra plataforma en cualquier momento.</p>
+        <p>Si tienes alguna pregunta sobre la cancelación, no dudes en contactarnos.</p>
+      </div>
+    </div>
+    
+    <div class="email-footer">
+      <p>GlamaDates</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -46,6 +46,12 @@ export class AppointmentController extends BaseController {
     return { status: 'success', data: 'Email de recordatorio enviado correctamente' };
   }
 
+  @Post('send-cancellation/:id')
+  async sendCancellationEmail(@Param('id') id: number): Promise<ResposeDTO> {
+    await this.appointmentService.sendAppointmentCancellationEmail(id);
+    return { status: 'success', data: 'Email de cancelación enviado correctamente' };
+  }
+
   ////////////////////////////////////////////////////
   ////////////////////////////////////////////////////
   @Get('user/one/:id')
