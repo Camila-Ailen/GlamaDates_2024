@@ -7,10 +7,13 @@ import { PaymentStatus } from "./entities/payment-status.enum";
 import { AppointmentService } from "@/appointment/appointment.service";
 import { MercadopagoService } from "@/mercadopago/mercadopago.service";
 import { PaymentMethod } from "./entities/payment-method.enum";
+import { MailerService } from "@/mailer/mailer.service";
 import { AppointmentModule } from "@/appointment/appointment.module";
 import { AppointmentState } from "@/appointment/entities/appointment-state.enum";
 import { PaginationPaymentDto } from "./dto/pagination-payment.dto";
 import { PaginationResponseDTO } from "@/base/dto/base.dto";
+import * as path from "path";
+import * as fs from 'fs';
 
 
 @Injectable()
@@ -18,7 +21,12 @@ export class PaymentService {
     @Inject((forwardRef(() => AppointmentService)))
     private appointmentService: AppointmentService;
 
-    constructor(private mercadopagoService: MercadopagoService) { }
+    constructor(
+        private mercadopagoService: MercadopagoService,
+
+        private readonly mailerService: MailerService,
+    
+    ) { }
 
     @InjectRepository(Payment)
     private readonly paymentRepository: Repository<Payment>;
@@ -91,6 +99,9 @@ export class PaymentService {
         payment.datetime = new Date();
         payment.observation = observation;
         await this.paymentRepository.save(payment);
+
+        // Send cancellation email
+        await this.sendPaymentCancellationEmail(paymentId, observation);
         return payment;
     }
     ////////////////////////////////////////////////
@@ -138,9 +149,9 @@ export class PaymentService {
     ////////////////////////////////////////////////
     async existsByTransaction(id: string): Promise<Boolean> {
         const payment = await this.paymentRepository.findOne({
-            where: { 
-                transactionId: id, 
-                deletedAt: IsNull() 
+            where: {
+                transactionId: id,
+                deletedAt: IsNull()
             },
         });
         if (!payment) {
@@ -209,6 +220,58 @@ export class PaymentService {
         }
 
         return payment.paymentURL;
+    }
+
+    ////////////////////////////////////////////////
+    ////////////////////////////////////////////////
+    // mail por cancelacion de pago
+    async sendPaymentCancellationEmail(paymentId: number, cancellationReason: string): Promise<void> {
+        const payment = await this.paymentRepository.findOne({
+            where: { id: paymentId },
+            relations: ['appointment', 'appointment.client', 'appointment.details', 'appointment.package'],
+        });
+
+        if (!payment) {
+            throw new HttpException('Payment not found', HttpStatus.NOT_FOUND);
+        }
+
+        const appointment = payment.appointment;
+        const client = appointment.client;
+        const serviceName = appointment.package?.name || 'N/A';
+        const paymentDate = payment.datetime
+            ? new Date(payment.datetime).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+            : 'N/A';
+        const paymentAmount = payment.amount || 0;
+        const paymentMethod = payment.paymentMethod || 'N/A';
+        const appointmentDate = appointment.datetimeStart
+            ? new Date(appointment.datetimeStart).toLocaleDateString('es-ES', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })
+            : 'N/A';
+        const cancellationDate = new Date().toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const bookingLink = `${process.env.FRONTEND_URL || 'https://glamadates.com'}/catalog`;
+
+        // Carga la plantilla
+        const emailTemplatePath = path.join(__dirname, '../mailer/templates/payment-cancellation-email.html');
+        let emailTemplate = fs.readFileSync(emailTemplatePath, 'utf8');
+
+        // Reemplaza los placeholders
+        emailTemplate = emailTemplate.replace('${clientName}', `${client.firstName} ${client.lastName}`);
+        emailTemplate = emailTemplate.replace('${paymentId}', payment.id.toString());
+        emailTemplate = emailTemplate.replace('${paymentDate}', paymentDate);
+        emailTemplate = emailTemplate.replace('${paymentAmount}', paymentAmount.toString());
+        emailTemplate = emailTemplate.replace('${paymentMethod}', paymentMethod);
+        emailTemplate = emailTemplate.replace('${serviceName}', serviceName);
+        emailTemplate = emailTemplate.replace('${appointmentDate}', appointmentDate);
+        emailTemplate = emailTemplate.replace('${cancellationDate}', cancellationDate);
+        emailTemplate = emailTemplate.replace('${cancellationReason}', cancellationReason || payment.observation || 'No especificado');
+        emailTemplate = emailTemplate.replace('${bookingLink}', bookingLink);
+
+        // Envía el mail
+        await this.mailerService.sendEmail(
+            'info@glamadates.com',
+            'Cancelación de Pago',
+            [client.email],
+            emailTemplate
+        );
     }
 
 }

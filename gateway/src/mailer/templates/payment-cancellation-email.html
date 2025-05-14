@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cancelación de Pago</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            line-height: 1.6;
+            color: #4a5568;
+            margin: 0;
+            padding: 0;
+            background-color: #f7fafc;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .email-header {
+            background: linear-gradient(to right, #e11d48, #f43f5e);
+            padding: 30px 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .email-header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .email-header p {
+            margin: 10px 0 0;
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .email-body {
+            padding: 30px;
+        }
+
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #2d3748;
+        }
+
+        .message {
+            margin-bottom: 25px;
+        }
+
+        .alert-badge {
+            display: inline-block;
+            background-color: #fee2e2;
+            color: #b91c1c;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            margin-bottom: 15px;
+        }
+
+        .payment-details {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-left: 4px solid #9ca3af;
+        }
+
+        .payment-details h2 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #4b5563;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .detail-row {
+            display: flex;
+            margin-bottom: 12px;
+        }
+
+        .detail-label {
+            width: 130px;
+            font-weight: 500;
+            color: #6b7280;
+        }
+
+        .detail-value {
+            flex: 1;
+            color: #4b5563;
+        }
+
+        .cancellation-reason {
+            background-color: #fee2e2;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-left: 4px solid #ef4444;
+        }
+
+        .cancellation-reason h2 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #b91c1c;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .cancellation-reason p {
+            margin: 0;
+            color: #7f1d1d;
+        }
+
+        .next-steps {
+            background-color: #f0f9ff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-left: 4px solid #0ea5e9;
+        }
+
+        .next-steps h2 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #0369a1;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .next-steps ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #0c4a6e;
+        }
+
+        .next-steps li {
+            margin-bottom: 8px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(to right, #0ea5e9, #38bdf8);
+            color: white;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            font-weight: 500;
+            text-align: center;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .cta-button:hover {
+            background: linear-gradient(to right, #38bdf8, #0ea5e9);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .contact-info {
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 25px;
+        }
+
+        .contact-info h3 {
+            margin-top: 0;
+            color: #4a5568;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .contact-info p {
+            margin-bottom: 5px;
+        }
+
+        .email-footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #718096;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .social-links {
+            margin-top: 15px;
+        }
+
+        .social-link {
+            display: inline-block;
+            margin: 0 8px;
+            color: #718096;
+            text-decoration: none;
+        }
+
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                width: 100%;
+                border-radius: 0;
+            }
+
+            .email-body {
+                padding: 20px;
+            }
+
+            .detail-row {
+                flex-direction: column;
+            }
+
+            .detail-label {
+                width: 100%;
+                margin-bottom: 4px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>Cancelación de Pago</h1>
+            <p>Información importante sobre tu transacción</p>
+        </div>
+
+        <div class="email-body">
+            <p class="greeting">Hola, ${clientName}:</p>
+
+            <div class="alert-badge">Notificación Importante</div>
+
+            <div class="message">
+                <p>Te informamos que el pago realizado para tu cita ha sido cancelado. A continuación, encontrarás los
+                    detalles de la transacción y el motivo de la cancelación.</p>
+            </div>
+
+            <div class="payment-details">
+                <h2>Detalles del pago cancelado</h2>
+
+                <div class="detail-row">
+                    <div class="detail-label">ID de pago:</div>
+                    <div class="detail-value">#${paymentId}</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Fecha de pago:</div>
+                    <div class="detail-value">${paymentDate}</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Monto:</div>
+                    <div class="detail-value">$${paymentAmount}</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Método:</div>
+                    <div class="detail-value">${paymentMethod}</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Servicio:</div>
+                    <div class="detail-value">${serviceName}</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Fecha de cita:</div>
+                    <div class="detail-value">${appointmentDate}</div>
+                </div>
+
+                <div class="detail-row">
+                    <div class="detail-label">Cancelado el:</div>
+                    <div class="detail-value">${cancellationDate}</div>
+                </div>
+            </div>
+
+            <div class="cancellation-reason">
+                <h2>Motivo de la cancelación</h2>
+                <p>${cancellationReason}</p>
+            </div>
+
+            <div class="next-steps">
+                <h2>Próximos pasos</h2>
+                <ul>
+                    <li>Diríjase a nuestro salón de belleza y solicite hablar con un representante administrativo.</li>
+                    <li>Si deseas, puedes solicitar una nueva cita a través de nuestra plataforma.</li>
+                </ul>
+            </div>
+
+            <div style="text-align: center;">
+                <a href="${bookingLink}" class="cta-button">Reservar nueva cita</a>
+            </div>
+
+            <div class="contact-info">
+                <h3>¿Necesitas ayuda?</h3>
+                <p>Si tienes alguna pregunta sobre esta cancelación o el proceso de reembolso, no dudes en contactarnos:
+                </p>
+                <p>📞 Teléfono: (123) 456-7890</p>
+                <p>✉️ Email: pagos@glamadates.com</p>
+                <p>💬 WhatsApp: +54 9 11 1234-5678</p>
+            </div>
+        </div>
+
+        <div class="email-footer">
+            <p>GlamaDates</p>
+        </div>
+    </div>
+</body>
+
+</html>
