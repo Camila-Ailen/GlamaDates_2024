@@ -488,6 +488,7 @@ export class AppointmentService {
 
 
   /////////////////////////////////////////////////////////
+  // CORREOS // MAILS
   ////////////////////////////////////////////////////////
   // Notifica a los clientes para reacomodar la cita
   async notifyClientsForReappointments(cancelledAppointment: Appointment): Promise<void> {
@@ -816,7 +817,70 @@ export class AppointmentService {
     );
   }
 
+  ////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////
+  // Envia correo por citas morosas
+  async sendAppointmentDelinquentEmail(appointmentId: number): Promise<void> {
+    const appointment = await this.appointmentRepository.findOne({
+      where: { id: appointmentId },
+      relations: [
+        'client',
+        'details',
+        'details.employee',
+        'package',
+        'package.services',
+        'payments'
+      ],
+    });
 
+    if (!appointment) {
+      throw new HttpException('Appointment not found', HttpStatus.NOT_FOUND);
+    }
+
+    // Carga la plantilla
+    const emailTemplatePath = path.join(__dirname, '../mailer/templates/appointment-payment-reminder-email.html');
+    let emailTemplate = fs.readFileSync(emailTemplatePath, 'utf8');
+
+    // Datos para el mail
+    const client = appointment.client;
+    const packageName = appointment.package?.name || 'N/A';
+    const appointmentDate = new Date(appointment.datetimeStart).toLocaleDateString('es-ES', {
+      weekday: 'long', day: '2-digit', month: 'long', year: 'numeric'
+    });
+    const appointmentTime = new Date(appointment.datetimeStart).toLocaleTimeString('es-ES', {
+      hour: '2-digit', minute: '2-digit', hour12: true
+    });
+    const professionalName = appointment.details[0]?.employee
+      ? `${appointment.details[0].employee.firstName} ${appointment.details[0].employee.lastName}`
+      : 'A confirmar';
+    const appointmentIdStr = appointment.id.toString();
+    const pendingAmount = appointment.pending || 0;
+    // Busca el primer pago pendiente para obtener el link de pago (ajusta según tu lógica)
+    const payment = appointment.payments?.find(p => p.status === 'PENDIENTE');
+    const paymentLink = payment?.paymentURL || `${process.env.FRONTEND_URL || 'https://glamadates.com'}/payments`;
+
+    // Reemplaza los placeholders
+    emailTemplate = emailTemplate.replace('{{clientName}}', `${client.firstName} ${client.lastName}`);
+    emailTemplate = emailTemplate.replace('{{packageName}}', packageName);
+    emailTemplate = emailTemplate.replace('{{appointmentDate}}', appointmentDate);
+    emailTemplate = emailTemplate.replace('{{appointmentTime}}', appointmentTime);
+    emailTemplate = emailTemplate.replace('{{professionalName}}', professionalName);
+    emailTemplate = emailTemplate.replace('{{appointmentId}}', appointmentIdStr);
+    emailTemplate = emailTemplate.replace('{{pendingAmount}}', pendingAmount.toString());
+    emailTemplate = emailTemplate.replace('{{paymentLink}}', paymentLink);
+
+    // Envía el mail
+    await this.mailerService.sendEmail(
+      'info@glamadates.com',
+      'Recordatorio de Pago Pendiente',
+      [client.email],
+      emailTemplate
+    );
+  }
+
+
+  /////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////
   async hasAppointments(id, workstationId, date) {
     const appointments = await this.detailsAppointmentRepository.find({
       where: {

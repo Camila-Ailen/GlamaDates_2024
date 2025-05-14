@@ -58,6 +58,12 @@ export class AppointmentController extends BaseController {
     return { status: 'success', data: 'Email de turno inactivo enviado correctamente' };
   }
 
+  @Post('send-delinquent/:id')
+  async sendDelinquentEmail(@Param('id') id: number): Promise<ResposeDTO> {
+    await this.appointmentService.sendAppointmentDelinquentEmail(id);
+    return { status: 'success', data: 'Email de recordatorio de pago enviado correctamente' };
+  }
+
   ////////////////////////////////////////////////////
   ////////////////////////////////////////////////////
   @Get('user/one/:id')
