@@ -616,6 +616,87 @@ export class AppointmentService {
     );
   }
 
+  ////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////
+  // Recuerda a los clientes sobre sus citas
+  async sendAppointmentReminderEmail(appointmentId: number): Promise<void> {
+    // Busca la cita con todas las relaciones necesarias
+    const appointment = await this.appointmentRepository.findOne({
+      where: { id: appointmentId },
+      relations: [
+        'client',
+        'details',
+        'details.employee',
+        'package',
+        'package.services'
+      ],
+    });
+
+    if (!appointment) {
+      throw new HttpException('Appointment not found', HttpStatus.NOT_FOUND);
+    }
+
+    // Carga la plantilla
+    const emailTemplatePath = path.join(__dirname, '../mailer/templates/appointment-reminder-email.html');
+    let emailTemplate = fs.readFileSync(emailTemplatePath, 'utf8');
+
+    // Datos para el mail
+    const client = appointment.client;
+    const packageName = appointment.package?.name || 'N/A';
+    const appointmentDate = new Date(appointment.datetimeStart).toLocaleDateString('es-ES', {
+      weekday: 'long', day: '2-digit', month: 'long', year: 'numeric'
+    });
+    const appointmentTime = new Date(appointment.datetimeStart).toLocaleTimeString('es-ES', {
+      hour: '2-digit', minute: '2-digit', hour12: true
+    });
+    const duration = appointment.details.reduce((sum, d) => sum + (d.durationNow || 0), 0);
+    const professionalName = appointment.details[0]?.employee
+      ? `${appointment.details[0].employee.firstName} ${appointment.details[0].employee.lastName}`
+      : 'A confirmar';
+    const viewAppointmentLink = `${process.env.FRONTEND_URL}/appointment/${appointment.id}`;
+
+    // Reemplaza los placeholders
+    emailTemplate = emailTemplate.replace('{{clientName}}', `${client.firstName} ${client.lastName}`);
+    emailTemplate = emailTemplate.replace('{{packageName}}', packageName);
+    emailTemplate = emailTemplate.replace('{{appointmentDate}}', appointmentDate);
+    emailTemplate = emailTemplate.replace('{{appointmentTime}}', appointmentTime);
+    emailTemplate = emailTemplate.replace('{{duration}}', duration.toString());
+    emailTemplate = emailTemplate.replace('{{professionalName}}', professionalName);
+    emailTemplate = emailTemplate.replace('{{viewAppointmentLink}}', viewAppointmentLink);
+
+    // Envía el mail
+    await this.mailerService.sendEmail(
+      'info@glamadates.com',
+      'Recordatorio de tu cita',
+      [client.email],
+      emailTemplate
+    );
+  }
+
+  ////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////
+  // Cron para enviar recordatorios de citas
+  @Cron('0 8 * * *') // Todos los días a las 8:00 AM
+  async sendRemindersForTomorrow() {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    const dayAfter = new Date(tomorrow);
+    dayAfter.setDate(dayAfter.getDate() + 1);
+
+    const appointments = await this.appointmentRepository.find({
+      where: {
+        datetimeStart: Between(tomorrow, dayAfter),
+        state: In([AppointmentState.PENDING, AppointmentState.ACTIVE, AppointmentState.IN_PROGRESS_UNPAID, AppointmentState.IN_PROGRESS_PAY]),
+      },
+      relations: ['client', 'details', 'details.employee', 'package', 'package.services'],
+    });
+
+    for (const appointment of appointments) {
+      await this.sendAppointmentReminderEmail(appointment.id);
+    }
+  }
+
 
   async hasAppointments(id, workstationId, date) {
     const appointments = await this.detailsAppointmentRepository.find({

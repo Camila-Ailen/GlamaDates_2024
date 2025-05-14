@@ -40,6 +40,12 @@ export class AppointmentController extends BaseController {
     return { status: 'success', data: 'Email enviado correctamente' };
   }
 
+  @Post('send-reminder/:id')
+  async sendReminderEmail(@Param('id') id: number): Promise<ResposeDTO> {
+    await this.appointmentService.sendAppointmentReminderEmail(id);
+    return { status: 'success', data: 'Email de recordatorio enviado correctamente' };
+  }
+
   ////////////////////////////////////////////////////
   ////////////////////////////////////////////////////
   @Get('user/one/:id')
