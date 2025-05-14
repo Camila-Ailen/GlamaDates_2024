@@ -167,7 +167,6 @@ export class AppointmentService {
     const appointmentDate = new Date(body.datetimeStart);
 
     // Primero traigo los datos globales
-
     const config = await this.configService.getSystemConfig();
 
     // Verifico que la fecha y horario de la cita no estén ocupados
@@ -181,8 +180,6 @@ export class AppointmentService {
       if (existingAppointmentsDetail.length >= professionals.length && existingAppointmentsDetail.length >= workstations.length) {
         throw new HttpException('No hay espacio disponible para esta cita', HttpStatus.BAD_REQUEST);
       }
-
-
     }
 
     // Creo la cita
@@ -385,6 +382,8 @@ export class AppointmentService {
 
     await this.paymentService.create({ body: payment });
 
+    // Envio el mail de confirmacion
+    await this.sendAppointmentConfirmationEmail(savedAppointment.id);
 
     return await this.getById(savedAppointment.id);
   }
@@ -486,7 +485,9 @@ export class AppointmentService {
   }
 
 
-
+  /////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////
+  // Notifica a los clientes para reacomodar la cita
   async notifyClientsForReappointments(cancelledAppointment: Appointment): Promise<void> {
     console.log('Notificando a los clientes para reacomodar la cita');
     const suggestions = await this.suggestReappointments(cancelledAppointment);
@@ -555,7 +556,8 @@ export class AppointmentService {
     }
   }
 
-
+  ////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////
   async sendAppointmentConfirmationEmail(appointmentId: number): Promise<void> {
     // Busca la cita con todas las relaciones necesarias
     const appointment = await this.appointmentRepository.findOne({
