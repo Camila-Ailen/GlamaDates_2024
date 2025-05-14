@@ -521,7 +521,7 @@ export class AppointmentService {
         const suggestedAppointmentDate = new Date(suggestion.datetimeStart).toLocaleDateString('es-ES', {
           weekday: 'long',
           day: '2-digit',
-          month: '2-digit',
+          month: 'long',
           year: 'numeric',
         })
 
@@ -552,7 +552,6 @@ export class AppointmentService {
           [client.email],
           emailContent
         );
-        console.log('Notificacion enviada al cliente:', client.email);
       } else {
         console.log('No se encontró el cliente para la cita:', suggestion.appointment.id);
       }
