@@ -438,7 +438,7 @@ export class AppointmentService {
 
       // Envio el mail de cancelacion
       await this.sendAppointmentCancellationEmail(appointment.id);
-      
+
       // Ahora se calcula a quienes se le puede recomendar la cita
       await this.notifyClientsForReappointments(appointment);
     }
@@ -703,62 +703,118 @@ export class AppointmentService {
   ////////////////////////////////////////////////////////////
   // Envia correo tras cancelar cita
   async sendAppointmentCancellationEmail(appointmentId: number): Promise<void> {
-  const appointment = await this.appointmentRepository.findOne({
-    where: { id: appointmentId },
-    relations: [
-      'client',
-      'details',
-      'details.employee',
-      'package',
-      'package.services'
-    ],
-  });
+    const appointment = await this.appointmentRepository.findOne({
+      where: { id: appointmentId },
+      relations: [
+        'client',
+        'details',
+        'details.employee',
+        'package',
+        'package.services'
+      ],
+    });
 
-  if (!appointment) {
-    throw new HttpException('Appointment not found', HttpStatus.NOT_FOUND);
+    if (!appointment) {
+      throw new HttpException('Appointment not found', HttpStatus.NOT_FOUND);
+    }
+
+    // Carga la plantilla
+    const emailTemplatePath = path.join(__dirname, '../mailer/templates/appointment-cancellation-email.html');
+    let emailTemplate = fs.readFileSync(emailTemplatePath, 'utf8');
+
+    // Datos para el mail
+    const client = appointment.client;
+    const packageName = appointment.package?.name || 'N/A';
+    const appointmentDate = new Date(appointment.datetimeStart).toLocaleDateString('es-ES', {
+      weekday: 'long', day: '2-digit', month: 'long', year: 'numeric'
+    });
+    const appointmentTime = new Date(appointment.datetimeStart).toLocaleTimeString('es-ES', {
+      hour: '2-digit', minute: '2-digit', hour12: true
+    });
+    const professionalName = appointment.details[0]?.employee
+      ? `${appointment.details[0].employee.firstName} ${appointment.details[0].employee.lastName}`
+      : 'A confirmar';
+    const appointmentIdStr = appointment.id.toString();
+    const cancellationDate = new Date().toLocaleString('es-ES', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+    const newAppointmentLink = `${process.env.FRONTEND_URL || 'https://glamadates.com'}/appointment`;
+
+    // Reemplaza los placeholders
+    emailTemplate = emailTemplate.replace('{{clientName}}', `${client.firstName} ${client.lastName}`);
+    emailTemplate = emailTemplate.replace('{{packageName}}', packageName);
+    emailTemplate = emailTemplate.replace('{{appointmentDate}}', appointmentDate);
+    emailTemplate = emailTemplate.replace('{{appointmentTime}}', appointmentTime);
+    emailTemplate = emailTemplate.replace('{{professionalName}}', professionalName);
+    emailTemplate = emailTemplate.replace('{{appointmentId}}', appointmentIdStr);
+    emailTemplate = emailTemplate.replace('{{cancellationDate}}', cancellationDate);
+    emailTemplate = emailTemplate.replace('{{newAppointmentLink}}', newAppointmentLink);
+
+    // Envía el mail
+    await this.mailerService.sendEmail(
+      'info@glamadates.com',
+      'Tu cita ha sido cancelada',
+      [client.email],
+      emailTemplate
+    );
   }
 
-  // Carga la plantilla
-  const emailTemplatePath = path.join(__dirname, '../mailer/templates/appointment-cancellation-email.html');
-  let emailTemplate = fs.readFileSync(emailTemplatePath, 'utf8');
+  ////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////
+  // Envia correo por citas inactivas
+  async sendAppointmentInactiveEmail(appointmentId: number): Promise<void> {
+    const appointment = await this.appointmentRepository.findOne({
+      where: { id: appointmentId },
+      relations: [
+        'client',
+        'details',
+        'details.employee',
+        'package',
+        'package.services'
+      ],
+    });
 
-  // Datos para el mail
-  const client = appointment.client;
-  const packageName = appointment.package?.name || 'N/A';
-  const appointmentDate = new Date(appointment.datetimeStart).toLocaleDateString('es-ES', {
-    weekday: 'long', day: '2-digit', month: 'long', year: 'numeric'
-  });
-  const appointmentTime = new Date(appointment.datetimeStart).toLocaleTimeString('es-ES', {
-    hour: '2-digit', minute: '2-digit', hour12: true
-  });
-  const professionalName = appointment.details[0]?.employee
-    ? `${appointment.details[0].employee.firstName} ${appointment.details[0].employee.lastName}`
-    : 'A confirmar';
-  const appointmentIdStr = appointment.id.toString();
-  const cancellationDate = new Date().toLocaleString('es-ES', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit'
-  });
-  const newAppointmentLink = `${process.env.FRONTEND_URL || 'https://glamadates.com'}/appointment`;
+    if (!appointment) {
+      throw new HttpException('Appointment not found', HttpStatus.NOT_FOUND);
+    }
 
-  // Reemplaza los placeholders
-  emailTemplate = emailTemplate.replace('{{clientName}}', `${client.firstName} ${client.lastName}`);
-  emailTemplate = emailTemplate.replace('{{packageName}}', packageName);
-  emailTemplate = emailTemplate.replace('{{appointmentDate}}', appointmentDate);
-  emailTemplate = emailTemplate.replace('{{appointmentTime}}', appointmentTime);
-  emailTemplate = emailTemplate.replace('{{professionalName}}', professionalName);
-  emailTemplate = emailTemplate.replace('{{appointmentId}}', appointmentIdStr);
-  emailTemplate = emailTemplate.replace('{{cancellationDate}}', cancellationDate);
-  emailTemplate = emailTemplate.replace('{{newAppointmentLink}}', newAppointmentLink);
+    // Carga la plantilla
+    const emailTemplatePath = path.join(__dirname, '../mailer/templates/appointment-inactive-email.html');
+    let emailTemplate = fs.readFileSync(emailTemplatePath, 'utf8');
 
-  // Envía el mail
-  await this.mailerService.sendEmail(
-    'info@glamadates.com',
-    'Tu cita ha sido cancelada',
-    [client.email],
-    emailTemplate
-  );
-}
+    // Datos para el mail
+    const client = appointment.client;
+    const packageName = appointment.package?.name || 'N/A';
+    const appointmentDate = new Date(appointment.datetimeStart).toLocaleDateString('es-ES', {
+      weekday: 'long', day: '2-digit', month: 'long', year: 'numeric'
+    });
+    const appointmentTime = new Date(appointment.datetimeStart).toLocaleTimeString('es-ES', {
+      hour: '2-digit', minute: '2-digit', hour12: true
+    });
+    const professionalName = appointment.details[0]?.employee
+      ? `${appointment.details[0].employee.firstName} ${appointment.details[0].employee.lastName}`
+      : 'A confirmar';
+    const appointmentIdStr = appointment.id.toString();
+    const newAppointmentLink = `${process.env.FRONTEND_URL || 'https://glamadates.com'}/appointment`;
+
+    // Reemplaza los placeholders
+    emailTemplate = emailTemplate.replace('{{clientName}}', `${client.firstName} ${client.lastName}`);
+    emailTemplate = emailTemplate.replace('{{packageName}}', packageName);
+    emailTemplate = emailTemplate.replace('{{appointmentDate}}', appointmentDate);
+    emailTemplate = emailTemplate.replace('{{appointmentTime}}', appointmentTime);
+    emailTemplate = emailTemplate.replace('{{professionalName}}', professionalName);
+    emailTemplate = emailTemplate.replace('{{appointmentId}}', appointmentIdStr);
+    emailTemplate = emailTemplate.replace('{{newAppointmentLink}}', newAppointmentLink);
+
+    // Envía el mail
+    await this.mailerService.sendEmail(
+      'info@glamadates.com',
+      'Tu cita ha sido marcada como inactiva',
+      [client.email],
+      emailTemplate
+    );
+  }
 
 
   async hasAppointments(id, workstationId, date) {
@@ -1217,9 +1273,10 @@ export class AppointmentService {
 
         await this.appointmentRepository.save(appointment);
         await this.paymentService.update({ id: pay.id, body: pay });
+
+        // envia el correo de aviso
+        await this.sendAppointmentInactiveEmail(appointment.id);
       }
-
-
 
       console.log(`Se actualizaron ${pendingAppointments.length} citas de PENDIENTE a INACTIVO.`);
     } catch (error) {

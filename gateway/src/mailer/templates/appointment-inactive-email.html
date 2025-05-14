@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cita Inactiva</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+    
+    body {
+      font-family: 'Poppins', Arial, sans-serif;
+      line-height: 1.6;
+      color: #4a5568;
+      margin: 0;
+      padding: 0;
+      background-color: #f7fafc;
+    }
+    
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .email-header {
+      background: linear-gradient(to right, #6b7280, #9ca3af);
+      padding: 30px 20px;
+      text-align: center;
+      color: white;
+    }
+    
+    .email-header h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
+    
+    .email-header p {
+      margin: 10px 0 0;
+      opacity: 0.9;
+      font-size: 16px;
+    }
+    
+    .email-body {
+      padding: 30px;
+    }
+    
+    .greeting {
+      font-size: 18px;
+      margin-bottom: 20px;
+      color: #2d3748;
+    }
+    
+    .message {
+      margin-bottom: 25px;
+    }
+    
+    .appointment-details {
+      background-color: #f3f4f6;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 25px;
+      border-left: 4px solid #6b7280;
+    }
+    
+    .appointment-details h2 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #4b5563;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .detail-row {
+      display: flex;
+      margin-bottom: 12px;
+    }
+    
+    .detail-label {
+      width: 130px;
+      font-weight: 500;
+      color: #6b7280;
+    }
+    
+    .detail-value {
+      flex: 1;
+      color: #4b5563;
+    }
+    
+    .cta-button {
+      display: inline-block;
+      background: linear-gradient(to right, #6b7280, #9ca3af);
+      color: white;
+      text-decoration: none;
+      padding: 12px 25px;
+      border-radius: 6px;
+      font-weight: 500;
+      text-align: center;
+      margin: 20px 0;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+    
+    .cta-button:hover {
+      background: linear-gradient(to right, #9ca3af, #6b7280);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+    
+    .missed-info {
+      background-color: #fee2e2;
+      border-radius: 6px;
+      padding: 15px;
+      margin-top: 25px;
+      border-left: 4px solid #ef4444;
+    }
+    
+    .missed-info h3 {
+      margin-top: 0;
+      color: #b91c1c;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    
+    .missed-info p {
+      margin-bottom: 0;
+      color: #991b1b;
+    }
+    
+    .policy-info {
+      background-color: #f8f9fa;
+      border-radius: 6px;
+      padding: 15px;
+      margin-top: 15px;
+    }
+    
+    .policy-info h3 {
+      margin-top: 0;
+      color: #4a5568;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    
+    .policy-info p {
+      margin-bottom: 0;
+      color: #4a5568;
+    }
+    
+    .email-footer {
+      background-color: #f8f9fa;
+      padding: 20px;
+      text-align: center;
+      font-size: 14px;
+      color: #718096;
+      border-top: 1px solid #e2e8f0;
+    }
+    
+    .social-links {
+      margin-top: 15px;
+    }
+    
+    .social-link {
+      display: inline-block;
+      margin: 0 8px;
+      color: #718096;
+      text-decoration: none;
+    }
+    
+    @media only screen and (max-width: 600px) {
+      .email-container {
+        width: 100%;
+        border-radius: 0;
+      }
+      
+      .email-body {
+        padding: 20px;
+      }
+      
+      .detail-row {
+        flex-direction: column;
+      }
+      
+      .detail-label {
+        width: 100%;
+        margin-bottom: 4px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="email-header">
+      <h1>Cita no asistida</h1>
+      <p>Información sobre tu cita inactiva</p>
+    </div>
+    
+    <div class="email-body">
+      <p class="greeting">Hola, {{clientName}}:</p>
+      
+      <div class="message">
+        <p>Lamentamos informarte que tu cita ha sido marcada como inactiva debido a que no se registró tu asistencia. A continuación, encontrarás los detalles de la cita a la que no asististe.</p>
+      </div>
+      
+      <div class="appointment-details">
+        <h2>Detalles de la cita inactiva</h2>
+        
+        <div class="detail-row">
+          <div class="detail-label">Servicio:</div>
+          <div class="detail-value">{{packageName}}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Fecha:</div>
+          <div class="detail-value">{{appointmentDate}}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Hora:</div>
+          <div class="detail-value">{{appointmentTime}} hs</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Profesional:</div>
+          <div class="detail-value">{{professionalName}}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">ID de cita:</div>
+          <div class="detail-value">#{{appointmentId}}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Estado:</div>
+          <div class="detail-value">Inactiva (No asistida)</div>
+        </div>
+      </div>
+      
+      <div class="missed-info">
+        <h3>Información importante</h3>
+        <p>Esta cita no puede ser recuperada o reprogramada. Si realizaste un pago por adelantado, por favor consulta nuestra política de reembolsos para citas no asistidas.</p>
+      </div>
+      
+      <div style="text-align: center; margin-top: 25px;">
+        <a href="{{newAppointmentLink}}" class="cta-button">Reservar nueva cita</a>
+      </div>
+      
+      <div class="policy-info">
+        <h3>Política de asistencia</h3>
+        <p>Te recordamos que es importante asistir a tus citas programadas o cancelarlas con al menos 24 horas de anticipación. Las citas no asistidas sin previo aviso pueden afectar la posibilidad de reservar citas futuras.</p>
+        <p>Si tuviste algún inconveniente que te impidió asistir, por favor contáctanos para discutir tu situación.</p>
+      </div>
+    </div>
+    
+    <div class="email-footer">
+      <p>GlamaDates</p>
+    </div>
+  </div>
+</body>
+</html>
