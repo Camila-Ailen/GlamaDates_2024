@@ -743,7 +743,7 @@ export class AppointmentService {
       day: '2-digit', month: '2-digit', year: 'numeric',
       hour: '2-digit', minute: '2-digit'
     });
-    const newAppointmentLink = `${process.env.FRONTEND_URL || 'https://glamadates.com'}/appointment`;
+    const newAppointmentLink = `${process.env.FRONTEND_URL}/catalog`;
 
     // Reemplaza los placeholders
     emailTemplate = emailTemplate.replace('{{clientName}}', `${client.firstName} ${client.lastName}`);
