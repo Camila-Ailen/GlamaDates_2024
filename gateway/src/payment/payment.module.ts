@@ -18,6 +18,7 @@ import { MercadopagoModule } from "@/mercadopago/mercadopago.module";
 import { MailerService } from "@/mailer/mailer.service";
 import { AuditoriaService } from "@/auditoria/auditoria.service";
 import { Auditoria } from "@/auditoria/entities/auditoria.entity";
+import { PdfService } from "@/mailer/pdf/pdf.service";
 
 
 @Module({
@@ -32,7 +33,7 @@ import { Auditoria } from "@/auditoria/entities/auditoria.entity";
               }),
     ],
     controllers: [PaymentController],
-    providers: [PaymentService, PaymentController, Service, AppointmentService, MailerService, AuditoriaService],
+    providers: [PaymentService, PaymentController, Service, AppointmentService, MailerService, AuditoriaService, PdfService],
     exports: [PaymentService],
 })
 

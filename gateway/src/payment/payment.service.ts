@@ -14,6 +14,7 @@ import { PaginationPaymentDto } from "./dto/pagination-payment.dto";
 import { PaginationResponseDTO } from "@/base/dto/base.dto";
 import * as path from "path";
 import * as fs from 'fs';
+import { PdfService } from "@/mailer/pdf/pdf.service";
 
 
 @Injectable()
@@ -25,7 +26,8 @@ export class PaymentService {
         private mercadopagoService: MercadopagoService,
 
         private readonly mailerService: MailerService,
-    
+        private readonly pdfService: PdfService,
+
     ) { }
 
     @InjectRepository(Payment)
@@ -195,7 +197,6 @@ export class PaymentService {
             updated_at: appointment.updatedAt,
             deleted_at: appointment.deletedAt,
         };
-        // console.log("appointmentDto: ", appointmentDto);
         await this.appointmentService.update({ id: appointment.id, body: appointmentDto });
 
 
@@ -208,6 +209,9 @@ export class PaymentService {
         payment.paymentMethod = PaymentMethod.MERCADOPAGO;
 
         await this.paymentRepository.save(payment);
+
+        // Envía el comprobante de pago por email con PDF adjunto
+        await this.sendPaymentConfirmationEmailWithPdf(payment.id);
     }
 
     ////////////////////////////////////////////////
@@ -272,6 +276,81 @@ export class PaymentService {
             [client.email],
             emailTemplate
         );
+    }
+
+    // Enviar email de confirmación de pago con PDF adjunto
+    async sendPaymentConfirmationEmailWithPdf(paymentId: number): Promise<void> {
+        const payment = await this.paymentRepository.findOne({
+            where: { id: paymentId },
+            relations: ['appointment', 'appointment.client', 'appointment.details', 'appointment.details.employee', 'appointment.package'],
+        });
+
+        if (!payment) {
+            throw new HttpException('Payment not found', HttpStatus.NOT_FOUND);
+        }
+
+        const appointment = payment.appointment;
+        const client = appointment.client;
+        const serviceName = appointment.package?.name || 'N/A';
+        const paymentDate = payment.datetime
+            ? new Date(payment.datetime).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+            : 'N/A';
+        const paymentAmount = payment.amount || 0;
+        const paymentMethod = payment.paymentMethod || 'N/A';
+        const appointmentDate = appointment.datetimeStart
+            ? new Date(appointment.datetimeStart).toLocaleDateString('es-ES', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })
+            : 'N/A';
+        const appointmentTime = appointment.datetimeStart
+            ? new Date(appointment.datetimeStart).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+            : 'N/A';
+        const serviceDuration = appointment.details[0]?.durationNow || 'N/A';
+        const professionalName = appointment.details[0]?.employee.firstName && appointment.details[0]?.employee.firstName || 'N/A';
+        const transactionId = payment.transactionId || payment.id.toString();
+
+        // Genera el PDF
+        const pdfBuffer = await this.pdfService.generatePaymentReceiptPdf({
+            clientName: `${client.firstName} ${client.lastName}`,
+            transactionId,
+            paymentDate,
+            paymentAmount,
+            paymentMethod,
+            serviceName,
+            appointmentDate,
+            appointmentTime,
+            serviceDuration: serviceDuration.toString(),
+            professionalName,
+        });
+
+        // Carga la plantilla de email
+        const emailTemplatePath = path.join(__dirname, '../mailer/templates/payment-confirmation-email.html');
+        let emailTemplate = fs.readFileSync(emailTemplatePath, 'utf8');
+
+        // Reemplaza los placeholders
+        emailTemplate = emailTemplate.replace('{{clientName}}', client.firstName + ' ' + client.lastName);
+        emailTemplate = emailTemplate.replace('{{receiptNumber}}', transactionId);
+        emailTemplate = emailTemplate.replace('{{paymentDate}}', paymentDate);
+        emailTemplate = emailTemplate.replace('{{paymentAmount}}', paymentAmount.toString());
+        emailTemplate = emailTemplate.replace('{{paymentMethod}}', paymentMethod);
+        emailTemplate = emailTemplate.replace('{{serviceName}}', serviceName);
+        emailTemplate = emailTemplate.replace('{{appointmentDate}}', appointmentDate);
+        emailTemplate = emailTemplate.replace('{{appointmentTime}}', appointmentTime);
+        emailTemplate = emailTemplate.replace('{{serviceDuration}}', serviceDuration.toString());
+        emailTemplate = emailTemplate.replace('{{professionalName}}', professionalName);
+        emailTemplate = emailTemplate.replace('{{viewAppointmentLink}}', `${process.env.FRONTEND_URL || 'https://glamadates.com'}/appointments`);
+
+        // Envía el correo con el PDF adjunto
+        await this.mailerService.transporter.sendMail({
+            from: 'info@glamadates.com',
+            to: client.email,
+            subject: 'Pago Confirmado - GlamaDates',
+            html: emailTemplate,
+            attachments: [
+                {
+                    filename: `Comprobante-Pago-${transactionId}.pdf`,
+                    content: pdfBuffer,
+                },
+            ],
+        });
     }
 
 }

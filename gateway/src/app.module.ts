@@ -16,6 +16,7 @@ import { PaymentModule } from './payment/payment.module';
 import { MercadopagoModule } from './mercadopago/mercadopago.module';
 import { MailerService } from './mailer/mailer.service';
 import { AuditoriaModule } from './auditoria/auditoria.module';
+import { MailerModule } from './mailer/mailer.module';
 
 @Module({
     imports: [
@@ -35,6 +36,7 @@ import { AuditoriaModule } from './auditoria/auditoria.module';
         SystemConfigModule,
         DetailsAppointmentModule,
         PaymentModule,
+        MailerModule,
         MercadopagoModule,
         AuditoriaModule,
     ],

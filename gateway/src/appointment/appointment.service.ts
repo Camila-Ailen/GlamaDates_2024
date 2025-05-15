@@ -111,6 +111,10 @@ export class AppointmentService {
     }
 
     this.appointmentRepository.save(appointment);
+
+    // Envio el mail con el comprobante de pago
+
+    await this.paymentService.sendPaymentConfirmationEmailWithPdf(appointment.payments[0].id);
   }
 
   ////////////////////////////////////////////////////////

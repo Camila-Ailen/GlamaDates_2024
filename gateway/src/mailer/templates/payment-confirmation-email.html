@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comprobante de Pago</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+    
+    body {
+      font-family: 'Poppins', Arial, sans-serif;
+      line-height: 1.6;
+      color: #4a5568;
+      margin: 0;
+      padding: 0;
+      background-color: #f7fafc;
+    }
+    
+    .email-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .email-header {
+      background: linear-gradient(to right, #10b981, #34d399);
+      padding: 30px 20px;
+      text-align: center;
+      color: white;
+    }
+    
+    .email-header h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+    }
+    
+    .email-header p {
+      margin: 10px 0 0;
+      opacity: 0.9;
+      font-size: 16px;
+    }
+    
+    .email-body {
+      padding: 30px;
+    }
+    
+    .greeting {
+      font-size: 18px;
+      margin-bottom: 20px;
+      color: #2d3748;
+    }
+    
+    .message {
+      margin-bottom: 25px;
+    }
+    
+    .success-badge {
+      display: inline-block;
+      background-color: #d1fae5;
+      color: #065f46;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      margin-bottom: 15px;
+    }
+    
+    .payment-details {
+      background-color: #f9fafb;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 25px;
+      border-left: 4px solid #9ca3af;
+    }
+    
+    .payment-details h2 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #4b5563;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .detail-row {
+      display: flex;
+      margin-bottom: 12px;
+    }
+    
+    .detail-label {
+      width: 130px;
+      font-weight: 500;
+      color: #6b7280;
+    }
+    
+    .detail-value {
+      flex: 1;
+      color: #4b5563;
+    }
+    
+    .pdf-notice {
+      background-color: #eff6ff;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 25px;
+      border-left: 4px solid #3b82f6;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .pdf-icon {
+      background-color: #dbeafe;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    
+    .pdf-icon img {
+      width: 24px;
+      height: 24px;
+    }
+    
+    .pdf-text {
+      flex: 1;
+    }
+    
+    .pdf-text h2 {
+      margin-top: 0;
+      margin-bottom: 5px;
+      color: #1e40af;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .pdf-text p {
+      margin: 0;
+      color: #1e3a8a;
+    }
+    
+    .appointment-details {
+      background-color: #f0fdfa;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 25px;
+      border-left: 4px solid #14b8a6;
+    }
+    
+    .appointment-details h2 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #0f766e;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .cta-button {
+      display: inline-block;
+      background: linear-gradient(to right, #10b981, #34d399);
+      color: white;
+      text-decoration: none;
+      padding: 12px 25px;
+      border-radius: 6px;
+      font-weight: 500;
+      text-align: center;
+      margin: 20px 0;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+    
+    .cta-button:hover {
+      background: linear-gradient(to right, #34d399, #10b981);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+    
+    .contact-info {
+      background-color: #f8f9fa;
+      border-radius: 6px;
+      padding: 15px;
+      margin-top: 25px;
+    }
+    
+    .contact-info h3 {
+      margin-top: 0;
+      color: #4a5568;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    
+    .contact-info p {
+      margin-bottom: 5px;
+    }
+    
+    .email-footer {
+      background-color: #f8f9fa;
+      padding: 20px;
+      text-align: center;
+      font-size: 14px;
+      color: #718096;
+      border-top: 1px solid #e2e8f0;
+    }
+    
+    .social-links {
+      margin-top: 15px;
+    }
+    
+    .social-link {
+      display: inline-block;
+      margin: 0 8px;
+      color: #718096;
+      text-decoration: none;
+    }
+    
+    @media only screen and (max-width: 600px) {
+      .email-container {
+        width: 100%;
+        border-radius: 0;
+      }
+      
+      .email-body {
+        padding: 20px;
+      }
+      
+      .detail-row {
+        flex-direction: column;
+      }
+      
+      .detail-label {
+        width: 100%;
+        margin-bottom: 4px;
+      }
+      
+      .pdf-notice {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="email-header">
+      <h1>¡Pago Confirmado!</h1>
+      <p>Comprobante de Pago - Beauty Salon & Spa</p>
+    </div>
+    
+    <div class="email-body">
+      <p class="greeting">Hola, {{clientName}}:</p>
+      
+      <div class="success-badge">Pago Exitoso</div>
+      
+      <div class="message">
+        <p>¡Gracias por tu pago! Hemos recibido correctamente tu transacción. A continuación, encontrarás los detalles de tu pago y un comprobante adjunto que puedes imprimir para tus registros.</p>
+      </div>
+      
+      <div class="pdf-notice">
+        <div class="pdf-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+        </div>
+        <div class="pdf-text">
+          <h2>Comprobante PDF Adjunto</h2>
+          <p>Hemos adjuntado a este correo un comprobante en formato PDF que puedes descargar, guardar e imprimir para tus registros.</p>
+        </div>
+      </div>
+      
+      <div class="payment-details">
+        <h2>Detalles del pago</h2>
+        
+        <div class="detail-row">
+          <div class="detail-label">Recibo N°:</div>
+          <div class="detail-value">{{receiptNumber}}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Fecha:</div>
+          <div class="detail-value">{{paymentDate}}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Monto:</div>
+          <div class="detail-value">${{paymentAmount}}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Método:</div>
+          <div class="detail-value">{{paymentMethod}}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Estado:</div>
+          <div class="detail-value">Pagado</div>
+        </div>
+      </div>
+      
+      <div class="appointment-details">
+        <h2>Detalles del servicio</h2>
+        
+        <div class="detail-row">
+          <div class="detail-label">Servicio:</div>
+          <div class="detail-value">{{serviceName}}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Fecha:</div>
+          <div class="detail-value">{{appointmentDate}}</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Hora:</div>
+          <div class="detail-value">{{appointmentTime}} hs</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Duración:</div>
+          <div class="detail-value">{{serviceDuration}} minutos</div>
+        </div>
+        
+        <div class="detail-row">
+          <div class="detail-label">Profesional:</div>
+          <div class="detail-value">{{professionalName}}</div>
+        </div>
+      </div>
+      
+      <div style="text-align: center;">
+        <a href="{{viewAppointmentLink}}" class="cta-button">Ver mi cita</a>
+      </div>
+      
+      <div class="contact-info">
+        <h3>¿Necesitas ayuda?</h3>
+        <p>Si tienes alguna pregunta sobre tu pago o cita, no dudes en contactarnos:</p>
+        <p>📞 Teléfono: (123) 456-7890</p>
+        <p>✉️ Email: info@beautysalon.com</p>
+        <p>💬 WhatsApp: +54 9 11 1234-5678</p>
+      </div>
+      
+      <p style="font-style: italic; color: #6b7280; margin-top: 30px; text-align: center;">Este correo electrónico sirve como comprobante de pago. Te recomendamos conservarlo para futuras referencias.</p>
+    </div>
+    
+    <div class="email-footer">
+      <p>Beauty Salon & Spa</p>
+      <p>Av. Ejemplo 1234, Ciudad | Tel: (123) 456-7890</p>
+      
+      <div class="social-links">
+        <a href="#" class="social-link">Instagram</a>
+        <a href="#" class="social-link">Facebook</a>
+        <a href="#" class="social-link">WhatsApp</a>
+      </div>
+      
+      <p style="margin-top: 15px;">© 2025 Beauty Salon & Spa. Todos los derechos reservados.</p>
+    </div>
+  </div>
+</body>
+</html>
