@@ -26,19 +26,6 @@ interface SystemConfigState {
   updateConfig: (config: SystemConfig) => Promise<boolean>
 }
 
-// Valores por defecto para la configuración
-const defaultConfig: SystemConfig = {
-  intervalMinutes: 30,
-  maxReservationDays: 30,
-  openingHour1: "08:00:00",
-  closingHour1: "20:00:00",
-  openingHour2: null,
-  closingHour2: null,
-  descountFull: 10,
-  descountPartial: 5,
-  openDays: ["LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES"],
-}
-
 // Crear el store
 export const useSystemConfigStore = create<SystemConfigState>((set, get) => ({
   config: null,

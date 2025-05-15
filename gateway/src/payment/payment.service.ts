@@ -330,7 +330,7 @@ export class PaymentService {
         emailTemplate = emailTemplate.replace('{{clientName}}', client.firstName + ' ' + client.lastName);
         emailTemplate = emailTemplate.replace('{{receiptNumber}}', transactionId);
         emailTemplate = emailTemplate.replace('{{paymentDate}}', paymentDate);
-        emailTemplate = emailTemplate.replace('{{paymentAmount}}', paymentAmount.toString());
+        emailTemplate = emailTemplate.replace('{{paymentAmount}}', (paymentAmount - payment.appointment.discount).toString() );
         emailTemplate = emailTemplate.replace('{{paymentMethod}}', paymentMethod);
         emailTemplate = emailTemplate.replace('{{serviceName}}', serviceName);
         emailTemplate = emailTemplate.replace('{{appointmentDate}}', appointmentDate);

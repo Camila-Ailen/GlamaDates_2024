@@ -10,6 +10,7 @@ import { Calendar, Clock, CreditCard, CheckCircle, Scissors, Percent } from "luc
 import { Separator } from "../ui/separator"
 import { Switch } from "../ui/switch"
 import { CategoryIcon, getCategoryGradient } from "../catalog/category-icon"
+import { useSystemConfigStore } from "@/app/store/usePreferencesStore"
 
 interface Step3Props {
   selectedPackage: Package
@@ -17,10 +18,22 @@ interface Step3Props {
 
 const Step3: React.FC<{ selectedPackage: Package }> = ({ selectedPackage }) => {
   const { formData, updateFormData } = useFormStore()
+  const {
+    config,
+    isLoading,
+    error,
+    fetchConfig,
+  } = useSystemConfigStore()
+
+  useEffect(() => {
+    if (!config && !isLoading) {
+      fetchConfig()
+    }
+  }, [config, fetchConfig, isLoading])
 
   const discountMap: { [key: number]: number } = {
-    1: 10,
-    2: 5,
+    1: config?.descountFull || 0,
+    2: config?.descountPartial || 0,
   }
 
   const price = selectedPackage.services.reduce((acc, service) => acc + service.price, 0)

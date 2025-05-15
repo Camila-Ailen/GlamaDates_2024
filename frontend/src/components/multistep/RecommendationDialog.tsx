@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { useFormStore } from "@/app/store/formStore"
 import { CalendarClock, CalendarDays, Clock, Percent, X } from "lucide-react"
 import { Card } from "../ui/card"
+import { useSystemConfigStore } from "@/app/store/usePreferencesStore"
 
 interface RecommendationDialogProps {
   isOpen: boolean
@@ -26,7 +27,18 @@ export function RecommendationDialog({
 }: RecommendationDialogProps) {
   const [recommendedDate, setRecommendedDate] = useState<Date | null>(null)
   const [recommendedTime, setRecommendedTime] = useState<string>("")
+  const {
+    fetchConfig,
+    config,
+    isLoading,
+  } = useSystemConfigStore()
   const { updateFormData } = useFormStore()
+
+  useEffect(() => {
+    if (!config && !isLoading) {
+      fetchConfig()
+    }
+  }, [config, fetchConfig, isLoading])
 
   useEffect(() => {
     if (availability.length > 0) {
@@ -105,7 +117,7 @@ export function RecommendationDialog({
                     </span>
                     <span className="text-xs mt-1 flex items-center gap-1">
                       <Percent className="h-3 w-3" />
-                      Obtener un descuento de 10% en la cita
+                      Obtener un descuento de {config?.descountFull ?? 0}% en la cita
                     </span>
                   </div>
                 </Button>
@@ -121,7 +133,7 @@ export function RecommendationDialog({
                     </span>
                     <span className="text-xs mt-1 flex items-center gap-1">
                       <Percent className="h-3 w-3" />
-                      Obtener un descuento de 5% en la cita
+                      Obtener un descuento de {config?.descountPartial ?? 0}% en la cita
                     </span>
                   </div>
                 </Button>
