@@ -600,7 +600,7 @@ export class AppointmentService {
       : 'A confirmar';
     const price = appointment.total || 0;
     const appointmentIdStr = appointment.id.toString();
-    const viewAppointmentLink = `${process.env.FRONTEND_URL}/appointment/${appointment.id}`;
+    const viewAppointmentLink = `${process.env.FRONTEND_URL}/myDate`;
 
     // Reemplaza los placeholders
     emailTemplate = emailTemplate.replace('{{clientName}}', `${client.firstName} ${client.lastName}`);
