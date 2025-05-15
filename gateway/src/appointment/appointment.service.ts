@@ -800,7 +800,7 @@ export class AppointmentService {
       ? `${appointment.details[0].employee.firstName} ${appointment.details[0].employee.lastName}`
       : 'A confirmar';
     const appointmentIdStr = appointment.id.toString();
-    const newAppointmentLink = `${process.env.FRONTEND_URL || 'https://glamadates.com'}/appointment`;
+    const newAppointmentLink = `${process.env.FRONTEND_URL}/catalog`;
 
     // Reemplaza los placeholders
     emailTemplate = emailTemplate.replace('{{clientName}}', `${client.firstName} ${client.lastName}`);
