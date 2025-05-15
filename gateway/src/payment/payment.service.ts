@@ -337,7 +337,7 @@ export class PaymentService {
         emailTemplate = emailTemplate.replace('{{appointmentTime}}', appointmentTime);
         emailTemplate = emailTemplate.replace('{{serviceDuration}}', serviceDuration.toString());
         emailTemplate = emailTemplate.replace('{{professionalName}}', professionalName);
-        emailTemplate = emailTemplate.replace('{{viewAppointmentLink}}', `${process.env.FRONTEND_URL || 'https://glamadates.com'}/appointments`);
+        emailTemplate = emailTemplate.replace('{{viewAppointmentLink}}', `${process.env.FRONTEND_URL}/myDate`);
 
         // Envía el correo con el PDF adjunto
         await this.mailerService.transporter.sendMail({
