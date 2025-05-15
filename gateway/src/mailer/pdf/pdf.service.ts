@@ -25,10 +25,10 @@ export class PdfService {
           size: "A4",
           margin: 40,
           info: {
-            Title: "Comprobante de Pago - Beauty Salon & Spa",
-            Author: "Beauty Salon & Spa",
+            Title: "Comprobante de Pago - Salon de Belleza 'Laura'",
+            Author: "GlamaDates",
             Subject: `Comprobante de pago para ${data.clientName}`,
-            Keywords: "comprobante, pago, beauty salon, spa",
+            Keywords: "comprobante, pago, glamadates, salon de belleza",
           },
         })
 
@@ -70,13 +70,13 @@ export class PdfService {
           .text("COMPROBANTE DE PAGO", 40, 60, { align: "center" })
 
         // Subtítulo
-        doc.fontSize(14).font("Helvetica").fillColor(darkGray).text("Beauty Salon & Spa", 40, 90, { align: "center" })
+        doc.fontSize(14).font("Helvetica").fillColor(darkGray).text("Salon de Belleza 'Laura'", 40, 90, { align: "center" })
 
         // Información de contacto
         doc
           .fontSize(10)
           .fillColor(lightGray)
-          .text("Av. Ejemplo 1234, Ciudad | Tel: (123) 456-7890", 40, 110, { align: "center" })
+          .text("Pueblo Illia, Dos de Mayo | Tel: (123) 456-7890", 40, 110, { align: "center" })
 
         // ===== NÚMERO DE RECIBO Y FECHA =====
         // Fondo para número de recibo
@@ -250,7 +250,7 @@ export class PdfService {
 
         doc
           .fontSize(9)
-          .text("Para verificar la autenticidad de este comprobante, contacte a Beauty Salon & Spa.", 40, 645, {
+          .text("Para verificar la autenticidad de este comprobante, contacte a GlamaDates.", 40, 645, {
             align: "center",
           })
 
@@ -258,7 +258,7 @@ export class PdfService {
         doc
           .fontSize(9)
           .fillColor(primaryColor)
-          .text("www.beautysalon.com | info@beautysalon.com | Tel: (123) 456-7890", 40, 670, { align: "center" })
+          .text("www.glamadates.com | info@glamadates.com | Tel: (123) 456-7890", 40, 670, { align: "center" })
 
         // Número de página
         doc.fontSize(8).fillColor(lightGray).text("Página 1 de 1", 500, 700)

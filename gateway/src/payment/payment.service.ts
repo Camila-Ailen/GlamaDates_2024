@@ -295,7 +295,7 @@ export class PaymentService {
         const paymentDate = payment.datetime
             ? new Date(payment.datetime).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
             : 'N/A';
-        const paymentAmount = payment.amount || 0;
+        const paymentAmount = payment.appointment.total || 0;
         const paymentMethod = payment.paymentMethod || 'N/A';
         const appointmentDate = appointment.datetimeStart
             ? new Date(appointment.datetimeStart).toLocaleDateString('es-ES', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })
@@ -318,7 +318,8 @@ export class PaymentService {
             appointmentDate,
             appointmentTime,
             serviceDuration: serviceDuration.toString(),
-            professionalName,
+            professionalName: `${appointment.details[0].employee.firstName} ${appointment.details[0].employee.lastName}`,
+            discountAmount: payment.appointment.discount || 0,
         });
 
         // Carga la plantilla de email
