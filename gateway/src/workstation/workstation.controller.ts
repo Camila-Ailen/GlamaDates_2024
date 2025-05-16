@@ -2,6 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { WorkstationService } from './workstation.service';
 import { WorkstationDto } from './dto/workstation.dto';
 import { PaginationWorkstationDto } from './dto/pagination-workstation.dto';
+import { ApiOperation } from '@nestjs/swagger';
+import { ResposeDTO } from '@/base/dto/base.dto';
 
 @Controller('workstation')
 export class WorkstationController {
@@ -13,8 +15,10 @@ export class WorkstationController {
   }
 
   @Get()
-  findAll() {
-    return this.workstationService.findAll();
+  @ApiOperation({ summary: 'Get all workstations' })
+  async findAll(): Promise<ResposeDTO> {
+    const workstations = await this.workstationService.findAll();
+    return { status: 'success', data: workstations };
   }
 
   @Get(':id')

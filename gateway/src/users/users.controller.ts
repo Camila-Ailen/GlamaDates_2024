@@ -43,6 +43,15 @@ export class UsersController extends BaseController {
   }
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
+  @Get('employees')
+  @Auth('read:users')
+  @ApiOperation({ summary: 'Get all employees' })
+  async employees(): Promise<ResposeDTO> {
+    const users = await this.userService.employees();
+    return { status: 'success', data: users };
+  }
+  ////////////////////////////////////////////////
+  ////////////////////////////////////////////////
   @Get(':id')
   @Auth('read:users')
   @ApiOperation({ summary: 'Get User by ID' })

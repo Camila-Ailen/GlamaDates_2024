@@ -1,16 +1,35 @@
 import { Injectable } from '@nestjs/common';
 import { WorkstationDto } from './dto/workstation.dto';
 import { PaginationWorkstationDto } from './dto/pagination-workstation.dto';
+import { Workstation } from './entities/workstation.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { WorkstationState } from './entities/workstation-state.enum';
 
 @Injectable()
 export class WorkstationService {
+  constructor(
+    @InjectRepository(Workstation)
+    private readonly workstationRepository: Repository<Workstation>,
+  ) {}
+
   create(createWorkstationDto: WorkstationDto) {
     return 'This action adds a new workstation';
   }
 
-  findAll() {
-    return `This action returns all workstation`;
-  }
+  async findAll(): Promise<Workstation[]> {
+      try {
+        const workstation = await this.workstationRepository.find({
+          where: {
+            state: WorkstationState.ACTIVE,
+          },
+        });
+    
+        return workstation;
+      } catch (error) {
+        throw new Error(`${WorkstationService.name}[workstations]:${error.message}`);
+      }
+    }
 
   findOne(id: number) {
     return `This action returns a #${id} workstation`;

@@ -32,6 +32,7 @@ interface UserState {
   filter: string;
   fetchUsers: (page?: number, token?: string) => Promise<void>;
   createUser: (userData: Partial<User>) => Promise<void>;
+  fetchEmployees: (page?: number) => Promise<void>;
   updateUser: (userData: Partial<User>) => Promise<void>;
   deleteUser: (userId: number) => Promise<void>;
   setOrderBy: (field: string) => void;
@@ -81,6 +82,40 @@ const useUserStore = create<UserState>((set, get) => ({
         users: data.data.results,
         total: data.data.total,
         currentPage,
+        isLoading: false,
+      });
+    } catch (error) {
+      set({ error: (error as Error).message, isLoading: false });
+    }
+  },
+
+  fetchEmployees: async (page?: number) => {
+    const { pageSize, orderBy, orderType, filter } = get();
+    const currentPage = page || get().currentPage;
+    set({ isLoading: true, error: null });
+    try {
+      const response = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_BACKEND_URL
+        }/api/users/employees`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+      if (response.status === 403) {
+        toast.error("Sesión expirada");
+        useAuthStore.getState().logout();
+        return;
+      }
+
+      if (!response.ok) throw new Error("Error al obtener empleados");
+      const data = await response.json();
+      console.log("Data de empleados:", data);
+      set({
+        users: data.data,
+        total: data.data.length,
         isLoading: false,
       });
     } catch (error) {

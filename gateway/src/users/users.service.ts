@@ -4,11 +4,12 @@ import * as bcrypt from 'bcryptjs';
 import { UserDto } from '@/users/dto/user.dto';
 import { User } from '@/users/entities/user.entity';
 import { In, IsNull, Like, Repository } from 'typeorm';
-import { PaginationResponseDTO } from '@/base/dto/base.dto';
+import { PaginationResponseDTO, ResposeDTO } from '@/base/dto/base.dto';
 import { UserPaginationDto } from './dto/pagination-user.dto';
 import { Category } from '@/category/entities/category.entity';
 import { RolesService } from '@/roles/roles.service';
 import { Role } from '@/roles/entities/role.entity';
+import { isNotEmpty } from 'class-validator';
 
 @Injectable()
 export class UsersService {
@@ -47,7 +48,6 @@ export class UsersService {
   }
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
-
   async all(params: {
     query: UserPaginationDto;
   }): Promise<PaginationResponseDTO> {
@@ -102,6 +102,23 @@ export class UsersService {
       throw new Error(`${UsersService.name}[all]:${error.message}`);
     }
   }
+
+  ////////////////////////////////////////////////
+  ////////////////////////////////////////////////
+  async employees(): Promise<User[]> {
+    try {
+      const users = await this.userRepository.find({
+        relations: ['categories'],
+      });
+
+      const filteredUsers = users.filter(user => user.categories && user.categories.length > 0);
+
+      return filteredUsers;
+    } catch (error) {
+      throw new Error(`${UsersService.name}[employees]:${error.message}`);
+    }
+  }
+
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   async create(params: { body: UserDto }): Promise<User> {
