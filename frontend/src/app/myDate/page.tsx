@@ -26,9 +26,9 @@ export default function MyDatesPage() {
 
   // Función para verificar permisos (ajusta según tus necesidades)
   const hasRequiredPermissions = (user: any) => {
-    // Ejemplo: verificar si el usuario tiene rol de cliente o admin
-    // Modifica esta lógica según tus roles y permisos específicos
-    return user.role.permission === "read:mydate"
+    console.log('usuario en no autorizado: ', user)
+    return Array.isArray(user.role.permissions) &&
+    user.role.permissions.some((perm: any) => perm.permission === "read:mydate")
   }
 
   // Mostrar pantalla de carga mientras se verifica la autenticación
