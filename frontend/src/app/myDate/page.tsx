@@ -1,16 +1,73 @@
-import { Suspense } from 'react'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { MyDates } from './myDates'
-import { AppointmentDashboard } from './appointment-dashboard'
+"use client"
 
+import { Suspense, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { AppointmentDashboard } from "./appointment-dashboard"
+import useAuthStore from "@/app/store/useAuthStore"
+import { Loader2 } from "lucide-react"
 
 export default function MyDatesPage() {
+  const router = useRouter()
+  const { user, token, isLoading } = useAuthStore()
+
+  useEffect(() => {
+    // Si no está cargando y no hay token, redirigir al login
+    if (!isLoading && !token) {
+      router.push("/login")
+      return
+    }
+
+    // Si el usuario está cargado y no tiene el rol necesario, redirigir
+    if (user && !hasRequiredPermissions(user)) {
+      router.push("/unauthorized")
+      return
+    }
+  }, [isLoading, token, user, router])
+
+  // Función para verificar permisos (ajusta según tus necesidades)
+  const hasRequiredPermissions = (user: any) => {
+    // Ejemplo: verificar si el usuario tiene rol de cliente o admin
+    // Modifica esta lógica según tus roles y permisos específicos
+    return user.role.permission === "read:mydate"
+  }
+
+  // Mostrar pantalla de carga mientras se verifica la autenticación
+  if (isLoading) {
     return (
-        <div className="container mx-auto py-10">
-            <Suspense fallback={<div>Cargando...</div>}>
-                {/* <MyDates /> */}
-                <AppointmentDashboard />
-            </Suspense>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="h-8 w-8 animate-spin text-pink-600" />
+          <p className="text-gray-500">Verificando acceso...</p>
         </div>
+      </div>
     )
+  }
+
+  // Si no hay usuario o token, no renderizar nada (se redirigirá en el useEffect)
+  if (!user || !token) {
+    return null
+  }
+
+  // Si el usuario no tiene permisos, no renderizar nada (se redirigirá en el useEffect)
+  if (!hasRequiredPermissions(user)) {
+    return null
+  }
+
+  // Si pasa todas las verificaciones, mostrar la página
+  return (
+    <div className="container mx-auto py-10">
+      <Suspense
+        fallback={
+          <div className="flex items-center justify-center min-h-[50vh]">
+            <div className="flex flex-col items-center gap-2">
+              <Loader2 className="h-6 w-6 animate-spin text-pink-600" />
+              <p className="text-gray-500">Cargando citas...</p>
+            </div>
+          </div>
+        }
+      >
+        <AppointmentDashboard />
+      </Suspense>
+    </div>
+  )
 }
