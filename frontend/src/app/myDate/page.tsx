@@ -24,9 +24,8 @@ export default function MyDatesPage() {
     }
   }, [isLoading, token, user, router])
 
-  // Función para verificar permisos (ajusta según tus necesidades)
+  // Función para verificar permisos 
   const hasRequiredPermissions = (user: any) => {
-    console.log('usuario en no autorizado: ', user)
     return Array.isArray(user.role.permissions) &&
     user.role.permissions.some((perm: any) => perm.permission === "read:mydate")
   }
