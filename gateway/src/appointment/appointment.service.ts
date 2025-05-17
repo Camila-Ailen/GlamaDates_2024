@@ -30,6 +30,7 @@ import { ok } from "assert";
 import { Cron } from "@nestjs/schedule";
 import { Auditoria } from "@/auditoria/entities/auditoria.entity";
 import { AuditoriaService } from "@/auditoria/auditoria.service";
+import { DetailsAppointmentDto } from "@/details-appointment/dto/details-appointment.dto";
 
 @Injectable()
 export class AppointmentService {
@@ -206,112 +207,12 @@ export class AppointmentService {
 
     // debo iterar sobre los servicios del paquete para crear los detalles
     for (const service of body.package.services) {
-      // Vamos primero con la asignacion de profesionales al servicio
-      // Buscamos los profesionales de la categoria del servicio
-      const professionals = await this.findProffesionals(service.id, this.userRepository);
-      const workstations = await this.findWorkstations(service.id, this.workstationRepository);
-      const existingAppointmentsDetail = await this.colisionAvailable(appointmentDate, service.duration, service.category.id);
-      const existingAppointmentsDetailIds = existingAppointmentsDetail.map(detail => detail.id);
-
-      const professionalIds = professionals.map(professional => professional.id);
-      const workstationIds = workstations.map(workstation => workstation.id);
-
-      let selectedProfessional: User[] = [];
-      let selectedWorkstation: Workstation[] = [];
-      if (existingAppointmentsDetailIds.length > 0) {
-        const rawWorkstations = await this.detailsAppointmentRepository
-          .createQueryBuilder('details')
-          .innerJoin('details.workstation', 'workstation')
-          .select([
-            'workstation.id AS workstation_id',
-            'workstation.name AS workstation_name',
-            'workstation.description AS workstation_description',
-            'workstation.state AS workstation_state',
-            'workstation.createdAt AS workstation_created_at',
-            'workstation.updatedAt AS workstation_updated_at',
-            'workstation.deletedAt AS workstation_deleted_at',
-          ])
-          .where(
-            'workstation.id NOT IN (SELECT "workstationId" FROM "details_appointments" WHERE id IN (:...existingAppointmentsDetailIds))',
-            { existingAppointmentsDetailIds: existingAppointmentsDetail.map(detail => detail.id) }
-          )
-          .andWhere('workstation.id IN (:...workstationIds)', { workstationIds })
-          .groupBy(
-            'workstation.id, workstation.name, workstation.description, workstation.state, workstation.createdAt, workstation.updatedAt, workstation.deletedAt'
-          )
-          .getRawMany();
-
-        const rawProfessionals = await this.detailsAppointmentRepository
-          .createQueryBuilder('details')
-          .innerJoin('details.employee', 'employee')
-          .select([
-            'employee.id AS employee_id',
-            'employee.firstName AS employee_first_name',
-            'employee.lastName AS employee_last_name',
-            'employee.email AS employee_email',
-            'employee.birthdate AS employee_birthdate',
-            'employee.gender AS employee_gender',
-            'employee.phone AS employee_phone',
-            'employee.emailToken AS employee_email_token',
-            'employee.emailVerifiedAt AS employee_email_verified_at',
-            'employee.emailChange AS employee_email_change',
-            'employee.password AS employee_password',
-            'employee.rememberToken AS employee_remember_token',
-            'employee.branchOfficeId AS employee_branch_office_id',
-            'employee.createdAt AS employee_created_at',
-            'employee.updatedAt AS employee_updated_at',
-            'employee.deletedAt AS employee_deleted_at',
-          ])
-          .where(
-            'employee.id NOT IN (SELECT "employeeId" FROM "details_appointments" WHERE id IN (:...existingAppointmentsDetailIds))',
-            { existingAppointmentsDetailIds }
-          )
-          .andWhere('employee.id IN (:...professionalIds)', { professionalIds })
-          .groupBy('employee.id, employee.firstName, employee.lastName, employee.email, employee.birthdate, employee.gender, employee.phone, employee.emailToken, employee.emailVerifiedAt, employee.emailChange, employee.password, employee.rememberToken, employee.branchOfficeId, employee.createdAt, employee.updatedAt, employee.deletedAt')
-          .getRawMany();
-
-        selectedWorkstation = rawWorkstations.map(workstation => ({
-          id: workstation.workstation_id,
-          name: workstation.workstation_name,
-          description: workstation.workstation_description,
-          state: workstation.workstation_state,
-          categories: [],
-          detailsAppointment: [],
-          createdAt: workstation.workstation_created_at,
-          updatedAt: workstation.workstation_updated_at,
-          deletedAt: workstation.workstation_deleted_at,
-          toJSON: () => ({})
-        }))
-
-        selectedProfessional = rawProfessionals.map(prof => ({
-          id: prof.employee_id,
-          firstName: prof.employee_first_name,
-          lastName: prof.employee_last_name,
-          email: prof.employee_email,
-          birthdate: prof.employee_birthdate,
-          gender: prof.employee_gender,
-          phone: prof.employee_phone,
-          emailToken: prof.employee_email_token,
-          emailVerifiedAt: prof.employee_email_verified_at,
-          emailChange: prof.employee_email_change,
-          password: prof.employee_password,
-          rememberToken: prof.employee_remember_token,
-          branchOfficeId: prof.employee_branch_office_id,
-          createdAt: prof.employee_created_at,
-          updatedAt: prof.employee_updated_at,
-          deletedAt: prof.employee_deleted_at,
-          role: null,
-          categories: [],
-          appointmentClient: [],
-          detailsAppointmentEmployee: [],
-          toJSON: () => ({})
-        }));
-
-      } else {
-        selectedProfessional = professionals;
-        selectedWorkstation = workstations;
-      }
-
+      // Obtener los profesionales y estaciones de trabajo disponibles
+      let body = new DetailsAppointmentDto();
+      body.service = service;
+      body.datetimeStart = appointmentDate;
+      const { selectedProfessional, selectedWorkstation } = await this.verifyProfessionalsWorkstations(body);
+      
       if (selectedProfessional.length === 0) {
         throw new Error('No hay profesionales disponibles.');
       }
@@ -390,6 +291,132 @@ export class AppointmentService {
     await this.sendAppointmentConfirmationEmail(savedAppointment.id);
 
     return await this.getById(savedAppointment.id);
+  }
+
+  ///////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////
+
+  async verifyProfessionalsWorkstations(
+    body: DetailsAppointmentDto,
+  ): Promise<{ selectedProfessional: User[]; selectedWorkstation: Workstation[] }> {
+
+    const appointmentDate = body.datetimeStart;
+    // obtengo el servicio
+    const service = await this.serviceRepository.findOne({
+      where: { id: body.service.id },
+      relations: ['category'],
+    });
+
+    // Buscamos los profesionales de la categoria del servicio
+    const professionals = await this.findProffesionals(service.id, this.userRepository);
+    const workstations = await this.findWorkstations(service.id, this.workstationRepository);
+
+    // Citas existentes en ese horario con esa categoria
+    const existingAppointmentsDetail = await this.colisionAvailable(appointmentDate, service.duration, service.category.id);
+    const existingAppointmentsDetailIds = existingAppointmentsDetail.map(detail => detail.id);
+
+    const professionalIds = professionals.map(professional => professional.id);
+    const workstationIds = workstations.map(workstation => workstation.id);
+
+    let selectedProfessional: User[] = [];
+    let selectedWorkstation: Workstation[] = [];
+    if (existingAppointmentsDetailIds.length > 0) {
+      const rawWorkstations = await this.detailsAppointmentRepository
+        .createQueryBuilder('details')
+        .innerJoin('details.workstation', 'workstation')
+        .select([
+          'workstation.id AS workstation_id',
+          'workstation.name AS workstation_name',
+          'workstation.description AS workstation_description',
+          'workstation.state AS workstation_state',
+          'workstation.createdAt AS workstation_created_at',
+          'workstation.updatedAt AS workstation_updated_at',
+          'workstation.deletedAt AS workstation_deleted_at',
+        ])
+        .where(
+          'workstation.id NOT IN (SELECT "workstationId" FROM "details_appointments" WHERE id IN (:...existingAppointmentsDetailIds))',
+          { existingAppointmentsDetailIds: existingAppointmentsDetail.map(detail => detail.id) }
+        )
+        .andWhere('workstation.id IN (:...workstationIds)', { workstationIds })
+        .groupBy(
+          'workstation.id, workstation.name, workstation.description, workstation.state, workstation.createdAt, workstation.updatedAt, workstation.deletedAt'
+        )
+        .getRawMany();
+
+      console.log('rawWorkstations', rawWorkstations);
+      const rawProfessionals = await this.detailsAppointmentRepository
+        .createQueryBuilder('details')
+        .innerJoin('details.employee', 'employee')
+        .select([
+          'employee.id AS employee_id',
+          'employee.firstName AS employee_first_name',
+          'employee.lastName AS employee_last_name',
+          'employee.email AS employee_email',
+          'employee.birthdate AS employee_birthdate',
+          'employee.gender AS employee_gender',
+          'employee.phone AS employee_phone',
+          'employee.emailToken AS employee_email_token',
+          'employee.emailVerifiedAt AS employee_email_verified_at',
+          'employee.emailChange AS employee_email_change',
+          'employee.password AS employee_password',
+          'employee.rememberToken AS employee_remember_token',
+          'employee.branchOfficeId AS employee_branch_office_id',
+          'employee.createdAt AS employee_created_at',
+          'employee.updatedAt AS employee_updated_at',
+          'employee.deletedAt AS employee_deleted_at',
+        ])
+        .where(
+          'employee.id NOT IN (SELECT "employeeId" FROM "details_appointments" WHERE id IN (:...existingAppointmentsDetailIds))',
+          { existingAppointmentsDetailIds }
+        )
+        .andWhere('employee.id IN (:...professionalIds)', { professionalIds })
+        .groupBy('employee.id, employee.firstName, employee.lastName, employee.email, employee.birthdate, employee.gender, employee.phone, employee.emailToken, employee.emailVerifiedAt, employee.emailChange, employee.password, employee.rememberToken, employee.branchOfficeId, employee.createdAt, employee.updatedAt, employee.deletedAt')
+        .getRawMany();
+
+      selectedWorkstation = rawWorkstations.map(workstation => ({
+        id: workstation.workstation_id,
+        name: workstation.workstation_name,
+        description: workstation.workstation_description,
+        state: workstation.workstation_state,
+        categories: [],
+        detailsAppointment: [],
+        createdAt: workstation.workstation_created_at,
+        updatedAt: workstation.workstation_updated_at,
+        deletedAt: workstation.workstation_deleted_at,
+        toJSON: () => ({})
+      }))
+
+      selectedProfessional = rawProfessionals.map(prof => ({
+        id: prof.employee_id,
+        firstName: prof.employee_first_name,
+        lastName: prof.employee_last_name,
+        email: prof.employee_email,
+        birthdate: prof.employee_birthdate,
+        gender: prof.employee_gender,
+        phone: prof.employee_phone,
+        emailToken: prof.employee_email_token,
+        emailVerifiedAt: prof.employee_email_verified_at,
+        emailChange: prof.employee_email_change,
+        password: prof.employee_password,
+        rememberToken: prof.employee_remember_token,
+        branchOfficeId: prof.employee_branch_office_id,
+        createdAt: prof.employee_created_at,
+        updatedAt: prof.employee_updated_at,
+        deletedAt: prof.employee_deleted_at,
+        role: null,
+        categories: [],
+        appointmentClient: [],
+        detailsAppointmentEmployee: [],
+        toJSON: () => ({})
+      }));
+
+
+    } else {
+      selectedProfessional = professionals;
+      selectedWorkstation = workstations;
+    }
+
+    return { selectedProfessional, selectedWorkstation };
   }
 
   ////////////////////////////////////////////////////////

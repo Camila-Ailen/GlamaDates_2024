@@ -12,6 +12,7 @@ import { BaseController } from '@/base/base.controller';
 import { IdDTO, ResposeDTO } from '@/base/dto/base.dto';
 import { ApiOperation } from '@nestjs/swagger';
 import { Appointment } from './entities/appointment.entity';
+import { DetailsAppointmentDto } from '@/details-appointment/dto/details-appointment.dto';
 
 @Controller('appointment')
 export class AppointmentController extends BaseController {
@@ -200,6 +201,16 @@ export class AppointmentController extends BaseController {
   ) {
     const user = request.user;
     return await this.appointmentService.create(appointmentDto, user);
+  }
+
+  @Get('prof-work')
+  async getProfWork(
+    @Body() appointmentDto: DetailsAppointmentDto,
+  ): Promise<any> {
+    let appointment = appointmentDto.datetimeStart;
+    let service = appointmentDto.service;
+    const work = await this.appointmentService.verifyProfessionalsWorkstations(appointmentDto);
+    return work;
   }
 
   ////////////////////////////////////////////////////
