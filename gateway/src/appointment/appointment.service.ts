@@ -2111,12 +2111,43 @@ export class AppointmentService {
 
       // actualiza el datetimeStart del correspondiente detail
       for (const detail of appointment.details) {
+        // Busca los profesionales y estaciones disponibles para el servicio
+        let datas = new DetailsAppointmentDto();
+        datas.datetimeStart = detail.datetimeStart;
+        datas.service = detail.service;
+        const { selectedProfessional, selectedWorkstation } = await this.verifyProfessionalsWorkstations(datas);
+
+        // Asigna uno random de los disponibles
+        const randomIndexEmployee = Math.floor(Math.random() * selectedProfessional.length);
+        const employee = selectedProfessional[randomIndexEmployee];
+
+        if (selectedWorkstation.length === 0) {
+          throw new Error('No hay estaciones de trabajo disponibles.');
+        }
+
+        const randomIndexStation = Math.floor(Math.random() * selectedWorkstation.length);
+        const workstation = selectedWorkstation[randomIndexStation];
+
+        if (!employee || !workstation) {
+          throw new Error('Profesional o estación de trabajo inválidos.');
+        }
+
+        if (!employee.id) {
+          throw new Error('El empleado seleccionado no tiene un ID válido.');
+        }
+
+        if (!workstation.id) {
+          throw new Error('La estación de trabajo seleccionada no tiene un ID válido.');
+        }
+
+        // Guarda el detalle de la cita
+        detail.employee = employee;
+        detail.workstation = workstation;
         detail.datetimeStart = new Date(body.datetimeStart);
         await this.detailsAppointmentRepository.save(detail);
       }
 
       // Ahora se calcula a quienes se le puede recomendar la cita
-      console.log("Appointment al editar: ", appointment);
       await this.notifyClientsForReappointments(appointment);
 
     } catch (error) {
