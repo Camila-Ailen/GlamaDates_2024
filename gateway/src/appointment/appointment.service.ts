@@ -2088,6 +2088,19 @@ export class AppointmentService {
   //////////////////////////////////////////////////////////
   async rearrange(params: { id: number; body: AppointmentDto }) {
     try {
+
+      // Verifica si el body tiene package
+      if (params.body.package) {
+        console.log('params.body.package', params.body.package);
+        const packageId = params.body.package.id;
+        const pkg = await this.packageRepository.findOne({ where: { id: packageId }, relations: ['services', 'services.category'] });
+
+        let body2 = new AppointmentDto();
+        body2.package = pkg;
+        await this.update({ id: params.id, body: body2 });
+      }
+
+
       let body = params.body;
       const appointment = await this.appointmentRepository.findOne({
         where: { id: params.id },
