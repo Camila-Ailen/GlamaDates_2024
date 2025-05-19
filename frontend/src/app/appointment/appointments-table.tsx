@@ -26,6 +26,7 @@ import { PayCashDialog } from "../appointmentToday/pay-cash-dialog"
 import { ViewCashDialog } from "../appointmentToday/view-cash-dialog"
 import { Separator } from "@/components/ui/separator"
 import { DatePicker } from "./date-picker"
+import { EditAppointmentDialog } from "./edit-appointment-dialog"
 
 export function AppointmentsTable() {
   const {
@@ -378,6 +379,7 @@ export function AppointmentsTable() {
                             <ViewCashDialog appointment={appointment} />
                           ) : null}
                           {hasPermission("read:appointments") && <ViewAppointmentDialog appointment={appointment} />}
+                          <EditAppointmentDialog appointment={appointment} />
                         </div>
                       </TableCell>
                     </TableRow>

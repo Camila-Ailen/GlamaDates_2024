@@ -25,6 +25,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { EditAppointmentDialog } from "../appointment/edit-appointment-dialog"
 
 export function AppointmentsTodayTable() {
   const {
@@ -344,6 +345,7 @@ export function AppointmentsTodayTable() {
                             <ViewCashDialog appointment={appointment} />
                           )}
                           {hasPermission("read:appointments") && <ViewAppointmentDialog appointment={appointment} />}
+                          <EditAppointmentDialog appointment={appointment} />
                         </div>
                       </TableCell>
                     </TableRow>

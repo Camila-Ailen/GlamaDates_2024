@@ -13,9 +13,11 @@ interface EditStoreState {
   setAppointment: (appointmentId: number) => void
   openDialog: () => void
   closeDialog: () => void
-  
+
   openEditDialog: () => void
   closeEditDialog: () => void
+  fetchProfessionalsAndWorkstations: (datetimeStart: string, serviceId: number) => Promise<any | null>
+  updateAppointmentDetail: (detailId: number, employeeId: string, workstationId: string) => Promise<boolean>
 }
 
 const token = useAuthStore.getState().token
@@ -94,7 +96,68 @@ export const useEditStore = create<EditStoreState>((set) => ({
   closeDialog: () => set({ isOpen: false }),
 
   openEditDialog: () => set({ isOpenEdit: true }),
-  closeEditDialog: () => set({ isOpenEdit: false}),
+  closeEditDialog: () => set({ isOpenEdit: false }),
+  fetchProfessionalsAndWorkstations: async (datetimeStart: string, service: number) => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/appointment/prof-work?datetimeStart=${encodeURIComponent(datetimeStart)}&service=${service}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      )
+
+      if (response.status === 403) {
+        console.error("Session expired")
+        useAuthStore.getState().logout()
+        return null
+      }
+
+      if (!response.ok) {
+        throw new Error("Error fetching professionals and workstations")
+      }
+      const data = await response.json()
+      console.log("Data fetched:", data)
+      return data
+    } catch (error) {
+      console.error("Error:", error)
+      return null
+    }
+  },
+
+  updateAppointmentDetail: async (detailId: number, employeeId: string, workstationId: string) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/appointment/details/${detailId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          employee: employeeId,
+          workstation: workstationId,
+        }),
+      })
+
+      if (response.status === 403) {
+        console.error("Session expired")
+        useAuthStore.getState().logout()
+        return false
+      }
+
+      if (!response.ok) {
+        throw new Error("Error updating appointment detail")
+      }
+
+      return true
+    } catch (error) {
+      console.error("Error:", error)
+      return false
+    }
+  },
 }))
 
 export default useEditStore
