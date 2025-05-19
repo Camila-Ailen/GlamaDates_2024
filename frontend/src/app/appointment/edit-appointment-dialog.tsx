@@ -24,6 +24,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import useEditStore from "../store/useEditStore"
 import usePackageStore from "../store/usePackageStore"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { toast } from "sonner"
 //import { ViewPackageDialog } from "./view-package-dialog"
 
 interface ProfessionalWorkstation {
@@ -101,9 +102,7 @@ export function EditAppointmentDialog({ appointment }) {
             const data = await fetchProfessionalsAndWorkstations(detail.datetimeStart, detail.service.id)
 
             if (data) {
-              console.log(`Data for service ${detail.service.id}:`, data)
               newServiceData[detail.id] = data
-              console.log(`Service data updated for service ${detail.service.id}:`, newServiceData[detail.id])
             }
           } catch (error) {
             console.error(`Error fetching data for service ${detail.service.id}:`, error)
@@ -161,7 +160,8 @@ export function EditAppointmentDialog({ appointment }) {
         }
       }
 
-      setOpen(false)
+      //setOpen(false)
+      toast.success("Cita editada correctamente")
     } catch (error) {
       console.error("Error al guardar los cambios:", error)
     } finally {
