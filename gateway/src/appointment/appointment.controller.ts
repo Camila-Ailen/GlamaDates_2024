@@ -215,6 +215,21 @@ export class AppointmentController extends BaseController {
 
   ////////////////////////////////////////////////////
   ////////////////////////////////////////////////////
+  // Editar profesional y estacion de un detalle de un turno
+  @Patch('details/:id')
+  @Auth('update:appointments')
+  async updateDetails(
+    @Param() params: IdDTO,
+    @Body() body: DetailsAppointmentDto,
+  ): Promise<ResposeDTO> {
+    return {
+      status: 'success',
+      data: await this.appointmentService.editProfessionalAndWorkstation(params.id, body),
+    };
+  }
+
+  ////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////
   @Get('isAvailable')
   @Auth('read:availableappointments')
   async checkAvailability(

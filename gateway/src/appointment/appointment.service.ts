@@ -212,7 +212,7 @@ export class AppointmentService {
       body.service = service;
       body.datetimeStart = appointmentDate;
       const { selectedProfessional, selectedWorkstation } = await this.verifyProfessionalsWorkstations(body);
-      
+
       if (selectedProfessional.length === 0) {
         throw new Error('No hay profesionales disponibles.');
       }
@@ -295,7 +295,7 @@ export class AppointmentService {
 
   ///////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////
-
+  // Verifica y trae los profesionales y estaciones de trabajo disponibles
   async verifyProfessionalsWorkstations(
     body: DetailsAppointmentDto,
   ): Promise<{ selectedProfessional: User[]; selectedWorkstation: Workstation[] }> {
@@ -343,7 +343,6 @@ export class AppointmentService {
         )
         .getRawMany();
 
-      console.log('rawWorkstations', rawWorkstations);
       const rawProfessionals = await this.detailsAppointmentRepository
         .createQueryBuilder('details')
         .innerJoin('details.employee', 'employee')
@@ -417,6 +416,48 @@ export class AppointmentService {
     }
 
     return { selectedProfessional, selectedWorkstation };
+  }
+
+  ////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////
+  // editar profesionales y estaciones de trabajo de un detalle de cita
+  async editProfessionalAndWorkstation(id: number, body: DetailsAppointmentDto): Promise<DetailsAppointment> {
+    const detail = await this.detailsAppointmentRepository.findOne({
+      where: { id },
+      relations: ['appointment', 'service', 'workstation', 'employee'],
+    });
+
+    if (!detail) {
+      throw new HttpException('Detail not found', HttpStatus.NOT_FOUND);
+    }
+
+    // Verifico que en la fecha y horario esten disponibles el profesional y la estacion de trabajo
+    const dates = new DetailsAppointmentDto();
+    dates.datetimeStart = detail.datetimeStart;
+    dates.service = detail.service;
+    const { selectedProfessional, selectedWorkstation } = await this.verifyProfessionalsWorkstations(dates);
+
+    // Verifico que el profesional y la estacion de trabajo esten disponibles
+    const employeeId = typeof body.employee === 'string' ? parseInt(body.employee, 10) : body.employee;
+    const workstationId = typeof body.workstation === 'string' ? parseInt(body.workstation, 10) : body.workstation;
+
+
+    const professionalAvailable = selectedProfessional.find(prof => prof.id === employeeId);
+    const workstationAvailable = selectedWorkstation.find(station => station.id === workstationId);
+    /*
+    if (!professionalAvailable) {
+      throw new HttpException('Professional not available', HttpStatus.BAD_REQUEST);
+    }
+    if (!workstationAvailable) {
+      throw new HttpException('Workstation not available', HttpStatus.BAD_REQUEST);
+    }
+      */
+
+    // Actualizo el detalle
+    detail.employee = { id: employeeId } as User;
+    detail.workstation = { id: workstationId } as Workstation;
+
+    return await this.detailsAppointmentRepository.save(detail);
   }
 
   ////////////////////////////////////////////////////////
