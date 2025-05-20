@@ -4,8 +4,8 @@ import { toast } from "sonner"
 
 interface EditStoreState {
   isAvailable: boolean | null
-  isOpen: boolean
-  isOpenEdit: boolean
+  isOpen: boolean | null
+  isOpenEdit: boolean | null
   appointment: number | null
   datetimeOld: string | null
   fetchRearrange: (data: { packageId: number; datetime: string }) => Promise<void>
@@ -120,7 +120,6 @@ export const useEditStore = create<EditStoreState>((set) => ({
         throw new Error("Error fetching professionals and workstations")
       }
       const data = await response.json()
-      console.log("Data fetched:", data)
       return data
     } catch (error) {
       console.error("Error:", error)
