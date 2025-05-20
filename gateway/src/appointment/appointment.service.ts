@@ -300,10 +300,18 @@ export class AppointmentService {
     body: DetailsAppointmentDto,
   ): Promise<{ selectedProfessional: User[]; selectedWorkstation: Workstation[] }> {
 
+    let serviceId: number;
+
+    if (body.service && typeof body.service === 'object' && 'id' in body.service) {
+      serviceId = body.service.id;
+    } else {
+      serviceId = Number(body.service);
+    }
+
     const appointmentDate = body.datetimeStart;
     // obtengo el servicio
     const service = await this.serviceRepository.findOne({
-      where: { id: body.service.id },
+      where: { id: serviceId },
       relations: ['category'],
     });
 
