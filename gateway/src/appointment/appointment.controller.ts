@@ -240,7 +240,6 @@ export class AppointmentController extends BaseController {
     @Query('packageId') packageId: number,
     @Query('datetimeStart') datetimeStart: string
   ): Promise<{ available: boolean }> {
-    console.log('Checking availability for packageId:', packageId, 'at datetimeStart:', datetimeStart);
     const available = await this.appointmentService.isPackageAssignable(packageId, new Date(datetimeStart));
     return { available };
   }
