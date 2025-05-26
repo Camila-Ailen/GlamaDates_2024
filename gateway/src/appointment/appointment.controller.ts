@@ -269,7 +269,6 @@ export class AppointmentController extends BaseController {
     @Body() body: AppointmentDto,
     @Req() request: { appointment: Appointment },
   ): Promise<ResposeDTO> {
-    console.log('body desde el controlador:', body)
     return {
       status: 'success',
       data: await this.appointmentService.rearrange({ id: params.id, body: body }),

@@ -60,6 +60,8 @@ export function EditAppointmentDialogAdmin({ appointment }) {
   const [packageDialogOpen, setPackageDialogOpen] = useState(false)
   const [packageFilter, setPackageFilter] = useState("")
   const [editType, setEditType] = useState<"dateOnly" | "packageAndDate" | null>(null)
+
+  // Estado local para controlar el diálogo de edición específico de este appointment
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
   const { packages, fetchPackage, isLoading: packagesLoading } = usePackageStore()
@@ -124,8 +126,9 @@ export function EditAppointmentDialogAdmin({ appointment }) {
     loadServiceData()
   }, [open, activeTab, appointment, fetchProfessionalsAndWorkstations])
 
-  // Modificar la función handleEdit para usar fetchPackageAvailability
+  // Función para abrir el diálogo de edición de fecha/hora
   const handleEdit = () => {
+    console.log("Editando cita - solo fecha y hora, ID:", appointment.id)
     setEditType("dateOnly")
 
     // Si hay un paquete seleccionado, verificar disponibilidad
@@ -137,7 +140,7 @@ export function EditAppointmentDialogAdmin({ appointment }) {
       })
     }
 
-    // Abrir el diálogo de edición inmediatamente
+    // Abrir el diálogo de edición local
     setIsEditDialogOpen(true)
   }
 
@@ -146,7 +149,9 @@ export function EditAppointmentDialogAdmin({ appointment }) {
     setPackageDialogOpen(false)
     setEditType("packageAndDate")
 
-    // Verificar disponibilidad y abrir el diálogo de edición después de cambiar el paquete
+    console.log("Paquete seleccionado:", pkg, "para appointment:", appointment.id)
+
+    // Verificar disponibilidad
     const formattedDate =
       date && date instanceof Date && !isNaN(date.getTime())
         ? format(date, "yyyy-MM-dd'T'HH:mm:ss")
@@ -157,7 +162,7 @@ export function EditAppointmentDialogAdmin({ appointment }) {
       datetime: formattedDate,
     })
 
-    // Establecer el ID de la cita y abrir el diálogo inmediatamente
+    // Abrir el diálogo de edición local
     setIsEditDialogOpen(true)
   }
 
@@ -501,6 +506,8 @@ export function EditAppointmentDialogAdmin({ appointment }) {
           currentDatetime={appointment.datetimeStart}
           isOpen={isEditDialogOpen}
           onClose={handleCloseEditDialog}
+          selectedPackage={selectedPackage}
+          editType={editType}
         />
       )}
     </>

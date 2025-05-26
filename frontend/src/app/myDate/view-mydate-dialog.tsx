@@ -55,7 +55,6 @@ export function ViewMydateDialog({ appointment }) {
   }
 
   const handleEdit = () => {
-    console.log("Abriendo diálogo de edición para appointment:", appointment.id)
     setIsEditDialogOpen(true)
   }
 

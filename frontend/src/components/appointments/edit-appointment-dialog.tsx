@@ -4,12 +4,11 @@ import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import Step1 from "@/components/multistep/Step1"
 import Step2 from "@/components/multistep/Step2"
-import ProgressBar from "@/components/multistep/ProgressBar"
 import { useFormStore } from "@/app/store/formStore"
 import { useEditStore } from "@/app/store/useEditStore"
 import { Button } from "@/components/ui/button"
 import { RecommendationDialog } from "@/components/multistep/RecommendationDialog"
-import { CalendarIcon as CalendarEdit } from "lucide-react"
+import { CalendarIcon } from "lucide-react" // Declare CalendarIcon here
 import { toast } from "sonner"
 import useAppointmentStore from "@/app/store/useAppointmentStore"
 
@@ -19,16 +18,20 @@ interface EditAppointmentDialogProps {
   currentDatetime: string
   isOpen: boolean
   onClose: () => void
+  selectedPackage?: any // Agregar el paquete seleccionado
+  editType?: "dateOnly" | "packageAndDate" | null // Agregar el tipo de edición
 }
 
-export function EditAppointmentDialog({ 
-  appointmentId, 
-  packageId, 
+export function EditAppointmentDialog({
+  appointmentId,
+  packageId,
   currentDatetime,
   isOpen,
   onClose,
+  selectedPackage,
+  editType,
 }: EditAppointmentDialogProps) {
-  const { isOpenEdit, closeEditDialog, rearrangeAppointment } = useEditStore()
+  const { rearrangeAppointment } = useEditStore()
   const { fetchPackageAvailability, fetchOneAppointment } = useAppointmentStore()
   const [availability, setAvailability] = useState<Date[]>([])
   const [loading, setLoading] = useState(false)
@@ -126,12 +129,19 @@ export function EditAppointmentDialog({
     const datetimeStart = datetime.toISOString()
 
     try {
-      await rearrangeAppointment({
+      const requestBody: any = {
         id: appointmentId,
         datetimeStart,
         datetimeOld: currentDatetime,
-      })
-      closeEditDialog()
+      }
+
+      // Si estamos editando el paquete también, incluirlo en la request
+      if (editType === "packageAndDate" && selectedPackage) {
+        requestBody.package = selectedPackage.id.toString()
+      }
+
+      await rearrangeAppointment(requestBody)
+      onClose()
       // Recargar la página para ver los cambios
       window.location.reload()
     } catch (error) {
@@ -172,7 +182,7 @@ export function EditAppointmentDialog({
       <DialogContent className="sm:max-w-md md:max-w-lg p-0 overflow-hidden bg-white rounded-xl">
         <DialogHeader className="bg-gradient-to-r from-pink-50 to-purple-50 p-6">
           <DialogTitle className="text-xl font-bold text-pink-700 text-center flex items-center justify-center gap-2">
-            <CalendarEdit className="h-5 w-5" />
+            <CalendarIcon className="h-5 w-5" /> {/* Use CalendarIcon here */}
             Editar Fecha y Hora del Turno
           </DialogTitle>
         </DialogHeader>
@@ -228,7 +238,7 @@ export function EditAppointmentDialog({
           ) : (
             <div className="text-center p-8">
               <p className="text-gray-600 mb-4">No hay horarios disponibles para este servicio.</p>
-              <Button onClick={closeEditDialog} className="bg-pink-600 hover:bg-pink-700">
+              <Button onClick={onClose} className="bg-pink-600 hover:bg-pink-700">
                 Volver
               </Button>
             </div>
