@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-import { Calendar, Edit, Loader2, Package, Pencil, Search } from "lucide-react"
+import { Calendar, Edit, Loader2, Package, Pencil, Search, Clock, User, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -24,7 +24,7 @@ import usePackageStore from "../store/usePackageStore"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Clock, DollarSign } from "lucide-react"
+import { DollarSign } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import useAppointmentStore from "../store/useAppointmentStore"
 import { EditAppointmentDialog } from "@/components/appointments/edit-appointment-dialog"
@@ -255,102 +255,139 @@ export function EditAppointmentDialogAdmin({ appointment }) {
     <>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" size="icon" className="h-8 w-8">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Pencil className="h-4 w-4" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Editar cita</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <span className="sr-only">Editar cita</span>
+          <Button variant="outline" size="icon" className="mr-2" title="Editar cita">
+            <Pencil className="h-4 w-4 text-blue-900" />
           </Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-auto">
-          <DialogHeader>
-            <DialogTitle>Editar Cita #{appointment.id}</DialogTitle>
-            <DialogDescription>
-              Cliente: {appointment.client.firstName} {appointment.client.lastName}
-            </DialogDescription>
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-hidden">
+          <DialogHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-t-lg -m-6 mb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle className="text-xl font-bold text-blue-700 flex items-center gap-2">
+                  <Edit className="h-5 w-5" />
+                  Editar Cita #{appointment.id}
+                </DialogTitle>
+                <DialogDescription className="text-blue-600 mt-1">
+                  Cliente: {appointment.client.firstName} {appointment.client.lastName}
+                </DialogDescription>
+              </div>
+              <Badge variant="outline" className="bg-white/50">
+                {appointment.state}
+              </Badge>
+            </div>
           </DialogHeader>
 
           <Tabs defaultValue="general" className="mt-4" onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="general">Información General</TabsTrigger>
-              <TabsTrigger value="services">Servicios</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 bg-muted/50">
+              <TabsTrigger value="general" className="data-[state=active]:bg-white">
+                Información General
+              </TabsTrigger>
+              <TabsTrigger value="services" className="data-[state=active]:bg-white">
+                Servicios
+              </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="general" className="space-y-4 pt-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">Paquete</CardTitle>
+            <TabsContent value="general" className="space-y-6 pt-6">
+              {/* Sección del Paquete */}
+              <Card className="border-l-4 border-l-purple-400">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Package className="h-5 w-5 text-purple-600" />
+                    Paquete de Servicios
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 p-2 rounded-md">
-                      <p className="font-medium">{selectedPackage.name}</p>
-                      <p className="text-sm text-muted-foreground">{selectedPackage.description}</p>
+                  <div className="bg-purple-50 rounded-lg p-4 mb-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-purple-900">{selectedPackage.name}</h3>
+                        <p className="text-sm text-purple-700 mt-1">{selectedPackage.description}</p>
+                        <div className="flex items-center gap-4 mt-3 text-sm">
+                          <div className="flex items-center gap-1">
+                            <DollarSign className="h-4 w-4 text-green-600" />
+                            <span className="font-medium">${appointment.total?.toFixed(2) || "0.00"}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-4 w-4 text-blue-600" />
+                            <span>{appointment.details[0].durationNow || 0} min</span>
+                          </div>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPackageDialogOpen(true)}
+                        className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                      >
+                        <Edit className="h-3 w-3 mr-1" />
+                        Cambiar
+                      </Button>
                     </div>
-                    <Button variant="outline" size="sm" onClick={() => setPackageDialogOpen(true)}>
-                      <Edit className="h-3 w-3 mr-1" />
-                      Cambiar
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
 
-              <div className="space-y-2">
-                <div className="bg-purple-50 p-4 rounded-lg flex items-center gap-3">
-                  <Calendar className="h-6 w-6 text-purple-600" />
-                  <div>
-                    <p className="text-sm text-purple-700">Fecha y hora</p>
-                    <p className="font-medium text-purple-800">
-                      {format(new Date(appointment.datetimeStart), "EEEE d 'de' MMMM, yyyy", { locale: es })}
-                      <br />
-                      {format(new Date(appointment.datetimeStart), "HH:mm")} hs
-                    </p>
+              {/* Sección de Fecha y Hora */}
+              <Card className="border-l-4 border-l-blue-400">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Calendar className="h-5 w-5 text-blue-600" />
+                    Fecha y Hora
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-blue-50 rounded-lg p-4 mb-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-blue-700 font-medium">Fecha programada</p>
+                        <p className="text-lg font-semibold text-blue-900">
+                          {format(new Date(appointment.datetimeStart), "EEEE d 'de' MMMM, yyyy", { locale: es })}
+                        </p>
+                        <p className="text-blue-800 font-medium">
+                          {format(new Date(appointment.datetimeStart), "HH:mm")} hs
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        onClick={handleEdit}
+                        className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                      >
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Cambiar fecha y hora
+                      </Button>
+                    </div>
                   </div>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <Button
-                    variant="outline"
-                    className="border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
-                    onClick={handleEdit}
-                  >
-                    Cambiar fecha y hora
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    className="border-purple-200 text-purple-700 hover:bg-purple-50 hover:text-purple-800"
-                    onClick={() => setPackageDialogOpen(true)}
-                  >
-                    <Package className="h-4 w-4 mr-2" />
-                    Cambiar paquete
-                  </Button>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
-            <TabsContent value="services" className="space-y-4 pt-4">
+            <TabsContent value="services" className="space-y-4 pt-6">
               <div className="space-y-4">
-                <h3 className="text-sm font-medium">Asignación de profesionales y estaciones de trabajo</h3>
+                <div className="flex items-center gap-2 mb-4">
+                  <User className="h-5 w-5 text-indigo-600" />
+                  <h3 className="text-lg font-semibold">Asignación de Recursos</h3>
+                </div>
 
                 {appointment.details &&
                   Array.isArray(appointment.details) &&
-                  appointment.details.map((detail) => (
-                    <Card key={detail.id} className="overflow-hidden">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-base">{detail.service.name}</CardTitle>
+                  appointment.details.map((detail, index) => (
+                    <Card key={detail.id} className="border-l-4 border-l-indigo-400">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <div className="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center text-xs font-bold text-indigo-700">
+                            {index + 1}
+                          </div>
+                          {detail.service.name}
+                        </CardTitle>
+                        <CardDescription>{detail.service.description}</CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        <div className="grid grid-cols-1 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label htmlFor={`professional-${detail.id}`}>Profesional</Label>
+                            <Label htmlFor={`professional-${detail.id}`} className="flex items-center gap-2">
+                              <User className="h-4 w-4" />
+                              Profesional
+                            </Label>
                             <Select
                               value={selectedProfessionals[detail.id]?.toString() || ""}
                               onValueChange={(value) =>
@@ -366,7 +403,7 @@ export function EditAppointmentDialogAdmin({ appointment }) {
                               <SelectContent>
                                 {serviceData[detail.id]?.selectedProfessional?.map((prof) => (
                                   <SelectItem key={prof.id} value={prof.id.toString()}>
-                                    ID: {prof.id} - {prof.firstName} {prof.lastName}
+                                    {prof.firstName} {prof.lastName}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -374,7 +411,10 @@ export function EditAppointmentDialogAdmin({ appointment }) {
                           </div>
 
                           <div className="space-y-2">
-                            <Label htmlFor={`workstation-${detail.id}`}>Estación de trabajo</Label>
+                            <Label htmlFor={`workstation-${detail.id}`} className="flex items-center gap-2">
+                              <MapPin className="h-4 w-4" />
+                              Estación de trabajo
+                            </Label>
                             <Select
                               value={selectedWorkstations[detail.id]?.toString() || ""}
                               onValueChange={(value) =>
@@ -404,11 +444,15 @@ export function EditAppointmentDialogAdmin({ appointment }) {
             </TabsContent>
           </Tabs>
 
-          <DialogFooter>
+          <DialogFooter className="bg-gray-50 p-6 rounded-b-lg -m-6 mt-6">
             <Button variant="outline" onClick={() => setOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleSave} disabled={isLoading || isAvailable === false}>
+            <Button
+              onClick={handleSave}
+              disabled={isLoading || isAvailable === false}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Guardar cambios
             </Button>
@@ -419,9 +463,12 @@ export function EditAppointmentDialogAdmin({ appointment }) {
       {/* Diálogo para seleccionar paquete */}
       <Dialog open={packageDialogOpen} onOpenChange={setPackageDialogOpen}>
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle>Seleccionar Paquete</DialogTitle>
-            <DialogDescription>Elige el paquete para esta cita</DialogDescription>
+          <DialogHeader className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-t-lg -m-6 mb-4">
+            <DialogTitle className="text-xl font-bold text-purple-700 flex items-center gap-2">
+              <Package className="h-5 w-5" />
+              Seleccionar Paquete
+            </DialogTitle>
+            <DialogDescription className="text-purple-600">Elige el paquete para esta cita</DialogDescription>
           </DialogHeader>
 
           <div className="relative mb-4">
@@ -490,7 +537,7 @@ export function EditAppointmentDialogAdmin({ appointment }) {
             </ScrollArea>
           </div>
 
-          <DialogFooter className="mt-4">
+          <DialogFooter className="bg-gray-50 p-6 rounded-b-lg -m-6 mt-4">
             <Button variant="outline" onClick={() => setPackageDialogOpen(false)}>
               Cancelar
             </Button>

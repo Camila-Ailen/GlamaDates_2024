@@ -379,7 +379,7 @@ export function AppointmentsTable() {
                             <ViewCashDialog appointment={appointment} />
                           ) : null}
                           {hasPermission("read:appointments") && <ViewAppointmentDialog appointment={appointment} />}
-                          <EditAppointmentDialogAdmin appointment={appointment} />
+                          {hasPermission("update:appointments") && <EditAppointmentDialogAdmin appointment={appointment} />}
                         </div>
                       </TableCell>
                     </TableRow>
