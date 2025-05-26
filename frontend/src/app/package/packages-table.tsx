@@ -71,7 +71,7 @@ export function PackagesTable() {
     return () => clearTimeout(timer)
   }, [searchTerm, setFilter, filter])
 
-  // Filtrar paquetes por número de servicios y rango de precios
+  // Filtrar paquetes por número de servicios
   const filteredPackages = packages.filter((pkg) => {
     // Filtro por número de servicios
     if (serviceCountFilter !== "all") {
@@ -157,18 +157,7 @@ export function PackagesTable() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-              <Input
-                placeholder="Buscar paquetes..."
-                value={searchTerm}
-                onChange={handleSearch}
-                className="pl-9 w-full sm:w-[250px] border-purple-200 focus-visible:ring-purple-500"
-              />
-              {isSearching && <Loader2 className="absolute right-2.5 top-2.5 h-4 w-4 animate-spin text-purple-500" />}
-            </div>
-
-            {hasPermission("create:packages") && (
+              {hasPermission("create:packages") && (
               <CreatePackageDialog>
                 <Button className="bg-purple-600 hover:bg-purple-700">
                   <Plus className="mr-2 h-4 w-4" />

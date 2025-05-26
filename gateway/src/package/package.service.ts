@@ -138,7 +138,6 @@ export class PackageService {
       });
       params.body.services = service;
     }
-    console.log("desde el servicio ", params.body.services);
     await this.packageRepository.save(
       this.packageRepository.create({
         ...params.body,

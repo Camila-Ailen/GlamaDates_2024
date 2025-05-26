@@ -42,7 +42,6 @@ export class PackageController {
   @ApiOperation({ summary: 'Create Package' })
   @Post()
   async create(@Body() body: PackageDto): Promise<ResposeDTO> {
-    console.log("desde el controlador: ", body);
     const pkg = await this.packageService.create({ body });
     return { status: 'success', data: pkg };
   }

@@ -73,6 +73,8 @@ export function CreatePackageDialog({ children }: { children?: React.ReactNode }
       // Calcular precio y duración total
       const packageData = {
         ...data,
+        name: data.name.toUpperCase(),
+        description: data.description.toUpperCase(),
         price: totalPrice,
         duration: totalDuration,
       }

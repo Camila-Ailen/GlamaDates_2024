@@ -46,8 +46,8 @@ export function EditPackageDialog({ pkg }: { pkg: Package }) {
   const form = useForm<PackageFormValues>({
     resolver: zodResolver(packageSchema),
     defaultValues: {
-      name: pkg.name,
-      description: pkg.description,
+      name: pkg.name.toUpperCase(),
+      description: pkg.description.toUpperCase(),
       services: pkg.services.map((service) => service.id.toString()),
     },
   })
