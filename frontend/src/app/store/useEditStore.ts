@@ -49,6 +49,7 @@ export const useEditStore = create<EditStoreState>((set) => ({
       }
 
       const result = await response.json()
+
       set({ isAvailable: result.available })
       set({ datetimeOld: data.datetime })
     } catch (error) {

@@ -240,6 +240,7 @@ export class AppointmentController extends BaseController {
     @Query('packageId') packageId: number,
     @Query('datetimeStart') datetimeStart: string
   ): Promise<{ available: boolean }> {
+    console.log('Checking availability for packageId:', packageId, 'at datetimeStart:', datetimeStart);
     const available = await this.appointmentService.isPackageAssignable(packageId, new Date(datetimeStart));
     return { available };
   }
@@ -269,6 +270,7 @@ export class AppointmentController extends BaseController {
     @Body() body: AppointmentDto,
     @Req() request: { appointment: Appointment },
   ): Promise<ResposeDTO> {
+    console.log('body desde el controlador:', body)
     return {
       status: 'success',
       data: await this.appointmentService.rearrange({ id: params.id, body: body }),

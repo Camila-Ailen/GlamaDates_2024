@@ -27,6 +27,7 @@ import { Badge } from "@/components/ui/badge"
 import { Clock, DollarSign } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import useAppointmentStore from "../store/useAppointmentStore"
+import { EditAppointmentDialog } from "@/components/appointments/edit-appointment-dialog"
 
 interface ProfessionalWorkstation {
   selectedProfessional: {
@@ -50,7 +51,7 @@ interface ProfessionalWorkstation {
 export function EditAppointmentDialogAdmin({ appointment }) {
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [date, setDate] = useState<Date | undefined>(new Date(appointment.datetimeStart))
+  const [date, setDate] = useState<Date | null>(appointment.datetimeStart ? new Date(appointment.datetimeStart) : null)
   const [selectedPackage, setSelectedPackage] = useState(appointment.package)
   const [activeTab, setActiveTab] = useState("general")
   const [serviceData, setServiceData] = useState<Record<number, ProfessionalWorkstation>>({})
@@ -58,6 +59,8 @@ export function EditAppointmentDialogAdmin({ appointment }) {
   const [selectedWorkstations, setSelectedWorkstations] = useState<Record<number, number>>({})
   const [packageDialogOpen, setPackageDialogOpen] = useState(false)
   const [packageFilter, setPackageFilter] = useState("")
+  const [editType, setEditType] = useState<"dateOnly" | "packageAndDate" | null>(null)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
   const { packages, fetchPackage, isLoading: packagesLoading } = usePackageStore()
   const {
@@ -66,9 +69,6 @@ export function EditAppointmentDialogAdmin({ appointment }) {
     fetchProfessionalsAndWorkstations,
     updateAppointmentDetail,
     isAvailable,
-    setAppointment,
-    openEditDialog,
-    isOpenEdit,
   } = useEditStore()
 
   // Agregar el useAppointmentStore
@@ -126,9 +126,7 @@ export function EditAppointmentDialogAdmin({ appointment }) {
 
   // Modificar la función handleEdit para usar fetchPackageAvailability
   const handleEdit = () => {
-    console.log("Editando cita")
-    setAppointment(appointment.id)
-    console.log("Cita seleccionada:", appointment.id)
+    setEditType("dateOnly")
 
     // Si hay un paquete seleccionado, verificar disponibilidad
     if (selectedPackage) {
@@ -139,43 +137,34 @@ export function EditAppointmentDialogAdmin({ appointment }) {
       })
     }
 
-    // Abrir el diálogo de edición
-    openEditDialog()
+    // Abrir el diálogo de edición inmediatamente
+    setIsEditDialogOpen(true)
   }
 
   const handlePackageChange = (pkg) => {
     setSelectedPackage(pkg)
     setPackageDialogOpen(false)
+    setEditType("packageAndDate")
 
-    // Si hay una fecha seleccionada, verificar disponibilidad y abrir el diálogo de edición
-    if (date) {
-      const formattedDate = format(date, "yyyy-MM-dd'T'HH:mm:ss")
-      fetchRearrange({
-        packageId: pkg.id,
-        datetime: formattedDate,
-      }).then(() => {
-        setAppointment(appointment.id)
-        openEditDialog()
-      })
-    } else {
-      // Si no hay fecha, solo establecer la cita y abrir el diálogo
-      setAppointment(appointment.id)
-      openEditDialog()
-    }
+    // Verificar disponibilidad y abrir el diálogo de edición después de cambiar el paquete
+    const formattedDate =
+      date && date instanceof Date && !isNaN(date.getTime())
+        ? format(date, "yyyy-MM-dd'T'HH:mm:ss")
+        : format(new Date(appointment.datetimeStart), "yyyy-MM-dd'T'HH:mm:ss")
+
+    fetchRearrange({
+      packageId: pkg.id,
+      datetime: formattedDate,
+    })
+
+    // Establecer el ID de la cita y abrir el diálogo inmediatamente
+    setIsEditDialogOpen(true)
   }
 
-  const handleDateTimeChange = async () => {
-    if (date && selectedPackage) {
-      const formattedDate = format(date, "yyyy-MM-dd'T'HH:mm:ss")
-      await fetchRearrange({
-        packageId: selectedPackage.id,
-        datetime: formattedDate,
-      })
-
-      // Abrir el diálogo de edición independientemente del resultado de disponibilidad
-      setAppointment(appointment.id)
-      openEditDialog()
-    }
+  // Función para cerrar el diálogo de edición
+  const handleCloseEditDialog = () => {
+    setIsEditDialogOpen(false)
+    setEditType(null)
   }
 
   // Modificar la función handleSave para actualizar los datos después de guardar
@@ -214,7 +203,7 @@ export function EditAppointmentDialogAdmin({ appointment }) {
       }
 
       // No cerramos el diálogo principal si venimos de editar fecha/hora
-      if (!isOpenEdit) {
+      if (!isEditDialogOpen) {
         setOpen(false)
       }
     } catch (error) {
@@ -234,13 +223,19 @@ export function EditAppointmentDialogAdmin({ appointment }) {
   // Agregar este useEffect después de los otros useEffect
   useEffect(() => {
     // Cuando se cierra el diálogo de edición, actualizar la fecha si cambió
-    if (!isOpenEdit && appointment) {
+    if (!isEditDialogOpen && appointment) {
       // Recargar los datos de la cita para reflejar los cambios
       const loadUpdatedAppointment = async () => {
         try {
           const updatedAppointment = await fetchOneAppointment(appointment.id)
           if (updatedAppointment) {
             setDate(new Date(updatedAppointment.datetimeStart))
+
+            // Si estábamos editando el paquete y la fecha, ahora debemos guardar los cambios
+            if (editType === "packageAndDate") {
+              // Resetear el tipo de edición
+              setEditType(null)
+            }
           }
         } catch (error) {
           console.error("Error al cargar la cita actualizada:", error)
@@ -249,7 +244,7 @@ export function EditAppointmentDialogAdmin({ appointment }) {
 
       loadUpdatedAppointment()
     }
-  }, [isOpenEdit, appointment, fetchOneAppointment])
+  }, [isEditDialogOpen, appointment, fetchOneAppointment, editType])
 
   return (
     <>
@@ -315,13 +310,24 @@ export function EditAppointmentDialogAdmin({ appointment }) {
                   </div>
                 </div>
 
-                <Button
-                  variant="outline"
-                  className="border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
-                  onClick={handleEdit}
-                >
-                  Cambiar fecha y hora
-                </Button>
+                <div className="flex flex-col gap-2">
+                  <Button
+                    variant="outline"
+                    className="border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
+                    onClick={handleEdit}
+                  >
+                    Cambiar fecha y hora
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="border-purple-200 text-purple-700 hover:bg-purple-50 hover:text-purple-800"
+                    onClick={() => setPackageDialogOpen(true)}
+                  >
+                    <Package className="h-4 w-4 mr-2" />
+                    Cambiar paquete
+                  </Button>
+                </div>
               </div>
             </TabsContent>
 
@@ -486,6 +492,17 @@ export function EditAppointmentDialogAdmin({ appointment }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Diálogo de edición específico para este appointment */}
+      {isEditDialogOpen && (
+        <EditAppointmentDialog
+          appointmentId={appointment.id}
+          packageId={selectedPackage.id}
+          currentDatetime={appointment.datetimeStart}
+          isOpen={isEditDialogOpen}
+          onClose={handleCloseEditDialog}
+        />
+      )}
     </>
   )
 }

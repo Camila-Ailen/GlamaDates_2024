@@ -308,6 +308,7 @@ export class AppointmentService {
       serviceId = Number(body.service);
     }
 
+    console.log('Datetime Start:', body.datetimeStart);
     const appointmentDate = body.datetimeStart;
     // obtengo el servicio
     const service = await this.serviceRepository.findOne({
@@ -320,11 +321,19 @@ export class AppointmentService {
     const workstations = await this.findWorkstations(service.id, this.workstationRepository);
 
     // Citas existentes en ese horario con esa categoria
+    console.log('Fecha de la cita:', appointmentDate, 'Duración del servicio:', service.duration, 'Categoría del servicio:', service.category.id);
     const existingAppointmentsDetail = await this.colisionAvailable(appointmentDate, service.duration, service.category.id);
     const existingAppointmentsDetailIds = existingAppointmentsDetail.map(detail => detail.id);
 
     const professionalIds = professionals.map(professional => professional.id);
     const workstationIds = workstations.map(workstation => workstation.id);
+
+    console.log('Profesionales disponibles:', professionals);
+    console.log('Estaciones de trabajo disponibles:', workstations);
+    console.log('Detalles de citas existentes:', existingAppointmentsDetail);
+    console.log('IDs de detalles de citas existentes:', existingAppointmentsDetailIds);
+    console.log('IDs de profesionales:', professionalIds);
+    console.log('IDs de estaciones de trabajo:', workstationIds);
 
     let selectedProfessional: User[] = [];
     let selectedWorkstation: Workstation[] = [];
@@ -416,7 +425,6 @@ export class AppointmentService {
         detailsAppointmentEmployee: [],
         toJSON: () => ({})
       }));
-
 
     } else {
       selectedProfessional = professionals;
@@ -2099,7 +2107,6 @@ export class AppointmentService {
 
       // Verifica si el body tiene package
       if (params.body.package) {
-        console.log('params.body.package', params.body.package);
         const packageId = params.body.package.id;
         const pkg = await this.packageRepository.findOne({ where: { id: packageId }, relations: ['services', 'services.category'] });
 
@@ -2134,10 +2141,11 @@ export class AppointmentService {
       for (const detail of appointment.details) {
         // Busca los profesionales y estaciones disponibles para el servicio
         let datas = new DetailsAppointmentDto();
-        datas.datetimeStart = detail.datetimeStart;
+        datas.datetimeStart = body.datetimeStart;
         datas.service = detail.service;
         const { selectedProfessional, selectedWorkstation } = await this.verifyProfessionalsWorkstations(datas);
 
+        console.log('selectedProfessional 1: ', selectedProfessional)
         // Asigna uno random de los disponibles
         const randomIndexEmployee = Math.floor(Math.random() * selectedProfessional.length);
         const employee = selectedProfessional[randomIndexEmployee];
@@ -2149,8 +2157,12 @@ export class AppointmentService {
         const randomIndexStation = Math.floor(Math.random() * selectedWorkstation.length);
         const workstation = selectedWorkstation[randomIndexStation];
 
+        console.log('selectedProfessional: ', selectedProfessional)
+        // console.log('selectedWorkstation: ', selectedWorkstation)
+        console.log('employee: ', employee);
+        console.log('workstation: ', workstation)
         if (!employee || !workstation) {
-          throw new Error('Profesional o estación de trabajo inválidos.');
+          throw new Error('Profesional o estación de trabajo inválidos en reacomodamiento.');
         }
 
         if (!employee.id) {

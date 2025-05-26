@@ -12,9 +12,7 @@ import useMyDatesStore from "@/app/store/useMyDatesStore"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Clock, CreditCard, Frown, MapPin, Scissors, Smile, User } from "lucide-react"
 import { EditAppointmentDialog } from "@/components/appointments/edit-appointment-dialog"
-import useEditStore from "@/app/store/useEditStore"
 import { CancelConfirmationDialog } from "@/components/appointments/cancel-confirmation-dialog"
-
 
 function canEditAppointment(appointment) {
   // Solo se puede editar si:
@@ -38,9 +36,10 @@ export function ViewMydateDialog({ appointment }) {
   const { cancelAppointment } = useMyDatesStore()
   const fetchPaymentUrl = usePaymentStore((state) => state.fetchPaymentUrl)
   const paymentUrl = null
-  const { openEditDialog, setAppointment } = useEditStore()
   const [showCancelConfirmation, setShowCancelConfirmation] = useState(false)
 
+  // Estado local para controlar el diálogo de edición
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
   useEffect(() => {
     fetchPaymentUrl(appointment.id)
@@ -56,8 +55,12 @@ export function ViewMydateDialog({ appointment }) {
   }
 
   const handleEdit = () => {
-    setAppointment(appointment.id)
-    openEditDialog()
+    console.log("Abriendo diálogo de edición para appointment:", appointment.id)
+    setIsEditDialogOpen(true)
+  }
+
+  const handleCloseEditDialog = () => {
+    setIsEditDialogOpen(false)
   }
 
   const getStatusColor = (state: string) => {
@@ -120,158 +123,169 @@ export function ViewMydateDialog({ appointment }) {
   const totalPrice = calculateTotalPrice()
 
   return (
-    <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-      <DialogHeader className="bg-gradient-to-r from-pink-50 to-purple-50 p-6 rounded-t-lg">
-        <div className="flex items-center justify-between">
-          <div>
-            <Badge className="mb-2 bg-pink-100 text-pink-700 border-pink-200">Cita #{appointment.id}</Badge>
-            <DialogTitle className="text-2xl font-bold text-pink-700">
-              {appointment.package.name.toUpperCase()}
-            </DialogTitle>
-          </div>
-          <Badge className={`text-sm px-3 py-1 ${getStatusColor(appointment.state)}`}>{appointment.state}</Badge>
-        </div>
-      </DialogHeader>
-
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div className="bg-purple-50 p-4 rounded-lg flex items-center gap-3">
-            <Calendar className="h-6 w-6 text-purple-600" />
+    <>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="bg-gradient-to-r from-pink-50 to-purple-50 p-6 rounded-t-lg">
+          <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-purple-700">Fecha y hora</p>
-              <p className="font-medium text-purple-800">
-                {format(new Date(appointment.datetimeStart), "EEEE d 'de' MMMM, yyyy", { locale: es })}
-                <br />
-                {format(new Date(appointment.datetimeStart), "HH:mm")} hs
-              </p>
+              <Badge className="mb-2 bg-pink-100 text-pink-700 border-pink-200">Cita #{appointment.id}</Badge>
+              <DialogTitle className="text-2xl font-bold text-pink-700">
+                {appointment.package.name.toUpperCase()}
+              </DialogTitle>
+            </div>
+            <Badge className={`text-sm px-3 py-1 ${getStatusColor(appointment.state)}`}>{appointment.state}</Badge>
+          </div>
+        </DialogHeader>
+
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="bg-purple-50 p-4 rounded-lg flex items-center gap-3">
+              <Calendar className="h-6 w-6 text-purple-600" />
+              <div>
+                <p className="text-sm text-purple-700">Fecha y hora</p>
+                <p className="font-medium text-purple-800">
+                  {format(new Date(appointment.datetimeStart), "EEEE d 'de' MMMM, yyyy", { locale: es })}
+                  <br />
+                  {format(new Date(appointment.datetimeStart), "HH:mm")} hs
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-pink-50 p-4 rounded-lg flex items-center gap-3">
+              <CreditCard className="h-6 w-6 text-pink-600" />
+              <div>
+                <p className="text-sm text-pink-700">Precio total</p>
+                <p className="font-medium text-pink-800">${totalPrice.toFixed(2)}</p>
+              </div>
             </div>
           </div>
 
-          <div className="bg-pink-50 p-4 rounded-lg flex items-center gap-3">
-            <CreditCard className="h-6 w-6 text-pink-600" />
-            <div>
-              <p className="text-sm text-pink-700">Precio total</p>
-              <p className="font-medium text-pink-800">${totalPrice.toFixed(2)}</p>
-            </div>
-          </div>
-        </div>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <Scissors className="h-5 w-5 text-pink-600" />
+            Servicios incluidos
+          </h3>
 
-        <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <Scissors className="h-5 w-5 text-pink-600" />
-          Servicios incluidos
-        </h3>
+          <div className="space-y-4">
+            {services.length > 0 ? (
+              services.map((detail, index) => (
+                <Card
+                  key={index}
+                  className="overflow-hidden border-l-4 border-l-pink-400 hover:shadow-md transition-shadow"
+                >
+                  <div className="flex flex-col md:flex-row">
+                    <div className="bg-gradient-to-r from-pink-100 to-purple-100 p-4 flex items-center justify-center md:w-1/4">
+                      <div className="text-center">
+                        <p className="text-sm text-pink-700">Inicio</p>
+                        <p className="text-lg font-bold text-pink-800">
+                          {format(new Date(detail.datetimeStart), "HH:mm")} hs
+                        </p>
+                      </div>
+                    </div>
 
-        <div className="space-y-4">
-          {services.length > 0 ? (
-            services.map((detail, index) => (
-              <Card
-                key={index}
-                className="overflow-hidden border-l-4 border-l-pink-400 hover:shadow-md transition-shadow"
-              >
-                <div className="flex flex-col md:flex-row">
-                  <div className="bg-gradient-to-r from-pink-100 to-purple-100 p-4 flex items-center justify-center md:w-1/4">
-                    <div className="text-center">
-                      <p className="text-sm text-pink-700">Inicio</p>
-                      <p className="text-lg font-bold text-pink-800">
-                        {format(new Date(detail.datetimeStart), "HH:mm")} hs
-                      </p>
+                    <div className="flex-1">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-pink-700">{detail.service.name}</CardTitle>
+                        <CardDescription className="text-gray-600">{detail.service.description}</CardDescription>
+                      </CardHeader>
+
+                      <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                          {detail.employee && (
+                            <div className="flex items-center gap-2">
+                              <User className="h-4 w-4 text-gray-600" />
+                              <span>
+                                Profesional: {detail.employee.firstName} {detail.employee.lastName}
+                              </span>
+                            </div>
+                          )}
+                          {detail.workstation && (
+                            <div className="flex items-center gap-2">
+                              <MapPin className="h-4 w-4 text-gray-600" />
+                              <span>Estación {detail.workstation.id}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-gray-600" />
+                            <span>{detail.service.duration} minutos</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <CreditCard className="h-4 w-4 text-gray-600" />
+                            <span>${detail.service.price?.toFixed(2) || "0.00"}</span>
+                          </div>
+                        </div>
+                      </CardContent>
                     </div>
                   </div>
+                </Card>
+              ))
+            ) : (
+              <p className="text-center text-gray-500 py-4">No hay servicios disponibles para mostrar</p>
+            )}
+          </div>
 
-                  <div className="flex-1">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-pink-700">{detail.service.name}</CardTitle>
-                      <CardDescription className="text-gray-600">{detail.service.description}</CardDescription>
-                    </CardHeader>
+          <div className="mt-6 space-y-3">
+            {appointment.state !== "COMPLETADO" &&
+              appointment.state !== "ACTIVO" &&
+              appointment.state !== "INACTIVO" && <PaymentButton source="later" />}
 
-                    <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        {detail.employee && (
-                          <div className="flex items-center gap-2">
-                            <User className="h-4 w-4 text-gray-600" />
-                            <span>
-                              Profesional: {detail.employee.firstName} {detail.employee.lastName}
-                            </span>
-                          </div>
-                        )}
-                        {detail.workstation && (
-                          <div className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4 text-gray-600" />
-                            <span>Estación {detail.workstation.id}</span>
-                          </div>
-                        )}
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-gray-600" />
-                          <span>{detail.service.duration} minutos</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <CreditCard className="h-4 w-4 text-gray-600" />
-                          <span>${detail.service.price?.toFixed(2) || "0.00"}</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </div>
-                </div>
-              </Card>
-            ))
-          ) : (
-            <p className="text-center text-gray-500 py-4">No hay servicios disponibles para mostrar</p>
-          )}
+            {appointment.state === "INACTIVO" && (
+              <Button className="w-full bg-yellow-600 hover:bg-yellow-700 text-white">
+                <Frown className="mr-2 h-5 w-5" />
+                Lo lamentamos, pero esta cita ya no está disponible por haber superado la fecha.
+                <Frown className="ml-2 h-5 w-5" />
+              </Button>
+            )}
+
+            {canEditAppointment(appointment) && (
+              <Button
+                variant="outline"
+                className="w-full border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
+                onClick={handleEdit}
+              >
+                <Calendar className="mr-2 h-5 w-5" />
+                Cambiar fecha y hora
+              </Button>
+            )}
+
+            {appointment.state === "PENDIENTE" && (
+              <Button
+                variant="outline"
+                className="w-full border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
+                onClick={handleCancelClick}
+              >
+                <Frown className="mr-2 h-5 w-5" />
+                Cancelar cita
+              </Button>
+            )}
+
+            {(appointment.state === "COMPLETADO" || appointment.state === "ACTIVO") && (
+              <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
+                <Smile className="mr-2 h-5 w-5" />
+                Ya has abonado esta cita
+                <Smile className="ml-2 h-5 w-5" />
+              </Button>
+            )}
+          </div>
         </div>
+      </DialogContent>
 
-        <div className="mt-6 space-y-3">
-          {appointment.state !== "COMPLETADO" && appointment.state !== "ACTIVO" && appointment.state !== "INACTIVO" && <PaymentButton source="later" />}
-
-          {appointment.state === "INACTIVO" && (
-            <Button className="w-full bg-yellow-600 hover:bg-yellow-700 text-white">
-            <Frown className="mr-2 h-5 w-5" />
-            Lo lamentamos, pero esta cita ya no está disponible por haber superado la fecha.
-            <Frown className="ml-2 h-5 w-5" />
-          </Button>
-          )}
-
-          {canEditAppointment(appointment) && (
-            <Button
-              variant="outline"
-              className="w-full border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
-              onClick={handleEdit}
-            >
-              <Calendar className="mr-2 h-5 w-5" />
-              Cambiar fecha y hora
-            </Button>
-          )}
-
-          {appointment.state === "PENDIENTE" && (
-            <Button
-              variant="outline"
-              className="w-full border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
-              onClick={handleCancelClick}
-            >
-              <Frown className="mr-2 h-5 w-5" />
-              Cancelar cita
-            </Button>
-          )}
-
-          {(appointment.state === "COMPLETADO" || appointment.state === "ACTIVO") && (
-            <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
-              <Smile className="mr-2 h-5 w-5" />
-              Ya has abonado esta cita
-              <Smile className="ml-2 h-5 w-5" />
-            </Button>
-          )}
-        </div>
-      </div>
       <CancelConfirmationDialog
         isOpen={showCancelConfirmation}
         onClose={() => setShowCancelConfirmation(false)}
         onConfirm={handleConfirmCancel}
         appointmentDate={format(new Date(appointment.datetimeStart), "EEEE d 'de' MMMM, yyyy", { locale: es })}
       />
-      <EditAppointmentDialog
-        appointmentId={appointment.id}
-        packageId={appointment.package.id}
-        currentDatetime={appointment.datetimeStart}
-      />
-    </DialogContent>
+
+      {/* Diálogo de edición controlado localmente */}
+      {isEditDialogOpen && (
+        <EditAppointmentDialog
+          appointmentId={appointment.id}
+          packageId={appointment.package.id}
+          currentDatetime={appointment.datetimeStart}
+          isOpen={isEditDialogOpen}
+          onClose={handleCloseEditDialog}
+        />
+      )}
+    </>
   )
 }

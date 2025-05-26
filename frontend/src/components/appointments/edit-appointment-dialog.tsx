@@ -17,9 +17,17 @@ interface EditAppointmentDialogProps {
   appointmentId: number
   packageId: number
   currentDatetime: string
+  isOpen: boolean
+  onClose: () => void
 }
 
-export function EditAppointmentDialog({ appointmentId, packageId, currentDatetime }: EditAppointmentDialogProps) {
+export function EditAppointmentDialog({ 
+  appointmentId, 
+  packageId, 
+  currentDatetime,
+  isOpen,
+  onClose,
+}: EditAppointmentDialogProps) {
   const { isOpenEdit, closeEditDialog, rearrangeAppointment } = useEditStore()
   const { fetchPackageAvailability, fetchOneAppointment } = useAppointmentStore()
   const [availability, setAvailability] = useState<Date[]>([])
@@ -30,12 +38,12 @@ export function EditAppointmentDialog({ appointmentId, packageId, currentDatetim
   const { currentStep, setStep, isStepValid, formData, updateFormData, updateDiscount, resetForm } = useFormStore()
 
   useEffect(() => {
-    if (isOpenEdit) {
+    if (isOpen) {
       resetForm()
       loadAvailability()
       loadAppointment()
     }
-  }, [isOpenEdit, packageId])
+  }, [isOpen, packageId])
 
   const loadAppointment = async () => {
     if (appointmentId) {
@@ -160,7 +168,7 @@ export function EditAppointmentDialog({ appointmentId, packageId, currentDatetim
   }
 
   return (
-    <Dialog open={isOpenEdit} onOpenChange={(open) => !open && closeEditDialog()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md md:max-w-lg p-0 overflow-hidden bg-white rounded-xl">
         <DialogHeader className="bg-gradient-to-r from-pink-50 to-purple-50 p-6">
           <DialogTitle className="text-xl font-bold text-pink-700 text-center flex items-center justify-center gap-2">
