@@ -38,6 +38,7 @@ export class UsersController extends BaseController {
   @Auth('read:users')
   @ApiOperation({ summary: 'Get all users' })
   async all(@Query() query: UserPaginationDto): Promise<ResposeDTO> {
+    console.log('query', query);
     const users = await this.userService.all({ query });
     return { status: 'success', data: users };
   }
@@ -106,6 +107,9 @@ export class UsersController extends BaseController {
     @Body() body: UserDto,
     @Req() request: { user: User },
   ): Promise<ResposeDTO> {
+    console.log('request.user', request.user);
+    console.log('params', params);
+    console.log('body', body);
     return {
       status: 'success',
       data: await this.userService.update({ id: params.id, body }),

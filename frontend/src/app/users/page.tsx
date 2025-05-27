@@ -1,10 +1,10 @@
 "use client"
 
-import { Suspense, useEffect } from 'react'
+import { Suspense, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import useAuthStore from "@/app/store/useAuthStore"
 import { Loader2 } from "lucide-react"
-import { UsersTable } from './users-table'
+import { UsersTable } from "./users-table"
 
 export default function UsersPage() {
   const router = useRouter()
@@ -24,10 +24,12 @@ export default function UsersPage() {
     }
   }, [isLoading, token, user, router])
 
-  // Función para verificar permisos 
+  // Función para verificar permisos
   const hasRequiredPermissions = (user: any) => {
-    return Array.isArray(user.role.permissions) &&
+    return (
+      Array.isArray(user.role.permissions) &&
       user.role.permissions.some((perm: any) => perm.permission === "read:users")
+    )
   }
 
   // Mostrar pantalla de carga mientras se verifica la autenticación
@@ -35,7 +37,7 @@ export default function UsersPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="flex flex-col items-center gap-2">
-          <Loader2 className="h-8 w-8 animate-spin text-pink-600" />
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
           <p className="text-gray-500">Verificando acceso...</p>
         </div>
       </div>
@@ -59,8 +61,8 @@ export default function UsersPage() {
         fallback={
           <div className="flex items-center justify-center min-h-[50vh]">
             <div className="flex flex-col items-center gap-2">
-              <Loader2 className="h-6 w-6 animate-spin text-pink-600" />
-              <p className="text-gray-500">Cargando citas...</p>
+              <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+              <p className="text-gray-500">Cargando usuarios...</p>
             </div>
           </div>
         }

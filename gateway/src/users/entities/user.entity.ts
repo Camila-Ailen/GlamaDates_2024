@@ -85,7 +85,7 @@ export class User {
   updatedAt: Date | null;
 
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp', nullable: true })
-  @Exclude()
+  //@Exclude()
   deletedAt: Date | null;
 
   @ManyToOne(() => Role, (role) => role.users, {

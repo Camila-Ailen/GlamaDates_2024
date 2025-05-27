@@ -65,32 +65,33 @@ export class UsersService {
         return emptyResponse;
       }
 
-      const order = {};
+      const query = this.userRepository
+        .createQueryBuilder('user')
+        .leftJoinAndSelect('user.role', 'role')
+        .leftJoinAndSelect('role.permissions', 'permissions')
+        .where(params.query.firstName ? 'user.firstName LIKE :firstName' : '1=1', { firstName: `%${params.query.firstName || ''}%` })
+        .andWhere(params.query.lastName ? 'user.lastName LIKE :lastName' : '1=1', { lastName: `%${params.query.lastName || ''}%` })
+        .andWhere(params.query.email ? 'user.email LIKE :email' : '1=1', { email: `%${params.query.email || ''}%` })
+        .withDeleted();
+
       if (params.query.orderBy && params.query.orderType) {
-        order[params.query.orderBy] = params.query.orderType;
+        if (!params.query.orderBy.includes('.')) {
+          query.orderBy(`user.${params.query.orderBy}`, params.query.orderType.toUpperCase() as 'ASC' | 'DESC');
+        } else {
+          query.orderBy(params.query.orderBy, params.query.orderType.toUpperCase() as 'ASC' | 'DESC');
+        }
       }
 
       const forPage = params.query.pageSize
         ? parseInt(params.query.pageSize.toString(), 10) || 10
         : 10;
       const skip = params.query.offset;
-      const [users, total] = await this.userRepository.findAndCount({
-        where: {
-          firstName: params.query.firstName
-            ? Like(`%${params.query.firstName}%`)
-            : undefined,
-          lastName: params.query.lastName
-            ? Like(`%${params.query.lastName}%`)
-            : undefined,
-          email: params.query.email
-            ? Like(`%${params.query.email}%`)
-            : undefined,
-        },
-        relations: ['role', 'role.permissions'],
-        order,
-        take: forPage,
-        skip: skip,
-      });
+
+      const [users, total] = await query
+        .take(forPage)
+        .skip(skip)
+        .getManyAndCount();
+
 
       return {
         total: total,
@@ -137,6 +138,8 @@ export class UsersService {
       }
     }
 
+    console.log('params.body', params.body);
+
     params.body.firstName = params.body.firstName.toUpperCase();
     params.body.lastName = params.body.lastName.toUpperCase();
 
@@ -147,6 +150,11 @@ export class UsersService {
         throw new HttpException('Default role not found', HttpStatus.INTERNAL_SERVER_ERROR);
       }
       params.body.role = defaultRole;
+    }
+
+    // Password por defecto si no se proporciona
+    if (!params.body.password || !isNotEmpty(params.body.password)) {
+      params.body.password = '12345678';
     }
 
     console.log('params.body', params.body);
@@ -191,7 +199,7 @@ export class UsersService {
     await this.userRepository.save(user);
     return await this.userRepository.findOne({
       where: { id: params.id, deletedAt: IsNull() },
-      relations: ['role', 'role.permissions', 'categories', 'appointments'],
+      relations: ['role', 'role.permissions', 'categories'],
     });
   }
   ////////////////////////////////////////////////

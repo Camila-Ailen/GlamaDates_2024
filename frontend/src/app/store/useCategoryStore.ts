@@ -45,9 +45,6 @@ const useCategoryStore = create<CategoryState>((set, get) => ({
         const { pageSize, orderBy, orderType, filter } = get()
         const currentPage = page || get().currentPage
 
-        console.log("BACKEND_URL: ", process.env.NEXT_PUBLIC_BACKEND_URL);
-
-
         set({ isLoading: true, error: null })
         try {
             const response = await fetch(
