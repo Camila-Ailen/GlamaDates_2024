@@ -69,6 +69,7 @@ export class UsersService {
         .createQueryBuilder('user')
         .leftJoinAndSelect('user.role', 'role')
         .leftJoinAndSelect('role.permissions', 'permissions')
+        .leftJoinAndSelect('user.categories', 'categories')
         .where(params.query.firstName ? 'user.firstName LIKE :firstName' : '1=1', { firstName: `%${params.query.firstName || ''}%` })
         .andWhere(params.query.lastName ? 'user.lastName LIKE :lastName' : '1=1', { lastName: `%${params.query.lastName || ''}%` })
         .andWhere(params.query.email ? 'user.email LIKE :email' : '1=1', { email: `%${params.query.email || ''}%` })

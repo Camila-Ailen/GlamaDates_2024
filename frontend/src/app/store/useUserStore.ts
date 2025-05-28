@@ -80,7 +80,7 @@ const useUserStore = create<UserState>((set, get) => ({
   filter: "",
 
   fetchUsers: async (page?: number) => {
-    const token = useAuthStore.getState().token // Obtener token dinámicamente
+    const token = useAuthStore.getState().token
     const { pageSize, orderBy, orderType, filter } = get()
     const currentPage = page || get().currentPage
 
@@ -116,6 +116,8 @@ const useUserStore = create<UserState>((set, get) => ({
       if (!response.ok) throw new Error("Error al obtener usuarios")
 
       const data = await response.json()
+
+      console.log("Fetched users data:", data)
 
       if (data.status === "success") {
         set({

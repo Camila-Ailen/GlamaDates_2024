@@ -29,6 +29,20 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 export function UsersTable() {
+  // Función helper para calcular la edad
+  const calculateAge = (birthDate: string) => {
+    const today = new Date()
+    const birth = new Date(birthDate)
+    let age = today.getFullYear() - birth.getFullYear()
+    const monthDiff = today.getMonth() - birth.getMonth()
+
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--
+    }
+
+    return age
+  }
+
   const {
     users,
     total,
@@ -240,12 +254,26 @@ export function UsersTable() {
                     className={`ml-1 h-4 w-4 inline transition-transform ${orderBy === "email" ? "text-blue-600" : "text-gray-400"} ${orderBy === "email" && orderType === "DESC" ? "rotate-180" : ""}`}
                   />
                 </TableHead>
+                <TableHead className="w-[120px]">Teléfono</TableHead>
+                <TableHead onClick={() => handleSort("gender")} className="cursor-pointer w-[100px]">
+                  Género
+                  <ArrowUpDown
+                    className={`ml-1 h-4 w-4 inline transition-transform ${orderBy === "gender" ? "text-blue-600" : "text-gray-400"} ${orderBy === "gender" && orderType === "DESC" ? "rotate-180" : ""}`}
+                  />
+                </TableHead>
+                <TableHead onClick={() => handleSort("birthDate")} className="cursor-pointer w-[120px]">
+                  Cumpleaños
+                  <ArrowUpDown
+                    className={`ml-1 h-4 w-4 inline transition-transform ${orderBy === "birthDate" ? "text-blue-600" : "text-gray-400"} ${orderBy === "birthDate" && orderType === "DESC" ? "rotate-180" : ""}`}
+                  />
+                </TableHead>
                 <TableHead onClick={() => handleSort("role.role")} className="cursor-pointer w-[140px]">
                   Rol
                   <ArrowUpDown
                     className={`ml-1 h-4 w-4 inline transition-transform ${orderBy === "role.role" ? "text-blue-600" : "text-gray-400"} ${orderBy === "role.role" && orderType === "DESC" ? "rotate-180" : ""}`}
                   />
                 </TableHead>
+                <TableHead className="w-[200px]">Categorías</TableHead>
                 <TableHead className="w-[100px] text-center">Estado</TableHead>
                 <TableHead className="w-[120px] text-right">Acciones</TableHead>
               </TableRow>
@@ -272,7 +300,22 @@ export function UsersTable() {
                         <Skeleton className="h-6 w-48" />
                       </TableCell>
                       <TableCell>
+                        <Skeleton className="h-6 w-24" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-6 w-16" />
+                      </TableCell>
+                      <TableCell>
                         <Skeleton className="h-6 w-20" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-6 w-20" />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Skeleton className="h-5 w-16" />
+                          <Skeleton className="h-5 w-20" />
+                        </div>
                       </TableCell>
                       <TableCell>
                         <Skeleton className="h-6 w-16" />
@@ -284,7 +327,7 @@ export function UsersTable() {
                   ))
               ) : filteredUsers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-32 text-center">
+                  <TableCell colSpan={11} className="h-32 text-center">
                     <div className="flex flex-col items-center justify-center text-gray-500">
                       <Filter className="h-8 w-8 mb-2 text-gray-400" />
                       <p>No se encontraron usuarios con los filtros aplicados</p>
@@ -310,7 +353,14 @@ export function UsersTable() {
                           <div className="font-medium text-blue-700">
                             {user.firstName} {user.lastName}
                           </div>
-                          <div className="text-sm text-gray-500">ID: {user.id}</div>
+                          <div className="text-sm text-gray-500">
+                            ID: {user.id}
+                            {user.categories && user.categories.length > 0 && (
+                              <span className="ml-2 text-purple-600">
+                                • {user.categories.length} categoría{user.categories.length !== 1 ? "s" : ""}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </TableCell>
@@ -318,10 +368,64 @@ export function UsersTable() {
                       {user.firstName.toUpperCase()} {user.lastName.toUpperCase()}
                     </TableCell>
                     <TableCell className="text-gray-600">{user.email}</TableCell>
+                    <TableCell className="text-gray-600">
+                      {user.phone || <span className="text-gray-400 text-sm">Sin teléfono</span>}
+                    </TableCell>
+                    <TableCell>
+                      {user.gender ? (
+                        <Badge
+                          variant="outline"
+                          className={`text-xs ${
+                            user.gender === "M"
+                              ? "bg-blue-50 text-blue-700 border-blue-200"
+                              : user.gender === "F"
+                                ? "bg-pink-50 text-pink-700 border-pink-200"
+                                : "bg-gray-50 text-gray-700 border-gray-200"
+                          }`}
+                        >
+                          {user.gender === "M" ? "Masculino" : user.gender === "F" ? "Femenino" : "Otro"}
+                        </Badge>
+                      ) : (
+                        <span className="text-gray-400 text-sm">No especificado</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-gray-600">
+                      {user.birthDate ? (
+                        <div className="text-sm">
+                          <div>
+                            {new Date(user.birthDate).toLocaleDateString("es-ES", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                            })}
+                          </div>
+                          <div className="text-xs text-gray-500">{calculateAge(user.birthDate)} años</div>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 text-sm">No especificado</span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 font-medium">
                         {user.role.role.toUpperCase()}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {user.categories && user.categories.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {user.categories.map((category) => (
+                            <Badge
+                              key={category.id}
+                              variant="outline"
+                              className="bg-purple-50 text-purple-700 border-purple-200 text-xs"
+                            >
+                              {category.name}
+                            </Badge>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 text-sm">Sin categorías</span>
+                      )}
                     </TableCell>
                     <TableCell className="text-center">
                       <Badge

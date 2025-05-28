@@ -17,8 +17,8 @@ import { Loader2, Plus, UserPlus } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 
-// Schema dinámico que valida categorías solo si el rol es "profesional"
-const createUserSchema = (selectedRole: string) =>
+// Modificar la función createUserSchema para verificar permisos en lugar de solo el nombre del rol
+const createUserSchema = (hasMyCalendarPermission: boolean) =>
   z.object({
     firstName: z.string().min(2, { message: "El nombre debe tener al menos 2 caracteres" }),
     lastName: z.string().min(2, { message: "El apellido debe tener al menos 2 caracteres" }),
@@ -26,10 +26,9 @@ const createUserSchema = (selectedRole: string) =>
     gender: z.string().optional(),
     phone: z.string().optional(),
     roleId: z.string().min(1, { message: "Debe seleccionar un rol" }),
-    categories:
-      selectedRole === "profesional"
-        ? z.array(z.number()).min(1, { message: "Debe seleccionar al menos una categoría" })
-        : z.array(z.number()).optional(),
+    categories: hasMyCalendarPermission
+      ? z.array(z.number()).min(1, { message: "Debe seleccionar al menos una categoría" })
+      : z.array(z.number()).optional(),
   })
 
 type UserFormValues = {
@@ -45,14 +44,16 @@ type UserFormValues = {
 export function CreateUserDialog({ children }: { children?: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [selectedRole, setSelectedRole] = useState("")
+  // Reemplazar la variable selectedRole por hasMyCalendarPermission
+  const [hasMyCalendarPermission, setHasMyCalendarPermission] = useState(false)
 
   const createUser = useUserStore((state) => state.createUser)
   const { roles, isLoading: rolesLoading, fetchRoles } = useRoleStore()
   const { categories, isLoading: categoriesLoading, fetchCategories } = useCategoryStore()
 
+  // Actualizar el resolver del formulario
   const form = useForm<UserFormValues>({
-    resolver: zodResolver(createUserSchema(selectedRole)),
+    resolver: zodResolver(createUserSchema(hasMyCalendarPermission)),
     defaultValues: {
       firstName: "",
       lastName: "",
@@ -69,16 +70,17 @@ export function CreateUserDialog({ children }: { children?: React.ReactNode }) {
     fetchCategories()
   }, [fetchRoles, fetchCategories])
 
-  // Actualizar el schema cuando cambie el rol seleccionado
+  // Modificar el useEffect que observa cambios en el rol seleccionado
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
       if (name === "roleId") {
         const role = roles.find((r) => r.id.toString() === value.roleId)
-        const roleName = role?.role || ""
-        setSelectedRole(roleName)
+        // Verificar si el rol tiene el permiso read:mycalendar
+        const hasPermission = role?.permissions?.some((p) => p.permission === "read:mycalendar") || false
+        setHasMyCalendarPermission(hasPermission)
 
-        // Limpiar categorías si no es profesional
-        if (roleName !== "profesional") {
+        // Limpiar categorías si no tiene el permiso
+        if (!hasPermission) {
           form.setValue("categories", [])
         }
       }
@@ -86,7 +88,8 @@ export function CreateUserDialog({ children }: { children?: React.ReactNode }) {
     return () => subscription.unsubscribe()
   }, [form, roles])
 
-  const isProfessionalRole = selectedRole === "profesional"
+  // Reemplazar isProfessionalRole por hasMyCalendarPermission
+  const isProfessionalRole = hasMyCalendarPermission
 
   const onSubmit = async (data: UserFormValues) => {
     setIsSubmitting(true)
@@ -104,7 +107,7 @@ export function CreateUserDialog({ children }: { children?: React.ReactNode }) {
       const success = await createUser(userData)
       if (success) {
         form.reset()
-        setSelectedRole("")
+        setHasMyCalendarPermission(false)
         setIsOpen(false)
       }
     } catch (error) {
@@ -357,7 +360,7 @@ export function CreateUserDialog({ children }: { children?: React.ReactNode }) {
                 onClick={() => {
                   setIsOpen(false)
                   form.reset()
-                  setSelectedRole("")
+                  setHasMyCalendarPermission(false)
                 }}
                 className="border-blue-200 text-blue-700 hover:bg-blue-50"
               >
