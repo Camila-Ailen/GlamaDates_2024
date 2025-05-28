@@ -261,12 +261,6 @@ export function UsersTable() {
                     className={`ml-1 h-4 w-4 inline transition-transform ${orderBy === "gender" ? "text-blue-600" : "text-gray-400"} ${orderBy === "gender" && orderType === "DESC" ? "rotate-180" : ""}`}
                   />
                 </TableHead>
-                <TableHead onClick={() => handleSort("birthDate")} className="cursor-pointer w-[120px]">
-                  Cumpleaños
-                  <ArrowUpDown
-                    className={`ml-1 h-4 w-4 inline transition-transform ${orderBy === "birthDate" ? "text-blue-600" : "text-gray-400"} ${orderBy === "birthDate" && orderType === "DESC" ? "rotate-180" : ""}`}
-                  />
-                </TableHead>
                 <TableHead onClick={() => handleSort("role.role")} className="cursor-pointer w-[140px]">
                   Rol
                   <ArrowUpDown
@@ -385,22 +379,6 @@ export function UsersTable() {
                         >
                           {user.gender === "M" ? "Masculino" : user.gender === "F" ? "Femenino" : "Otro"}
                         </Badge>
-                      ) : (
-                        <span className="text-gray-400 text-sm">No especificado</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-gray-600">
-                      {user.birthDate ? (
-                        <div className="text-sm">
-                          <div>
-                            {new Date(user.birthDate).toLocaleDateString("es-ES", {
-                              day: "2-digit",
-                              month: "2-digit",
-                              year: "numeric",
-                            })}
-                          </div>
-                          <div className="text-xs text-gray-500">{calculateAge(user.birthDate)} años</div>
-                        </div>
                       ) : (
                         <span className="text-gray-400 text-sm">No especificado</span>
                       )}
