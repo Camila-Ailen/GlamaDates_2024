@@ -20,9 +20,7 @@ export class WorkstationService {
   async findAll(): Promise<Workstation[]> {
       try {
         const workstation = await this.workstationRepository.find({
-          where: {
-            state: WorkstationState.ACTIVE,
-          },
+          relations: ['categories'],
         });
     
         return workstation;

@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { WorkstationService } from './workstation.service';
 import { WorkstationDto } from './dto/workstation.dto';
 import { PaginationWorkstationDto } from './dto/pagination-workstation.dto';
 import { ApiOperation } from '@nestjs/swagger';
-import { ResposeDTO } from '@/base/dto/base.dto';
+import { IdDTO, ResposeDTO } from '@/base/dto/base.dto';
 
 @Controller('workstation')
 export class WorkstationController {
@@ -16,14 +16,16 @@ export class WorkstationController {
 
   @Get()
   @ApiOperation({ summary: 'Get all workstations' })
-  async findAll(): Promise<ResposeDTO> {
+  async findAll(@Query() query: PaginationWorkstationDto): Promise<ResposeDTO> {
     const workstations = await this.workstationService.findAll();
     return { status: 'success', data: workstations };
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.workstationService.findOne(+id);
+  @ApiOperation({ summary: 'Get workstation by ID' })
+  async getById(@Param() params: IdDTO): Promise<ResposeDTO> {
+    const workstation = await this.workstationService.findOne(params.id);
+    return { status: 'success', data: workstation };
   }
 
   @Patch(':id')
