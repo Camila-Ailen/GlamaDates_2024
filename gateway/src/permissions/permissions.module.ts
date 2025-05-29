@@ -5,9 +5,17 @@ import { Permission } from './entities/permission.entity';
 import { Role } from '@/roles/entities/role.entity';
 import { User } from '@/users/entities/user.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Role, Permission])],
+  imports: [
+    TypeOrmModule.forFeature([User, Role, Permission]),
+    JwtModule.register({
+            secret: 'your_jwt_secret', // Usa un secreto seguro en producción
+            signOptions: { expiresIn: '1h' },
+          }),
+  ],
+  controllers: [PermissionsController],
   providers: [PermissionsService],
 })
 export class PermissionsModule {}

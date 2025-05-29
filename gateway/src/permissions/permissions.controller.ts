@@ -2,6 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { PermissionsService } from './permissions.service';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
+import { ApiOperation } from '@nestjs/swagger';
+import { ResposeDTO } from '@/base/dto/base.dto';
 
 @Controller('permissions')
 export class PermissionsController {
@@ -13,8 +15,11 @@ export class PermissionsController {
   }
 
   @Get()
-  findAll() {
-    return this.permissionsService.findAll();
+  @ApiOperation({ summary: 'Fetch all permissions' })
+  async findAll(): Promise<ResposeDTO> {
+    console.log('Fetching all permissions');
+    const permissions = await this.permissionsService.findAll();
+    return { status: 'success', data: permissions };
   }
 
   @Get(':id')
