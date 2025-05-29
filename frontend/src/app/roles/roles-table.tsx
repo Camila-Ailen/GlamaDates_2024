@@ -48,6 +48,9 @@ export function RolesTable() {
   const token = useAuthStore((state) => state.token)
   const hasPermission = useAuthStore((state) => state.hasPermission)
 
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => setMounted(true), []);
   useEffect(() => {
     if (token) {
       fetchRoles()
@@ -113,7 +116,7 @@ export function RolesTable() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2">
-            {hasPermission("create:roles") && (
+            {mounted && hasPermission("create:roles") && (
               <CreateRoleDialog>
                 <Button className="bg-blue-600 hover:bg-blue-700">
                   <Plus className="mr-2 h-4 w-4" />

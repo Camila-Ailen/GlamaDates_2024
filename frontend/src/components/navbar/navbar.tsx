@@ -170,6 +170,14 @@ export function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                   )}
+                  {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "read:roles") && (
+                    <DropdownMenuItem>
+                      <Link href="/roles" className="flex items-center">
+                        <Users className="mr-2 h-4 w-4 text-primary" />
+                        <span>Roles</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
