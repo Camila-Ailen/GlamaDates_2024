@@ -27,7 +27,7 @@ export default function CategoryPage() {
     // Función para verificar permisos 
     const hasRequiredPermissions = (user: any) => {
         return Array.isArray(user.role.permissions) &&
-            user.role.permissions.some((perm: any) => perm.permission === "	read:categories")
+            user.role.permissions.some((perm: any) => perm.permission === "read:categories")
     }
 
     // Mostrar pantalla de carga mientras se verifica la autenticación
