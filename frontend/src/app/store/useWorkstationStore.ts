@@ -103,16 +103,10 @@ export const useWorkstationStore = create<WorkstationState>((set, get) => ({
         let workstationsData = []
         let totalCount = 0
 
-        if (data.data) {
-          if (Array.isArray(data.data)) {
-            workstationsData = data.data
-            totalCount = data.total || data.data.length
-          } else if (data.data.workstations && Array.isArray(data.data.workstations)) {
-            workstationsData = data.data.workstations
-            totalCount = data.data.total || data.data.workstations.length
-          } else if (data.data.data && Array.isArray(data.data.data)) {
-            workstationsData = data.data.data
-            totalCount = data.data.total || data.data.data.length
+        if (data.data.results) {
+          if (Array.isArray(data.data.results)) {
+            workstationsData = data.data.results
+            totalCount = data.data.total || data.data.results.length
           }
         }
 

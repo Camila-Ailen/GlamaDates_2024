@@ -91,10 +91,6 @@ export function WorkstationsTable() {
         }
     }
 
-    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchTerm(e.target.value)
-        setIsSearching(true)
-    }
 
     const resetFilters = () => {
         setSearchTerm("")
@@ -136,18 +132,6 @@ export function WorkstationsTable() {
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-2">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                            <Input
-                                placeholder="Buscar estaciones..."
-                                value={searchTerm}
-                                onChange={handleSearch}
-                                className="pl-10 border-blue-200 focus-visible:ring-blue-500 w-64"
-                            />
-                            {isSearching && (
-                                <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-blue-500" />
-                            )}
-                        </div>
                         {mounted && hasPermission("create:workstation") && (
                             <CreateWorkstationDialog>
                                 <Button className="bg-blue-600 hover:bg-blue-700">

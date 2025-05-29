@@ -7,6 +7,7 @@ import {
   Building2,
   CheckSquare,
   CircleUser,
+  ShieldUser,
   FileUp,
   Folder,
   Grid,
@@ -14,7 +15,9 @@ import {
   Menu,
   Network,
   PieChart,
+  ShieldAlert,
   Users,
+  Armchair,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/darkmode";
@@ -173,8 +176,16 @@ export function Navbar() {
                   {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "read:roles") && (
                     <DropdownMenuItem>
                       <Link href="/roles" className="flex items-center">
-                        <Users className="mr-2 h-4 w-4 text-primary" />
+                        <ShieldUser className="mr-2 h-4 w-4 text-primary" />
                         <span>Roles</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "read:workstation") && (
+                    <DropdownMenuItem>
+                      <Link href="/workstation" className="flex items-center">
+                        <Armchair className="mr-2 h-4 w-4 text-primary" />
+                        <span>Estaciones de Trabajo</span>
                       </Link>
                     </DropdownMenuItem>
                   )}

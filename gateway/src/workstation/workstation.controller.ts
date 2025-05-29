@@ -10,14 +10,16 @@ export class WorkstationController {
   constructor(private readonly workstationService: WorkstationService) {}
 
   @Post()
-  create(@Body() createWorkstationDto: WorkstationDto) {
-    return this.workstationService.create(createWorkstationDto);
+  @ApiOperation({ summary: 'Create a new workstation' })
+  async create (@Body() body: WorkstationDto): Promise<ResposeDTO> {
+    const workstation = await this.workstationService.create({body});
+    return { status: 'success', data: workstation };
   }
 
   @Get()
   @ApiOperation({ summary: 'Get all workstations' })
   async findAll(@Query() query: PaginationWorkstationDto): Promise<ResposeDTO> {
-    const workstations = await this.workstationService.findAll();
+    const workstations = await this.workstationService.findAll({ query });
     return { status: 'success', data: workstations };
   }
 
@@ -29,12 +31,19 @@ export class WorkstationController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateWorkstationDto: PaginationWorkstationDto) {
-    return this.workstationService.update(+id, updateWorkstationDto);
+  @ApiOperation({ summary: 'Update workstation by ID' })
+  async update(
+    @Param() params: IdDTO, 
+    @Body() body: WorkstationDto
+  ): Promise<ResposeDTO> {
+    const updatedWorkstation = await this.workstationService.update(params.id, body);
+    return { status: 'success', data: updatedWorkstation };
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.workstationService.remove(+id);
+  @ApiOperation({ summary: 'Delete workstation by ID' })
+  async remove(@Param() params: IdDTO): Promise<ResposeDTO> {
+    const deletedWorkstation = await this.workstationService.remove(params.id);
+    return { status: 'success', data: deletedWorkstation };
   }
 }
