@@ -57,7 +57,7 @@ export function DeleteRoleDialog({ roleId, roleName }: DeleteRoleDialogProps) {
         <div className="bg-red-50 border border-red-200 rounded-md p-3">
           <p className="text-sm text-red-700">
             <strong>Advertencia:</strong> Al eliminar este rol, todos los usuarios que lo tengan asignado perderán sus
-            permisos asociados.
+            permisos asociados. Serán reasignados al rol por defecto del sistema, Cliente.
           </p>
         </div>
         <DialogFooter>

@@ -114,11 +114,27 @@ export class RolesService {
     if (!role) {
       throw new HttpException('Role not found', HttpStatus.NOT_FOUND);
     }
+    /*
     if (role.users && role.users.length > 0) {
       throw new HttpException(
         'Role has associated users and cannot be deleted',
         HttpStatus.CONFLICT,
       );
+    }
+    */
+    // Busca el rol de cliente
+    const clienteRole = await this.roleRepository.findOne({ where: { role: 'CLIENTE' } });
+    if (!clienteRole) {
+      throw new HttpException('Cliente role not found', HttpStatus.NOT_FOUND);
+    }
+
+    // Actualiza todos los usuarios asociados a este rol para que sean clientes
+    console.log('Reasignando usuarios al rol Cliente: ', clienteRole.role);
+    if (role.users && role.users.length > 0) {
+      for (const user of role.users) {
+        user.role = clienteRole;
+        await this.roleRepository.manager.save(user);
+      }
     }
     const result = await this.roleRepository.softDelete(params.id);
     if (result.affected === 0) {
