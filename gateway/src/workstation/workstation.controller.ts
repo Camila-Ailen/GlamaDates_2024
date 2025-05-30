@@ -12,6 +12,7 @@ export class WorkstationController {
   @Post()
   @ApiOperation({ summary: 'Create a new workstation' })
   async create (@Body() body: WorkstationDto): Promise<ResposeDTO> {
+    console.log('Creating workstation with body:', body);
     const workstation = await this.workstationService.create({body});
     return { status: 'success', data: workstation };
   }

@@ -3,26 +3,55 @@ import { WorkstationDto } from './dto/workstation.dto';
 import { PaginationWorkstationDto } from './dto/pagination-workstation.dto';
 import { Workstation } from './entities/workstation.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { WorkstationState } from './entities/workstation-state.enum';
 import { PaginationResponseDTO } from '@/base/dto/base.dto';
+import { CategoryService } from '@/category/category.service';
+import { Category } from '@/category/entities/category.entity';
 
 @Injectable()
 export class WorkstationService {
   constructor(
     @InjectRepository(Workstation)
     private readonly workstationRepository: Repository<Workstation>,
+
+    @InjectRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
+
   ) { }
 
   /////////////////////////////////////////////////
   /////////////////////////////////////////////////
   async create(params: { body: WorkstationDto }): Promise<Workstation> {
-    try {
-      const workstation = this.workstationRepository.create(params.body);
-      return await this.workstationRepository.save(workstation);
-    } catch (error) {
-      throw new Error(`${WorkstationService.name}[create]:${error.message}`);
+    // Validar si ya existe una workstation con el mismo nombre
+    if (
+      await this.workstationRepository.findOneBy({
+        name: params.body.name,
+      })
+    ) {
+      throw new HttpException('Workstation already exists', HttpStatus.CONFLICT);
     }
+
+    if (params.body.categories && params.body.categories.length > 0) {
+      const categories = await this.categoryRepository.find({
+        where: { id: In(params.body.categories) },
+      });
+      params.body.categories = categories;
+    }
+
+    // Crear y guardar la workstation
+    await this.workstationRepository.save(
+      this.workstationRepository.create({
+        ...params.body,
+        createdAt: new Date(),
+      }),
+    );
+
+    // Retornar la workstation recién creada con las relaciones
+    return await this.workstationRepository.findOne({
+      where: { name: params.body.name },
+      relations: ['categories'],
+    });
   }
 
   /////////////////////////////////////////////////
@@ -80,11 +109,19 @@ export class WorkstationService {
       throw new HttpException('Workstation not found', HttpStatus.NOT_FOUND);
     }
 
-    // Actualiza los campos
-    Object.assign(workstation, body);
-
-    // Guarda los cambios
-    return await this.workstationRepository.save(workstation);
+    if (body.categories && body.categories.length > 0) {
+      const categories = await this.categoryRepository.find({
+        where: { id: In(body.categories) },
+      });
+      workstation.categories = categories;
+    }
+    this.workstationRepository.merge(workstation, body);
+    workstation.updatedAt = new Date();
+    await this.workstationRepository.save(workstation);
+    return await this.workstationRepository.findOne({
+      where: { id: id },
+      relations: ['categories'],
+    });
   }
 
   /////////////////////////////////////////////////
@@ -94,8 +131,7 @@ export class WorkstationService {
     if (!workstation) {
       throw new HttpException('Workstation not found', HttpStatus.NOT_FOUND);
     }
-    await this.workstationRepository.softDelete(id);
-    // Retorna la workstation con withDeleted para confirmar el borrado
-    return await this.workstationRepository.findOne({ where: { id }, withDeleted: true });
+    workstation.state = WorkstationState.DELETED; // O WorkstationState.ELIMINADO si usas enum
+    return await this.workstationRepository.save(workstation);
   }
 }

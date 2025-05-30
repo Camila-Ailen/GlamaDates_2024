@@ -96,8 +96,6 @@ export const useWorkstationStore = create<WorkstationState>((set, get) => ({
 
       const data = await response.json()
 
-      console.log("Workstations data:", data)
-
       if (data.status === "success") {
         // Manejar diferentes estructuras de respuesta
         let workstationsData = []
@@ -183,7 +181,7 @@ export const useWorkstationStore = create<WorkstationState>((set, get) => ({
 
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/workstation/${workstationData.id}`, {
-        method: "PUT",
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
