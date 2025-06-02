@@ -11,7 +11,6 @@ export class AuditoriaController {
   @Get()
   @ApiOperation({ summary: 'Get all audit logs' })
   async all(@Query() query: AuditsPaginationDto): Promise<ResposeDTO> {
-    console.log('query', query);
     const audits = await this.auditoriaService.all({ query });
     return { status: 'success', data: audits };
   }

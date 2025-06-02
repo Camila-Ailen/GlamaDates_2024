@@ -9,6 +9,7 @@ import { Reflector } from '@nestjs/core';
 import { Observable, map } from 'rxjs';
 import { AuditoriaService } from './auditoria.service';
 import { AUDITABLE_METADATA, AuditableMetadata } from './auditable.decorator';
+import { SKIP_AUDIT } from './skip_audit.decorator';
 
 @Injectable()
 export class AuditoriaInterceptor implements NestInterceptor {
@@ -18,11 +19,16 @@ export class AuditoriaInterceptor implements NestInterceptor {
   ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    const skipAudit = this.reflector.get<boolean>(SKIP_AUDIT, context.getHandler());
+    if (skipAudit) {
+      return next.handle();
+    }
+    
     const request = context.switchToHttp().getRequest();
     const method = request.method;
 
     // Solo auditar si es una acción de cambio
-    if (!['POST', 'PUT', 'DELETE'].includes(method)) {
+    if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
       return next.handle();
     }
 
@@ -65,6 +71,7 @@ export class AuditoriaInterceptor implements NestInterceptor {
     switch (method) {
       case 'POST':
         return 'CREAR';
+      case 'PATCH':
       case 'PUT':
         return 'ACTUALIZAR';
       case 'DELETE':
