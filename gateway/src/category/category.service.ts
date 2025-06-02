@@ -15,10 +15,10 @@ export class CategoryService {
   
     ////////////////////////////////////////////////
   ////////////////////////////////////////////////
-  async getBy(body: CategoryDto): Promise<Category> {
+  async getBy(id: number): Promise<Category> {
     const category = await this.categoryRepository.findOne({
       where: {
-        id: body.id,
+        id: id,
       },
       relations: ['users'],
     });

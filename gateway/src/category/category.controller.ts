@@ -29,9 +29,7 @@ export class CategoryController {
     @Req() request: { category: Category },
     @Param('id') id: number,
   ): Promise<ResposeDTO> {
-    const categoryDto = new CategoryDto();
-    categoryDto.id = id;
-    const category = await this.categoryService.getBy(categoryDto);
+    const category = await this.categoryService.getBy(id);
     return { status: 'success', data: category };
   }
   ////////////////////////////////////////////////
