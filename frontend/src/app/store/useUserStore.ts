@@ -59,6 +59,7 @@ interface UserState {
   orderType: "ASC" | "DESC"
   filter: string
   fetchUsers: (page?: number) => Promise<void>
+  fetchAllUsers: () => Promise<void>
   createUser: (userData: CreateUserData) => Promise<boolean>
   fetchEmployees: (page?: number) => Promise<void>
   updateUser: (userData: UpdateUserData) => Promise<boolean>
@@ -72,12 +73,52 @@ const useUserStore = create<UserState>((set, get) => ({
   users: [],
   total: 0,
   currentPage: 1,
-  pageSize: 8,
+  pageSize: 10,
   isLoading: false,
   error: null,
   orderBy: "id",
   orderType: "DESC",
   filter: "",
+
+  fetchAllUsers: async () => {
+    const token = useAuthStore.getState().token
+    set({ isLoading: true, error: null })
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/all`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
+      if (response.status === 403) {
+        toast.error("Sesión expirada")
+        useAuthStore.getState().logout()
+        return
+      }
+      if (!response.ok) throw new Error("Error al obtener usuarios")
+      const data = await response.json()
+      console.log("Fetched all users data:", data)
+      if (data.status === "success") {
+        set({
+          users: data.data || [],
+          total: Array.isArray(data.data) ? data.data.length : 0,
+          isLoading: false,
+        })
+      }
+      else {
+        throw new Error(data.message || "Error al obtener usuarios")
+      }
+    } catch (error) {
+      console.error("Error fetching all users:", error)
+      set({
+        error: (error as Error).message,
+        isLoading: false,
+        users: [],
+        total: 0,
+      })
+      toast.error("Error al cargar usuarios")
+    }
+  },
 
   fetchUsers: async (page?: number) => {
     const token = useAuthStore.getState().token

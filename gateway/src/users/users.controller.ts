@@ -44,6 +44,15 @@ export class UsersController extends BaseController {
   }
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
+  @Get('all')
+  @Auth('read:users')
+  @ApiOperation({ summary: 'Get all users without pagination' })
+  async allWithoutPagination(): Promise<ResposeDTO> {
+    const users = await this.userService.allWithoutPagination();
+    return { status: 'success', data: users };
+  }
+  ////////////////////////////////////////////////
+  ////////////////////////////////////////////////
   @Get('employees')
   @Auth('read:users')
   @ApiOperation({ summary: 'Get all employees' })

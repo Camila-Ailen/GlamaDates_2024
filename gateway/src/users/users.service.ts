@@ -107,6 +107,20 @@ export class UsersService {
 
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
+  async allWithoutPagination(): Promise<User[]> {
+    try {
+      const users = await this.userRepository.find({
+        relations: ['role', 'role.permissions', 'categories'],
+        withDeleted: true,
+      });
+      return users;
+    } catch (error) {
+      throw new Error(`${UsersService.name}[allWithoutPagination]:${error.message}`);
+    }
+  }
+
+  ////////////////////////////////////////////////
+  ////////////////////////////////////////////////
   async employees(): Promise<User[]> {
     try {
       const users = await this.userRepository.find({
