@@ -184,21 +184,6 @@ export function AuditsTable() {
             </CardTitle>
             <CardDescription>Historial de acciones realizadas en el sistema</CardDescription>
           </div>
-
-          <div className="flex flex-col sm:flex-row gap-2">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Buscar auditorías..."
-                value={searchTerm}
-                onChange={handleSearch}
-                className="pl-10 border-blue-200 focus-visible:ring-blue-500 w-64"
-              />
-              {isSearching && (
-                <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-blue-500" />
-              )}
-            </div>
-          </div>
         </div>
       </CardHeader>
 
@@ -246,7 +231,6 @@ export function AuditsTable() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos los usuarios</SelectItem>
-                <SelectItem value="sistema">Sistema</SelectItem>
                 {filterOptions.users
                   .filter((userId) => userId !== null)
                   .map((userId) => (

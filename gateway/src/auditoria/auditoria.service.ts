@@ -63,8 +63,12 @@ export class AuditoriaService {
       const query = this.auditoriaRepo.createQueryBuilder('audit');
 
       // Filtros según el DTO
-      if (params.query.userId) {
-        query.andWhere('audit.userId = :userId', { userId: params.query.userId });
+      if (params.query.userId !== undefined) {
+        if (params.query.userId === null) {
+          query.andWhere('audit.userId IS NULL');
+        } else {
+          query.andWhere('audit.userId = :userId', { userId: params.query.userId });
+        }
       }
       if (params.query.entity) {
         query.andWhere('audit.entity ILIKE :entity', { entity: `%${params.query.entity}%` });

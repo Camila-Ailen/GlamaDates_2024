@@ -129,7 +129,7 @@ export const useAuditStore = create<AuditState>((set, get) => ({
 
       if (userFilter && userFilter !== "all") {
         if (userFilter === "sistema") {
-          params.append("userId", "null")
+          params.append("userId", "NULL") // Asumiendo que "sistema" se traduce a null en el backend
         } else {
           params.append("userId", userFilter)
         }

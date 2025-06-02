@@ -9,9 +9,9 @@ export class AuditoriaDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @Transform(({ value }) => Number(value))
-  @IsNumber()
-  userId: number;
+  @Transform(({ value }) => value === null || value === undefined || value === '' ? null : Number(value))
+  @IsNumber({}, { each: false })
+  userId: number | null;
 
   @ApiProperty({ required: true, type: 'string' })
   @IsOptional()

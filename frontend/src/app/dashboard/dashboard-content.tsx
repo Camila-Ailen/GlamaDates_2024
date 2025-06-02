@@ -83,15 +83,15 @@ export default function DashboardContent() {
 
             {hasPermission("access:packages") && (
               <AnimatedCard className="bg-primary text-primary-foreground" index={2}>
-                <Link href="/package">
+                <Link href="/audits">
                   <Card className="bg-primary text-primary-foreground">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-base font-medium">Paquetes</CardTitle>
-                      <PackagePlus className="h-4 w-4" />
+                      <CardTitle className="text-base font-medium">Auditorias</CardTitle>
+                      <FileText className="h-4 w-4" />
                     </CardHeader>
                     <CardContent>
                       <CardDescription className="text-primary-foreground/80">
-                        Administración de Paquetes
+                        Visualización de auditorías
                       </CardDescription>
                     </CardContent>
                   </Card>
