@@ -16,14 +16,14 @@ export class AuditoriaInterceptor implements NestInterceptor {
   constructor(
     private readonly auditoriaService: AuditoriaService,
     private readonly reflector: Reflector,
-  ) {}
+  ) { }
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const skipAudit = this.reflector.get<boolean>(SKIP_AUDIT, context.getHandler());
     if (skipAudit) {
       return next.handle();
     }
-    
+
     const request = context.switchToHttp().getRequest();
     const method = request.method;
 
@@ -49,22 +49,43 @@ export class AuditoriaInterceptor implements NestInterceptor {
     const description = auditableMetadata.description || '';
 
     const userId = request.user?.id || null;
-    const oldData = request.oldData || null;
     const bodyData = request.body || null;
 
-    return next.handle().pipe(
-      map((responseData) => {
-        this.auditoriaService.create({
-          userId,
-          entity,
-          accion: action,
-          description,
-          oldData,
-          newData: bodyData,
+    // Obtener oldData solo para PUT, PATCH, DELETE
+    let oldDataPromise: Promise<any> = Promise.resolve(null);
+    if (['PUT', 'PATCH', 'DELETE'].includes(method)) {
+      // Intenta obtener el id de la entidad desde params o body
+      const id = request.params?.id || request.body?.id;
+      if (id) {
+        // Usa el servicio de auditoría para obtener el repo y buscar el registro
+        const repo = this.auditoriaService.getRepositoryForEntity(entity);
+        if (repo) {
+          oldDataPromise = repo.findOne({ where: { id } });
+        }
+      }
+    }
+
+    return new Observable((subscriber) => {
+      oldDataPromise.then((oldData) => {
+        next.handle().pipe(
+          map((responseData) => {
+            this.auditoriaService.create({
+              userId,
+              entity,
+              accion: action,
+              description,
+              oldData,
+              newData: bodyData,
+            });
+            return responseData;
+          }),
+        ).subscribe({
+          next: (value) => subscriber.next(value),
+          error: (err) => subscriber.error(err),
+          complete: () => subscriber.complete(),
         });
-        return responseData;
-      }),
-    );
+      });
+    });
   }
 
   private getActionFromMethod(method: string): string {

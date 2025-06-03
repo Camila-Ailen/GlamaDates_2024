@@ -6,10 +6,12 @@ import { JwtModule } from '@nestjs/jwt';
 import { User } from '@/users/entities/user.entity';
 import { Category } from './entities/category.entity';
 import { Service } from '@/service/entities/service.entity';
+import { UsersModule } from '@/users/users.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User,Category, Service]),
+    UsersModule,
     JwtModule.register({
         secret: 'your_jwt_secret', // Usa un secreto seguro en producción
         signOptions: { expiresIn: '1h' },

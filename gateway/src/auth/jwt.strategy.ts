@@ -12,6 +12,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       ignoreExpiration: false,
       secretOrKey: 'your_jwt_secret', // Use a secure secret in production
     });
+    console.log('JwtStrategy initialized');
   }
 
   //   async validate(payload: any) {

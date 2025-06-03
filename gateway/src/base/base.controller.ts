@@ -1,6 +1,6 @@
 import { PermissionsGuard } from '@/auth/permissions.guard';
 import { Logger } from '@nestjs/common';
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { UseGuards } from '@nestjs/common';
 
 @UseGuards(PermissionsGuard)
 export class BaseController {
@@ -8,5 +8,8 @@ export class BaseController {
 
   constructor(readonly object: { name: string; }) {
     this.logger = new Logger(this.object.name);
+    console.log(
+      `BaseController initialized for ${this.object.name}`,
+    );
   }
 }

@@ -9,6 +9,7 @@ import { AppModule } from './app.module';
 import * as fs from 'fs';
 import { AuditoriaService } from './auditoria/auditoria.service';
 import { AuditoriaInterceptor } from './auditoria/auditoria.interceptor';
+import { PermissionsGuard } from './auth/permissions.guard';
 
 const LOGGER = new Logger('API');
 if (!process.env.TZ) {
@@ -32,6 +33,8 @@ async function bootstrap() {
 
   //await app.listen(3000);
   
+  // 🚨 Guard global para que siempre esté el usuario en request
+  app.useGlobalGuards(app.get(PermissionsGuard));
   // 🚨 Interceptor de auditoría
   const reflector = app.get(Reflector);
   const auditoriaService = app.get(AuditoriaService);

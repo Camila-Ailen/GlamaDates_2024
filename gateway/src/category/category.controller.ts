@@ -1,11 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Req, UseGuards } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { CategoryDto } from './dto/category.dto';
 import { ApiOperation } from '@nestjs/swagger';
 import { IdDTO, ResposeDTO } from '@/base/dto/base.dto';
 import { Category } from './entities/category.entity';
 import { PaginationCategoryDto } from './dto/pagination-category.dto';
+import { PermissionsGuard } from '@/auth/permissions.guard';
+import { Auth } from '@/auth/auth.decorator';
 
+//@UseGuards(PermissionsGuard)
 @Controller('categories')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
@@ -13,7 +16,7 @@ export class CategoryController {
     ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Get()
-//   @Auth('read:users')
+  @Auth('read:categories')
   @ApiOperation({ summary: 'Get all categories' })
   async all(@Query() query: PaginationCategoryDto): Promise<ResposeDTO> {
     const categories = await this.categoryService.all({ query });
@@ -23,7 +26,7 @@ export class CategoryController {
  ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Get(':id')
-//  @Auth('read:users')
+  @Auth('read:categories')
   @ApiOperation({ summary: 'Get Category by ID' })
   async getById(
     @Req() request: { category: Category },
@@ -35,7 +38,7 @@ export class CategoryController {
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Post()
-  //@Auth('create:users')
+  @Auth('create:categories')
   @ApiOperation({ summary: 'Create Category' })
   @Post()
   async create(@Body() body: CategoryDto): Promise<ResposeDTO> {
@@ -45,7 +48,7 @@ export class CategoryController {
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Patch(':id')
-  //@Auth('update:users')
+  @Auth('update:categories')
   @ApiOperation({ summary: 'Update Category' })
   async update(
     @Param() params: IdDTO,
@@ -60,7 +63,7 @@ export class CategoryController {
 ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Delete(':id')
-  //@Auth('delete:users')
+  @Auth('delete:categories')
   @ApiOperation({ summary: 'Delete Category' })
   async delete(@Param() params: IdDTO): Promise<ResposeDTO> {
     const result = await this.categoryService.delete({ id: params.id });
