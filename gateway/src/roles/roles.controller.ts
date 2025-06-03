@@ -13,6 +13,7 @@ import { RolesService } from '@/roles/roles.service';
 import { RoleDto } from '@/roles/dto/role.dto';
 import { IdDTO, ResposeDTO } from '@/base/dto/base.dto';
 import { RolePaginationDto } from './dto/pagination-role.dto';
+import { Auth } from '@/auth/auth.decorator';
 
 @ApiTags('Roles')
 @Controller('roles')
@@ -21,6 +22,7 @@ export class RolesController {
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Get(':id')
+  @Auth('read:roles')
   @ApiOperation({ summary: 'Get Role by ID' })
   async getById(@Param() params: IdDTO): Promise<ResposeDTO> {
     const role = await this.rolesService.getBy(params.id);
@@ -29,6 +31,7 @@ export class RolesController {
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Get()
+  @Auth('read:roles')
   @ApiOperation({ summary: 'Get all roles' })
   async all(@Query() query: RolePaginationDto): Promise<ResposeDTO> {
     const roles = await this.rolesService.all({ query });
@@ -37,6 +40,7 @@ export class RolesController {
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Post()
+  @Auth('create:roles')
   @ApiOperation({ summary: 'Create Role' })
   async create(@Body() body: RoleDto): Promise<ResposeDTO> {
     const role = await this.rolesService.create({ body });
@@ -45,6 +49,7 @@ export class RolesController {
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Patch(':id')
+  @Auth('update:roles')
   @ApiOperation({ summary: 'Update Role' })
   async update(
     @Param() params: IdDTO,
@@ -59,6 +64,7 @@ export class RolesController {
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Delete(':id')
+  @Auth('delete:roles')
   @ApiOperation({ summary: 'Delete Role' })
   async delete(@Param() params: IdDTO): Promise<ResposeDTO> {
     const result = await this.rolesService.delete({ id: params.id });

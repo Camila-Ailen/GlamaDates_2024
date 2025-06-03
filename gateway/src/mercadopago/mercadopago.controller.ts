@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Inject } from '@nest
 import { MercadopagoService } from './mercadopago.service';
 import { CreateMercadopagoDto } from './dto/create-mercadopago.dto';
 import { UpdateMercadopagoDto } from './dto/update-mercadopago.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { BaseController } from '@/base/base.controller';
 import { JwtService } from '@nestjs/jwt';
 import { Auth } from '@/auth/auth.decorator';
@@ -26,6 +26,7 @@ export class MercadopagoController extends BaseController {
 
   @Post()
   @Auth('create:mercadopago')
+  @ApiOperation({ summary: 'Create a new payment with MercadoPago' })
   create(@Body() appointment) {
     return this.mercadopagoService.create(appointment);
   }

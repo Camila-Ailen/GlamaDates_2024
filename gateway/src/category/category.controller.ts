@@ -8,7 +8,6 @@ import { PaginationCategoryDto } from './dto/pagination-category.dto';
 import { PermissionsGuard } from '@/auth/permissions.guard';
 import { Auth } from '@/auth/auth.decorator';
 
-//@UseGuards(PermissionsGuard)
 @Controller('categories')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}

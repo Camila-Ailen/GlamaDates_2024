@@ -98,7 +98,7 @@ export class UsersController extends BaseController {
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Post()
-  //@Auth('create:users')
+  @Auth('create:users')
   @ApiOperation({ summary: 'Create User' })
   async create(@Body() body: UserDto): Promise<ResposeDTO> {
     console.log('body', body);

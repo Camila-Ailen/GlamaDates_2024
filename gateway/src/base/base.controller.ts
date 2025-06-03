@@ -8,8 +8,5 @@ export class BaseController {
 
   constructor(readonly object: { name: string; }) {
     this.logger = new Logger(this.object.name);
-    console.log(
-      `BaseController initialized for ${this.object.name}`,
-    );
   }
 }

@@ -3,6 +3,8 @@ import { SystemConfigService } from './system-config.service';
 import { SystemConfigDto } from './dto/system-config.dto';
 import { PaginationSystemConfigDto } from './dto/pagination-system-config.dto';
 import { ResposeDTO } from '@/base/dto/base.dto';
+import { Auth } from '@/auth/auth.decorator';
+import { ApiOperation } from '@nestjs/swagger';
 
 @Controller('system-config')
 export class SystemConfigController {
@@ -11,6 +13,8 @@ export class SystemConfigController {
   ///////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Get()
+  @Auth('read:system-config')
+  @ApiOperation({ summary: 'Get all system configurations' })
   async getCurrentConfig(): Promise<ResposeDTO> {
     const config = await this.systemConfigService.getConfig();
     return { status: 'success', data: config };
@@ -19,6 +23,8 @@ export class SystemConfigController {
   ///////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Patch(':id')
+  @Auth('update:system-config')
+  @ApiOperation({ summary: 'Update a specific system configuration' })
   async updateConfig(
     @Body() body: SystemConfigDto,
   ): Promise<ResposeDTO> {

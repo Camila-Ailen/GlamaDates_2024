@@ -5,15 +5,16 @@ import { PackageService } from './package.service';
 import { PaginationPackageDto } from './dto/pagination-package.dto';
 import { Package } from './entities/package.entity';
 import { PackageDto } from './dto/package.dto';
+import { Auth } from '@/auth/auth.decorator';
 
 @Controller('packages')
 export class PackageController {
-  constructor(private readonly packageService: PackageService) {}
+  constructor(private readonly packageService: PackageService) { }
 
-    ////////////////////////////////////////////////
+  ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Get()
-//   @Auth('read:users')
+  @Auth('read:packages')
   @ApiOperation({ summary: 'Get all packages' })
   async all(@Query() query: PaginationPackageDto): Promise<ResposeDTO> {
     // console.log("desde el controlador: ", query);
@@ -21,10 +22,10 @@ export class PackageController {
     return { status: 'success', data: packages };
   }
 
- ////////////////////////////////////////////////
+  ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Get(':id')
-//  @Auth('read:users')
+  @Auth('read:packages')
   @ApiOperation({ summary: 'Get Package by ID' })
   async getById(
     @Req() request: { package: Package },
@@ -38,7 +39,7 @@ export class PackageController {
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Post()
-  //@Auth('create:users')
+  @Auth('create:packages')
   @ApiOperation({ summary: 'Create Package' })
   @Post()
   async create(@Body() body: PackageDto): Promise<ResposeDTO> {
@@ -48,7 +49,7 @@ export class PackageController {
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Patch(':id')
-  //@Auth('update:users')
+  @Auth('update:packages')
   @ApiOperation({ summary: 'Update Package' })
   async update(
     @Param() params: IdDTO,
@@ -60,10 +61,10 @@ export class PackageController {
       data: await this.packageService.update({ id: params.id, body }),
     };
   }
-////////////////////////////////////////////////
+  ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Delete(':id')
-  //@Auth('delete:users')
+  @Auth('delete:packages')
   @ApiOperation({ summary: 'Delete Package' })
   async delete(@Param() params: IdDTO): Promise<ResposeDTO> {
     const result = await this.packageService.delete({ id: params.id });

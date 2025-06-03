@@ -1,6 +1,6 @@
 import { BaseController } from "@/base/base.controller";
 import { Body, Controller, Get, Inject, Param, Patch, Post, Query } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { In } from "typeorm";
 import { PaymentService } from "./payment.service";
 import { JwtService } from "@nestjs/jwt";
@@ -22,25 +22,25 @@ export class PaymentController extends BaseController {
 
 
   @Post('save-payment')
+  @Auth('save:payment')
+  @ApiOperation({ summary: 'Save payment information' })
   async savePayment(
     @Body() paymentData: { paymentId: string, paymentUrl: string }): Promise<ResposeDTO> {
-    // return { payment_id: savedPayment.id }; // Devolver ID para la redirección
-
-    console.log("Datos recibidos en payment:", paymentData);
-
-
     const savedPayment = await this.paymentService.confirm(paymentData);
-
     return { status: 'success', data: savedPayment };
   }
 
   @Get('payment-url')
+  @Auth('get:payment-url')
+  @ApiOperation({ summary: 'Get payment URL for an appointment' })
   async getPaymentUrl(@Query('appointmentId') appointmentId: string): Promise<ResposeDTO> {
     const paymentUrl = await this.paymentService.getPaymentUrl(Number(appointmentId));
     return { status: 'success', data: paymentUrl };
   }
 
   @Get('all')
+  @Auth('get:all-payments')
+  @ApiOperation({ summary: 'Get all payments with pagination' })
   async findAll(@Query() query: PaginationPaymentDto): Promise<ResposeDTO> {
     const payments = await this.paymentService.findAll({ query });
     return { status: 'success', data: payments };
@@ -48,6 +48,7 @@ export class PaymentController extends BaseController {
 
   @Patch('cancel/:id')
   @Auth('cancel:payment')
+  @ApiOperation({ summary: 'Cancel a payment' })
   async cancelPayment(
     @Param('id') id: number,
     @Body('observation') observation: string,

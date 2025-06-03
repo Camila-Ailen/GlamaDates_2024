@@ -5,6 +5,7 @@ import { ApiOperation } from '@nestjs/swagger';
 import { IdDTO, ResposeDTO } from '@/base/dto/base.dto';
 import { Service } from './entities/service.entity';
 import { PaginationServiceDto } from './dto/pagination-service.dto';
+import { Auth } from '@/auth/auth.decorator';
 
 @Controller('services')
 export class ServiceController {
@@ -13,7 +14,7 @@ export class ServiceController {
     ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Get()
-//   @Auth('read:users')
+  @Auth('read:services')
   @ApiOperation({ summary: 'Get all services' })
   async all(@Query() query: PaginationServiceDto): Promise<ResposeDTO> {
     console.log("desde el controlador: ", query);
@@ -24,7 +25,7 @@ export class ServiceController {
  ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Get(':id')
-//  @Auth('read:users')
+  @Auth('read:services')
   @ApiOperation({ summary: 'Get Service by ID' })
   async getById(
     @Req() request: { service: Service },
@@ -38,7 +39,7 @@ export class ServiceController {
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Post()
-  //@Auth('create:users')
+  @Auth('create:services')
   @ApiOperation({ summary: 'Create Service' })
   @Post()
   async create(@Body() body: ServiceDto): Promise<ResposeDTO> {
@@ -49,7 +50,7 @@ export class ServiceController {
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Patch(':id')
-  //@Auth('update:users')
+  @Auth('update:services')
   @ApiOperation({ summary: 'Update Service' })
   async update(
     @Param() params: IdDTO,
@@ -64,7 +65,7 @@ export class ServiceController {
 ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Delete(':id')
-  //@Auth('delete:users')
+  @Auth('delete:services')
   @ApiOperation({ summary: 'Delete Service' })
   async delete(@Param() params: IdDTO): Promise<ResposeDTO> {
     const result = await this.serviceService.delete({ id: params.id });
