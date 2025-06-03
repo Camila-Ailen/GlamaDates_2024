@@ -21,6 +21,7 @@ import { UserDto } from '@/users/dto/user.dto';
 import { UserPaginationDto } from './dto/pagination-user.dto';
 import { Auth } from '@/auth/auth.decorator';
 import { JwtService } from '@nestjs/jwt';
+import { Auditable } from '@/auditoria/auditable.decorator';
 
 @Controller('users')
 @ApiTags('Users')
@@ -36,6 +37,7 @@ export class UsersController extends BaseController {
   ////////////////////////////////////////////////
   @Get()
   @Auth('read:users')
+  @Auditable({ entity: 'User' })
   @ApiOperation({ summary: 'Get all users' })
   async all(@Query() query: UserPaginationDto): Promise<ResposeDTO> {
     console.log('query', query);
@@ -46,6 +48,7 @@ export class UsersController extends BaseController {
   ////////////////////////////////////////////////
   @Get('all')
   @Auth('read:users')
+  @Auditable({ entity: 'User' })
   @ApiOperation({ summary: 'Get all users without pagination' })
   async allWithoutPagination(): Promise<ResposeDTO> {
     const users = await this.userService.allWithoutPagination();
@@ -55,6 +58,7 @@ export class UsersController extends BaseController {
   ////////////////////////////////////////////////
   @Get('employees')
   @Auth('read:users')
+  @Auditable({ entity: 'User' })
   @ApiOperation({ summary: 'Get all employees' })
   async employees(): Promise<ResposeDTO> {
     const users = await this.userService.employees();
@@ -64,6 +68,7 @@ export class UsersController extends BaseController {
   ////////////////////////////////////////////////
   @Get(':id')
   @Auth('read:users')
+  @Auditable({ entity: 'User' })
   @ApiOperation({ summary: 'Get User by ID' })
   async getById(
     @Req() request: { user: User },
@@ -99,6 +104,7 @@ export class UsersController extends BaseController {
   ////////////////////////////////////////////////
   @Post()
   @Auth('create:users')
+  @Auditable({ entity: 'User' })
   @ApiOperation({ summary: 'Create User' })
   async create(@Body() body: UserDto): Promise<ResposeDTO> {
     console.log('body', body);
@@ -110,6 +116,7 @@ export class UsersController extends BaseController {
   ////////////////////////////////////////////////
   @Patch(':id')
   @Auth('update:users')
+  @Auditable({ entity: 'User' })
   @ApiOperation({ summary: 'Update User' })
   async update(
     @Param() params: IdDTO,
@@ -128,6 +135,7 @@ export class UsersController extends BaseController {
   ////////////////////////////////////////////////
   @Delete(':id')
   @Auth('delete:users')
+  @Auditable({ entity: 'User' })
   @ApiOperation({ summary: 'Delete User' })
   async delete(@Param() params: IdDTO): Promise<ResposeDTO> {
     const result = await this.userService.delete({ id: params.id });
