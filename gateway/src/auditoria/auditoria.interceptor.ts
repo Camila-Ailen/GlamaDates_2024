@@ -46,7 +46,13 @@ export class AuditoriaInterceptor implements NestInterceptor {
 
     const entity = auditableMetadata.entity || defaultEntity;
     const action = auditableMetadata.action || defaultAction;
-    const description = auditableMetadata.description || '';
+    let description = auditableMetadata.description || '';
+    if (!description) {
+      const apiOperation = this.reflector.get<{ summary?: string }>('swagger/apiOperation', context.getHandler());
+      if (apiOperation?.summary) {
+        description = apiOperation.summary;
+      }
+    }
 
     const userId = request.user?.id || null;
     const bodyData = request.body || null;
