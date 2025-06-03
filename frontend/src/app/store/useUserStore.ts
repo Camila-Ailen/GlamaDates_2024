@@ -61,6 +61,7 @@ interface UserState {
   fetchUsers: (page?: number) => Promise<void>
   fetchAllUsers: () => Promise<void>
   createUser: (userData: CreateUserData) => Promise<boolean>
+  registerUser: (userData: CreateUserData) => Promise<boolean>
   fetchEmployees: (page?: number) => Promise<void>
   updateUser: (userData: UpdateUserData) => Promise<boolean>
   deleteUser: (userId: number) => Promise<boolean>
@@ -276,6 +277,62 @@ const useUserStore = create<UserState>((set, get) => ({
 
         // Recargar la lista de usuarios
         await get().fetchUsers(get().currentPage)
+        return true
+      } else {
+        throw new Error(data.message || "Error al crear usuario")
+      }
+    } catch (error) {
+      console.error("Error creating user:", error)
+      set({ error: (error as Error).message, isLoading: false })
+      toast.error((error as Error).message || "Error al crear usuario")
+      return false
+    }
+  },
+
+  registerUser: async (userData: CreateUserData) => {
+    set({ isLoading: true, error: null })
+
+    console.log("Registering user with data:", userData)
+
+    try {
+      // Preparar datos según el DTO del backend
+      const requestData = {
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: userData.email,
+        gender: userData.gender,
+        birthdate: userData.birthdate,
+        phone: userData.phone,
+        categories: userData.categories, // Array de IDs
+      }
+
+      console.log("Registering user with data:", requestData)
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestData),
+      })
+
+      if (response.status === 409) {
+        toast.error("El usuario ya existe")
+        set({ isLoading: false })
+        return false
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || `Error ${response.status}: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+
+      if (data.status === "success") {
+        toast.success("Usuario creado correctamente")
+        set({ isLoading: false })
+
         return true
       } else {
         throw new Error(data.message || "Error al crear usuario")

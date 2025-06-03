@@ -29,7 +29,7 @@ export function RegisterForm() {
   const [passwordMatch, setPasswordMatch] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
-  const createUser = useUserStore((state) => state.createUser)
+  const registerUser = useUserStore((state) => state.registerUser)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -81,7 +81,7 @@ export function RegisterForm() {
         ...(formData.phone && { phone: formData.phone }),
       }
 
-      await createUser(userData)
+      await registerUser(userData)
       router.push("/login") // Redirect to login after successful registration
     } catch (err) {
       // Error is already handled by toast in the store

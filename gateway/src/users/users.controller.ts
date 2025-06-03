@@ -22,6 +22,8 @@ import { UserPaginationDto } from './dto/pagination-user.dto';
 import { Auth } from '@/auth/auth.decorator';
 import { JwtService } from '@nestjs/jwt';
 import { Auditable } from '@/auditoria/auditable.decorator';
+import { SkipAudit } from '@/auditoria/skip_audit.decorator';
+import { AuditoriaService } from '@/auditoria/auditoria.service';
 
 @Controller('users')
 @ApiTags('Users')
@@ -30,7 +32,9 @@ export class UsersController extends BaseController {
   private readonly userService: UsersService;
   private jwtService: JwtService;
 
-  constructor() {
+  constructor(
+    private auditoriaService: AuditoriaService,
+  ) {
     super(UsersController);
   }
   ////////////////////////////////////////////////
@@ -40,7 +44,6 @@ export class UsersController extends BaseController {
   @Auditable({ entity: 'User' })
   @ApiOperation({ summary: 'Get all users' })
   async all(@Query() query: UserPaginationDto): Promise<ResposeDTO> {
-    console.log('query', query);
     const users = await this.userService.all({ query });
     return { status: 'success', data: users };
   }
@@ -74,7 +77,6 @@ export class UsersController extends BaseController {
     @Req() request: { user: User },
     @Param('id') id: number,
   ): Promise<ResposeDTO> {
-    console.log('request.user', request.user);
     const userDto = new UserDto();
     userDto.id = id;
     const user = await this.userService.getBy(userDto);
@@ -107,9 +109,29 @@ export class UsersController extends BaseController {
   @Auditable({ entity: 'User' })
   @ApiOperation({ summary: 'Create User' })
   async create(@Body() body: UserDto): Promise<ResposeDTO> {
-    console.log('body', body);
     const user = await this.userService.create({ body });
-    console.log('user', user);
+    return { status: 'success', data: user };
+  }
+
+  ////////////////////////////////////////////////
+  ////////////////////////////////////////////////
+  @Post('register')
+  @SkipAudit()
+  @ApiOperation({ summary: 'Register User' })
+  async register(@Body() body: UserDto): Promise<ResposeDTO> {
+    console.log('body', body);
+    
+    const user = await this.userService.create({ body });
+
+    await this.auditoriaService.create({
+      userId: user.id,
+      entity: 'User',
+      accion: 'CREAR',
+      description: `Register User`,
+      newData: user,
+      oldData: null,
+    });
+    
     return { status: 'success', data: user };
   }
   ////////////////////////////////////////////////
@@ -123,9 +145,6 @@ export class UsersController extends BaseController {
     @Body() body: UserDto,
     @Req() request: { user: User },
   ): Promise<ResposeDTO> {
-    console.log('request.user', request.user);
-    console.log('params', params);
-    console.log('body', body);
     return {
       status: 'success',
       data: await this.userService.update({ id: params.id, body }),
