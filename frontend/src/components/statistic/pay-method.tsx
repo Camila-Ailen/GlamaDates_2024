@@ -11,10 +11,6 @@ const chartConfig = {
   visitors: {
     label: "Total",
   },
-  pendiente_pago: {
-    label: "Pendiente de Pago",
-    color: "hsl(var(--chart-1))",
-  },
   efectivo: {
     label: "Efectivo",
     color: "hsl(var(--chart-2))",
@@ -49,17 +45,10 @@ export function PayMethod() {
     if (!payMethod || !payMethod.totals) return []
 
     const total =
-      (payMethod.totals.total_pendiente_pago || 0) +
       (payMethod.totals.total_efectivo || 0) +
       (payMethod.totals.total_mercadopago || 0)
 
     return [
-      {
-        browser: "pendiente_pago",
-        visitors: payMethod.totals.total_pendiente_pago || 0,
-        percentage: total > 0 ? (((payMethod.totals.total_pendiente_pago || 0) / total) * 100).toFixed(1) : 0,
-        fill: "hsl(var(--chart-1))",
-      },
       {
         browser: "efectivo",
         visitors: payMethod.totals.total_efectivo || 0,
