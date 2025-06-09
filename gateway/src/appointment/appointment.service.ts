@@ -1800,8 +1800,10 @@ export class AppointmentService {
 
     const result = await this.detailsAppointmentRepository
       .createQueryBuilder('details')
+      .innerJoin('details.appointment', 'appointment')
       .select('COUNT(*)', 'total_turnos')
-      .where('"datetimeStart" BETWEEN :todayStart AND :todayEnd', { todayStart, todayEnd })
+      .where('"details"."datetimeStart" BETWEEN :todayStart AND :todayEnd', { todayStart, todayEnd })
+      .andWhere('appointment.state != :cancelled', { cancelled: 'CANCELADO' })
       .getRawOne();
 
     return result ? Number(result.total_turnos) : 0;
@@ -1810,40 +1812,42 @@ export class AppointmentService {
   /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
   async getThisMonthAppointments(): Promise<number> {
-    const result = await this.appointmentRepository
-      .createQueryBuilder('appointments')
-      .select('EXTRACT(MONTH FROM "appointments"."datetimeStart")', 'mes')
-      .addSelect('COUNT(*)', 'total_turnos')
-      .where('EXTRACT(MONTH FROM "appointments"."datetimeStart") = EXTRACT(MONTH FROM CURRENT_DATE)')
-      .andWhere('EXTRACT(YEAR FROM "appointments"."datetimeStart") = EXTRACT(YEAR FROM CURRENT_DATE)')
-      .groupBy('EXTRACT(MONTH FROM "appointments"."datetimeStart")')
+    const result = await this.detailsAppointmentRepository
+      .createQueryBuilder('details')
+      .innerJoin('details.appointment', 'appointment')
+      .select('COUNT(*)', 'total_turnos')
+      .where('EXTRACT(MONTH FROM "details"."datetimeStart") = EXTRACT(MONTH FROM CURRENT_DATE)')
+      .andWhere('EXTRACT(YEAR FROM "details"."datetimeStart") = EXTRACT(YEAR FROM CURRENT_DATE)')
+      .andWhere('appointment.state != :cancelled', { cancelled: 'CANCELADO' })
       .getRawOne();
-    return result ? result.total_turnos : 0;
+    return result ? Number(result.total_turnos) : 0;
   }
 
   /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
   async getLastMonthAppointments(): Promise<number> {
-    const result = await this.appointmentRepository
-      .createQueryBuilder('appointments')
-      .select('EXTRACT(MONTH FROM "appointments"."datetimeStart")', 'mes')
-      .addSelect('COUNT(*)', 'total_turnos')
-      .where('EXTRACT(MONTH FROM "appointments"."datetimeStart") = EXTRACT(MONTH FROM CURRENT_DATE) - 1')
-      .andWhere('EXTRACT(YEAR FROM "appointments"."datetimeStart") = EXTRACT(YEAR FROM CURRENT_DATE)')
-      .groupBy('EXTRACT(MONTH FROM "appointments"."datetimeStart")')
+    const result = await this.detailsAppointmentRepository
+      .createQueryBuilder('details')
+      .innerJoin('details.appointment', 'appointment')
+      .select('COUNT(*)', 'total_turnos')
+      .where('EXTRACT(MONTH FROM "details"."datetimeStart") = EXTRACT(MONTH FROM CURRENT_DATE) - 1')
+      .andWhere('EXTRACT(YEAR FROM "details"."datetimeStart") = EXTRACT(YEAR FROM CURRENT_DATE)')
+      .andWhere('appointment.state != :cancelled', { cancelled: 'CANCELADO' })
       .getRawOne();
-    return result ? result.total_turnos : 0;
+    return result ? Number(result.total_turnos) : 0;
   }
 
   /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
   async getThisWeekAppointments(): Promise<number> {
-    const result = await this.appointmentRepository
-      .createQueryBuilder('appointments')
-      .select('DATE_TRUNC(\'week\', "appointments"."datetimeStart")', 'semana')
+    const result = await this.detailsAppointmentRepository
+      .createQueryBuilder('details')
+      .innerJoin('details.appointment', 'appointment')
+      .select('DATE_TRUNC(\'week\', "details"."datetimeStart")', 'semana')
       .addSelect('COUNT(*)', 'total_turnos')
-      .where('"datetimeStart" >= DATE_TRUNC(\'week\', CURRENT_DATE)')
-      .groupBy('DATE_TRUNC(\'week\', "appointments"."datetimeStart")')
+      .where('"details"."datetimeStart" >= DATE_TRUNC(\'week\', CURRENT_DATE)')
+      .andWhere('appointment.state != :cancelled', { cancelled: 'CANCELADO' })
+      .groupBy('DATE_TRUNC(\'week\', "details"."datetimeStart")')
       .orderBy('semana')
       .limit(1)
       .getRawOne();
@@ -1865,12 +1869,16 @@ export class AppointmentService {
       throw new Error('Invalid range');
     }
 
-    const result = await this.appointmentRepository
-      .createQueryBuilder('appointments')
-      .select('DATE_TRUNC(\'day\', "appointments"."datetimeStart")', 'fecha')
+    const todayEnd = endOfDay(new Date());
+    
+    const result = await this.detailsAppointmentRepository
+      .createQueryBuilder('details')
+      .innerJoin('details.appointment', 'appointment')
+      .select('DATE_TRUNC(\'day\', "details"."datetimeStart")', 'fecha')
       .addSelect('COUNT(*)::int', 'total_turnos')
-      .where(`"datetimeStart" BETWEEN (NOW() AT TIME ZONE 'UTC') - INTERVAL '${days} days' AND NOW()`)
-      .groupBy('DATE_TRUNC(\'day\', "appointments"."datetimeStart")')
+      .where(`"details"."datetimeStart" BETWEEN (NOW() AT TIME ZONE 'UTC') - INTERVAL '${days} days' AND :todayEnd`, { todayEnd })
+      .andWhere('appointment.state != :cancelled', { cancelled: 'CANCELADO' })
+      .groupBy('DATE_TRUNC(\'day\', "details"."datetimeStart")')
       .orderBy('fecha')
       .getRawMany();
 
