@@ -60,7 +60,16 @@ export const usePaymentStore = create<PaymentState>((set, get) => ({
 
   fetchPaymentUrl: async (appointmentId: string) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/payment/payment-url?appointmentId=${appointmentId}`)
+      const token = useAuthStore.getState().token
+      console.log('Fetching payment URL for appointment ID:', appointmentId)
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/payment/payment-url?appointmentId=${appointmentId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
       const data = await response.json()
       if (data.status === 'success') {
         set({ paymentUrl: data.data })

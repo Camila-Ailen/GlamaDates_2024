@@ -6,6 +6,7 @@ import { usePaymentStore } from "../store/usePaymentStore"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { CheckCircle, AlertCircle, Loader2, ArrowRight } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
+import useAuthStore from "../store/useAuthStore"
 
 export function PaymentRedirect() {
   const router = useRouter()
@@ -19,6 +20,8 @@ export function PaymentRedirect() {
     const paymentId = searchParams.get("payment_id")
     const paymentStatus = searchParams.get("status")
     const paymentUrl = searchParams.get("preference_id")
+    const token = useAuthStore.getState().token // <-- obtiene el token
+
 
     console.log("Payment data:", { paymentId, paymentStatus })
 
@@ -30,7 +33,10 @@ export function PaymentRedirect() {
       // Aquí deberías hacer la llamada a tu API para guardar los datos
       fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/payment/save-payment`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ paymentId, paymentUrl }),
       })
         .then((response) => response.json())

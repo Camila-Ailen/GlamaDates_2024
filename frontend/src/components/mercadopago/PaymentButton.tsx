@@ -17,7 +17,6 @@ export const PaymentButton: React.FC<PaymentButtonProps> = ({ source }) => {
 
     const urlToUse = (source === 'now' ? preferenceId : paymentUrl) || '';
 
-    console.log("preferenceId", preferenceId);
     initMercadoPago('APP_USR-6ab17ac5-0375-4c53-83a8-c457e1ab9b2f');
     return (
         <Wallet initialization={{ preferenceId: urlToUse }} customization={{ texts: { valueProp: 'smart_option' } }} />
