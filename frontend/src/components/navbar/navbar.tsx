@@ -84,14 +84,14 @@ export function Navbar() {
             ) : (
               <span className="h-2 w-2 rounded-full bg-red-500"></span>
             )}
-            {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "read:appointments") && (
+            {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "see:appointments") && (
               <Link href="/appointment">
                 <Button variant="ghost" className="px-2">
                   Turnos
                 </Button>
               </Link>
             )}
-            {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "read:appointments") && (
+            {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "read:todayappointment") && (
               <Link href="/appointmentToday">
                 <Button variant="ghost" className="px-2">
                   Turnos HOY

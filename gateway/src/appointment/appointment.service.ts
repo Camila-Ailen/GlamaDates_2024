@@ -1795,17 +1795,16 @@ export class AppointmentService {
   /////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
   async getTodayAppointments(): Promise<number> {
-    const result = await this.appointmentRepository
-      .createQueryBuilder('appointments')
-      .select('DATE_TRUNC(\'day\', "appointments"."datetimeStart")', 'fecha')
-      .addSelect('COUNT(*)', 'total_turnos')
-      .where('"datetimeStart" >= CURRENT_DATE')
-      .groupBy('DATE_TRUNC(\'day\', "appointments"."datetimeStart")')
-      .orderBy('fecha')
-      .limit(1)
+    const todayStart = startOfDay(new Date());
+    const todayEnd = endOfDay(new Date());
+
+    const result = await this.detailsAppointmentRepository
+      .createQueryBuilder('details')
+      .select('COUNT(*)', 'total_turnos')
+      .where('"datetimeStart" BETWEEN :todayStart AND :todayEnd', { todayStart, todayEnd })
       .getRawOne();
 
-    return result ? result.total_turnos : 0;
+    return result ? Number(result.total_turnos) : 0;
   }
 
   /////////////////////////////////////////////////////////
