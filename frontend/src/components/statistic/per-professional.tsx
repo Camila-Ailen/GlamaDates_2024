@@ -70,7 +70,7 @@ export function PerProfessional() {
   }, [chartData])
 
   return (
-    <Card>
+    <Card data-chart="per-professional">
       <CardHeader>
         <CardTitle>Citas por Profesional</CardTitle>
         <CardDescription>

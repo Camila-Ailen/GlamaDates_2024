@@ -3,6 +3,7 @@ import jsPDF from "jspdf"
 import html2canvas from "html2canvas"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
+import { useEffect } from "react"
 
 // Función para formatear fechas en español
 export const formatDateString = (dateStr: string) => {
@@ -10,6 +11,11 @@ export const formatDateString = (dateStr: string) => {
   const date = new Date(dateStr)
   return format(date, "d 'de' MMMM 'de' yyyy", { locale: es })
 }
+
+useEffect(() => {
+  console.log("PDF utilities loaded")
+}
+, [])
 
 // Función para generar un PDF con paginación adecuada
 export const generatePDF = async (
@@ -80,9 +86,9 @@ export const generatePDF = async (
     const addPageFooter = () => {
       pdf.setFontSize(9)
       pdf.setTextColor(100, 100, 100)
-      pdf.text(`Página ${pageCount} de ${totalPages}`, pageWidth / 2, pageHeight - 10, {
-        align: "center",
-      })
+      //pdf.text(`Página ${pageCount} de ${totalPages}`, pageWidth / 2, pageHeight - 10, {
+      //  align: "center",
+      //})
 
       // Información de copyright
       pdf.setFontSize(8)

@@ -39,7 +39,7 @@ export function TotalDates() {
     })) || []
 
   return (
-    <Card>
+    <Card data-chart="total-dates">
       <CardHeader>
         <CardTitle>Completitud de citas</CardTitle>
         <CardDescription>

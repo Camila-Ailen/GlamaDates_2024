@@ -81,7 +81,7 @@ export function PayMethod() {
   }, [chartData])
 
   return (
-    <Card className="flex flex-col">
+    <Card className="flex flex-col" data-chart="pay-method">
       <CardHeader className="items-center pb-0">
         <CardTitle>Métodos de Pago</CardTitle>
         <CardDescription>Distribución de pagos</CardDescription>

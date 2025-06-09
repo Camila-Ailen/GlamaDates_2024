@@ -67,7 +67,7 @@ export function PerCategory() {
   }, [chartData])
 
   return (
-    <Card>
+    <Card data-chart="per-category">
       <CardHeader>
         <CardTitle>Citas por Categoría</CardTitle>
         <CardDescription>

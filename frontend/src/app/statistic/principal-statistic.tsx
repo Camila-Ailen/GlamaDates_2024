@@ -16,8 +16,7 @@ import { CalendarIcon, FileText } from "lucide-react"
 import { format } from "date-fns"
 import type { DateRange } from "react-day-picker"
 import { Calendar } from "@/components/ui/calendar"
-import ReportButton from "@/components/statistic/report-button"
-import Link from "next/link"
+import EnhancedReportButtonAdvanced from "@/components/statistic/enhanced-report-button-advanced"
 
 const PrincipalStatistic = () => {
   const {
@@ -126,13 +125,7 @@ const PrincipalStatistic = () => {
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-pink-700">Estadísticas</h1>
         <div className="flex gap-2">
-          <ReportButton companyName="Tu Empresa" companyLogo="/logo.png" />
-          <Link href="/statistic/report">
-            <Button variant="default" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Ver Informe Completo
-            </Button>
-          </Link>
+          <EnhancedReportButtonAdvanced companyName="GlamaDates" companyLogo="/logo.webp" />
         </div>
       </div>
 

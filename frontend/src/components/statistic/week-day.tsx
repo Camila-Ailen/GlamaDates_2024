@@ -104,7 +104,7 @@ export function WeekDay() {
   }, [chartData])
 
   return (
-    <Card className="flex flex-col">
+    <Card className="flex flex-col" data-chart="week-day">
       <CardHeader className="items-center pb-0">
         <CardTitle>Citas por Día</CardTitle>
         <CardDescription>Distribución semanal (No se incluyen citas canceladas)</CardDescription>

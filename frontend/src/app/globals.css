@@ -154,6 +154,7 @@ body {
   }
 
   /* Numeración de páginas */
+  /*
   @page {
     margin: 10mm;
 
@@ -162,7 +163,9 @@ body {
     }
   }
 
+  /*
   .print-page-number:after {
     content: "Página " counter(page) " de " counter(pages);
   }
+  */
 }

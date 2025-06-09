@@ -11,14 +11,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import StatisticsReport from "./statistics-report"
+import StatisticsReportAdvanced from "./statistics-report-advanced"
 
-interface ReportButtonProps {
+interface EnhancedReportButtonAdvancedProps {
   companyName?: string
   companyLogo?: string
 }
 
-const ReportButton = ({ companyName = "GlamaDates", companyLogo }: ReportButtonProps) => {
+const EnhancedReportButtonAdvanced = ({
+  companyName = "GlamaDates",
+  companyLogo = "/logo.webp",
+}: EnhancedReportButtonAdvancedProps) => {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
@@ -29,16 +32,17 @@ const ReportButton = ({ companyName = "GlamaDates", companyLogo }: ReportButtonP
           Generar Informe
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-[95vw] max-h-[95vh] overflow-y-auto">
+      <DialogContent className="max-w-[98vw] max-h-[98vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Informe de Estadísticas</DialogTitle>
-          <DialogDescription>Visualiza y exporta el informe completo de estadísticas en formato PDF.</DialogDescription>
+          <DialogDescription>
+            Configuración personalizable, selección de secciones y opciones de exportación.
+          </DialogDescription>
         </DialogHeader>
-        <StatisticsReport companyName={companyName} companyLogo={companyLogo} />
+        <StatisticsReportAdvanced companyName={companyName} companyLogo={companyLogo} />
       </DialogContent>
     </Dialog>
   )
 }
 
-export default ReportButton
-
+export default EnhancedReportButtonAdvanced
