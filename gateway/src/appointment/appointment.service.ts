@@ -1888,27 +1888,29 @@ export class AppointmentService {
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
   async getDatesStatistics(begin: string, end: string): Promise<any> {
-    const endDate = end + ' 23:00:00';
-
-    const result = await this.appointmentRepository
-      .createQueryBuilder('appointments')
-      .select('DATE_TRUNC(\'day\', "appointments"."datetimeStart")', 'fecha')
-      .addSelect(`SUM(CASE WHEN "appointments"."state" = 'COMPLETADO' THEN 1 ELSE 0 END)::int`, 'total_completado')
-      .addSelect(`SUM(CASE WHEN "appointments"."state" IN ('PENDIENTE', 'SEÑADO', 'ACTIVO') THEN 1 ELSE 0 END)::int`, 'total_pendiente_seniado_activo')
-      .addSelect(`SUM(CASE WHEN "appointments"."state" IN ('MOROSO', 'INACTIVO', 'CANCELADO') THEN 1 ELSE 0 END)::int`, 'total_moroso_inactivo_cancelado')
-      .where(`"datetimeStart" BETWEEN '${begin}' AND '${endDate}'`)
-      .groupBy('DATE_TRUNC(\'day\', "appointments"."datetimeStart")')
+    const endDate = end + ' 23:59:59';
+  
+    const result = await this.detailsAppointmentRepository
+      .createQueryBuilder('details')
+      .innerJoin('details.appointment', 'appointment')
+      .select('DATE_TRUNC(\'day\', "details"."datetimeStart")', 'fecha')
+      .addSelect(`SUM(CASE WHEN appointment.state = 'COMPLETADO' THEN 1 ELSE 0 END)::int`, 'total_completado')
+      .addSelect(`SUM(CASE WHEN appointment.state IN ('PENDIENTE', 'SEÑADO', 'ACTIVO') THEN 1 ELSE 0 END)::int`, 'total_pendiente_seniado_activo')
+      .addSelect(`SUM(CASE WHEN appointment.state IN ('MOROSO', 'INACTIVO', 'CANCELADO') THEN 1 ELSE 0 END)::int`, 'total_moroso_inactivo_cancelado')
+      .where(`"details"."datetimeStart" BETWEEN :begin AND :endDate`, { begin, endDate })
+      .groupBy('DATE_TRUNC(\'day\', "details"."datetimeStart")')
       .orderBy('fecha')
       .getRawMany();
-
-    const totals = await this.appointmentRepository
-      .createQueryBuilder('appointments')
-      .select(`SUM(CASE WHEN "appointments"."state" = 'COMPLETADO' THEN 1 ELSE 0 END)::int`, 'total_completado')
-      .addSelect(`SUM(CASE WHEN "appointments"."state" IN ('PENDIENTE', 'SEÑADO', 'ACTIVO') THEN 1 ELSE 0 END)::int`, 'total_pendiente_seniado_activo')
-      .addSelect(`SUM(CASE WHEN "appointments"."state" IN ('MOROSO', 'INACTIVO', 'CANCELADO') THEN 1 ELSE 0 END)::int`, 'total_moroso_inactivo_cancelado')
-      .where(`"datetimeStart" BETWEEN '${begin}' AND '${endDate}'`)
+  
+    const totals = await this.detailsAppointmentRepository
+      .createQueryBuilder('details')
+      .innerJoin('details.appointment', 'appointment')
+      .select(`SUM(CASE WHEN appointment.state = 'COMPLETADO' THEN 1 ELSE 0 END)::int`, 'total_completado')
+      .addSelect(`SUM(CASE WHEN appointment.state IN ('PENDIENTE', 'SEÑADO', 'ACTIVO') THEN 1 ELSE 0 END)::int`, 'total_pendiente_seniado_activo')
+      .addSelect(`SUM(CASE WHEN appointment.state IN ('MOROSO', 'INACTIVO', 'CANCELADO') THEN 1 ELSE 0 END)::int`, 'total_moroso_inactivo_cancelado')
+      .where(`"details"."datetimeStart" BETWEEN :begin AND :endDate`, { begin, endDate })
       .getRawOne();
-
+  
     return { result, totals };
   }
 
