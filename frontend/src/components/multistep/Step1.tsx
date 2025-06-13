@@ -22,6 +22,15 @@ const Step1: React.FC<InitialFormData> = ({ availableDates }) => {
       const times = availableDates
         .filter((d) => new Date(d).toDateString() === selectedDate.toDateString())
         .map((d) => new Date(d).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }))
+        // Eliminar duplicados usando Set
+        .filter((time, index, array) => array.indexOf(time) === index)
+        // Ordenar los horarios
+        .sort((a, b) => {
+          const timeA = new Date(`1970-01-01 ${a}`)
+          const timeB = new Date(`1970-01-01 ${b}`)
+          return timeA.getTime() - timeB.getTime()
+        })
+
       updateFormData("step1", { date: selectedDate, availableTimes: times })
     }
   }, [selectedDate, availableDates, updateFormData])
@@ -87,4 +96,3 @@ const Step1: React.FC<InitialFormData> = ({ availableDates }) => {
 }
 
 export default Step1
-
