@@ -56,7 +56,6 @@ export function AppointmentsTodayTable() {
   useEffect(() => {
     if (token) {
       fetchTodayAppointments()
-      window.location.reload()
     }
   }, [fetchTodayAppointments, token, orderBy, orderType, filter])
 
