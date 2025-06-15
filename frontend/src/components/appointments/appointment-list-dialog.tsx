@@ -6,6 +6,7 @@ import { es } from "date-fns/locale"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { AppointmentCard } from "./appointment-card"
 import { ViewMydateDialog } from "@/app/myDate/view-mydate-dialog"
+import { ScrollArea } from "../ui/scroll-area"
 
 interface AppointmentListDialogProps {
   isOpen: boolean
@@ -34,20 +35,22 @@ export function AppointmentListDialog({ isOpen, setIsOpen, date, appointments }:
           <DialogHeader>
             <DialogTitle>Citas para el {format(date, "d 'de' MMMM, yyyy", { locale: es })}</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            {appointments.length === 0 ? (
-              <p className="text-center text-muted-foreground">No hay citas para este día</p>
-            ) : (
-              appointments.map((appointment) => (
-                <AppointmentCard
-                  key={appointment.id}
-                  appointment={appointment}
-                  onClick={() => handleAppointmentClick(appointment)}
-                  compact
-                />
-              ))
-            )}
-          </div>
+          <ScrollArea className="h-[calc(100vh-150px)] pr-4">
+            <div className="grid gap-4 py-4">
+              {appointments.length === 0 ? (
+                <p className="text-center text-muted-foreground">No hay citas para este día</p>
+              ) : (
+                appointments.map((appointment) => (
+                  <AppointmentCard
+                    key={appointment.id}
+                    appointment={appointment}
+                    onClick={() => handleAppointmentClick(appointment)}
+                    compact
+                  />
+                ))
+              )}
+            </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
 
