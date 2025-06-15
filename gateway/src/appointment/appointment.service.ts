@@ -175,16 +175,20 @@ export class AppointmentService {
     const config = await this.configService.getSystemConfig();
 
     // Verifico que la fecha y horario de la cita no estén ocupados
+    let serviceStart = new Date(appointmentDate);
     for (const service of body.package.services) {
       const professionals = await this.findProffesionals(service.id, this.userRepository);
       const workstations = await this.findWorkstations(service.id, this.workstationRepository);
 
       // Espero que funcione usar esto :v
-      const existingAppointmentsDetail = await this.colisionAvailable(appointmentDate, service.duration, service.category.id);
+      const existingAppointmentsDetail = await this.colisionAvailable(serviceStart, service.duration, service.category.id);
 
       if (existingAppointmentsDetail.length >= professionals.length && existingAppointmentsDetail.length >= workstations.length) {
         throw new HttpException('No hay espacio disponible para esta cita', HttpStatus.BAD_REQUEST);
       }
+
+      // Avanza el horario para el siguiente servicio
+      serviceStart = addMinutes(serviceStart, service.duration);
     }
 
     // Creo la cita
@@ -206,12 +210,14 @@ export class AppointmentService {
 
 
     // debo iterar sobre los servicios del paquete para crear los detalles
+    let detailStart = new Date(appointmentDate);
     for (const service of body.package.services) {
       // Obtener los profesionales y estaciones de trabajo disponibles
-      let body = new DetailsAppointmentDto();
-      body.service = service;
-      body.datetimeStart = appointmentDate;
-      const { selectedProfessional, selectedWorkstation } = await this.verifyProfessionalsWorkstations(body);
+      let bodyDetail = new DetailsAppointmentDto();
+      bodyDetail.service = service;
+      bodyDetail.datetimeStart = new Date(detailStart);
+
+      const { selectedProfessional, selectedWorkstation } = await this.verifyProfessionalsWorkstations(bodyDetail);
 
       if (selectedProfessional.length === 0) {
         throw new Error('No hay profesionales disponibles.');
@@ -244,13 +250,16 @@ export class AppointmentService {
         service: service,
         priceNow: service.price,
         durationNow: service.duration,
-        datetimeStart: appointmentDate,
+        datetimeStart: new Date(detailStart),
         workstation: workstation,
         employee: { id: employee.id },
         createdAt: new Date(),
       });
       // Guardo el detalle
       await this.detailsAppointmentRepository.save(detail);
+
+      // Avanza el horario para el siguiente detalle
+      detailStart = addMinutes(detailStart, service.duration);
     }
     // Actualizo el appointment con el valor total
     let total = body.package.services.reduce((total, service) => total + service.price, 0);
@@ -1038,42 +1047,80 @@ export class AppointmentService {
   }
 
 
+  // ...existing code...
   async getAvailableAppointments3(id: number, page: number, pageSize: number): Promise<any> {
-    // obtener la configuracion del sistema
     const config = await this.configService.getSystemConfig();
-
-    // Validar el paquete
     const packageData = await this.validatePackage(id);
 
-    // Generar espacios disponibles
-    let availableStartTimes: Date[] = [];
+    // Pre-cargar profesionales y estaciones para cada servicio
+    const professionalsByService = {};
+    const workstationsByService = {};
     for (const service of packageData.services) {
-      const professionals = await this.findProffesionals(service.id, this.userRepository);
-      const workstations = await this.findWorkstations(service.id, this.workstationRepository);
-      if (professionals.length > 0 && workstations.length > 0) {
-        // Obtener las citas existentes en el rango de fechas permitido (para no mostrar turnos en el pasado)
-        const existingAppointmentsDetail = await this.detailsAppointmentRepository.find({
-          where: {
-            workstation: {
-              categories: {
-                id: service.category.id,
-              },
-            },
-            datetimeStart: Between(new Date(), new Date(new Date().setDate(new Date().getDate() + config.maxReservationDays))),
-          },
-          relations: ['appointment', 'workstation', 'workstation.categories', 'employee', 'service'],
-        });
-
-        // Generar espacios disponibles para el servicio actual
-        const availabile = await this.generateAvailableStartTimes2(config, existingAppointmentsDetail, service.category.id, service.duration);
-        availableStartTimes.push(...availabile);
-      } else {
+      professionalsByService[service.id] = await this.findProffesionals(service.id, this.userRepository);
+      workstationsByService[service.id] = await this.findWorkstations(service.id, this.workstationRepository);
+      if (professionalsByService[service.id].length === 0 || workstationsByService[service.id].length === 0) {
         throw new HttpException('No hay profesionales o estaciones de trabajo disponibles para este paquete', HttpStatus.BAD_REQUEST);
       }
     }
 
+    // Calcular duración total del paquete
+    const totalDuration = packageData.services.reduce((sum, s) => sum + s.duration, 0);
+
+    // Preparar horarios de búsqueda
+    const today = new Date();
+    const maxDate = new Date();
+    maxDate.setDate(today.getDate() + config.maxReservationDays);
+
+    let availableStartTimes: Date[] = [];
+    let currentStart = new Date(today);
+    currentStart.setSeconds(0, 0);
+
+    // Redondear al próximo múltiplo de intervalo
+    const interval = config.intervalMinutes || 30;
+    const currentMinutes = currentStart.getMinutes();
+    const nextMultiple = Math.ceil(currentMinutes / interval) * interval;
+    currentStart.setMinutes(nextMultiple, 0, 0);
+
+    while (currentStart < maxDate) {
+      // Validar día y horario
+      const lastService = packageData.services[packageData.services.length - 1];
+      const lastServiceEnd = addMinutes(currentStart, totalDuration - lastService.duration);
+      const lastStartTime = `${lastServiceEnd.getHours().toString().padStart(2, '0')}:${lastServiceEnd.getMinutes().toString().padStart(2, '0')}:00`;
+
+      if (this.isValidDayAndTime(currentStart, config, totalDuration)) {
+        let blockIsAvailable = true;
+        let blockStart = new Date(currentStart);
+
+        for (const service of packageData.services) {
+          const serviceStart = new Date(blockStart);
+          const serviceEnd = addMinutes(serviceStart, service.duration);
+
+          // Usar tu método de colisión para este servicio y horario
+          const colisiones = await this.colisionAvailable(serviceStart, service.duration, service.category.id);
+
+          // Verificar si hay suficientes recursos disponibles
+          if (colisiones.length >= professionalsByService[service.id].length ||
+            colisiones.length >= workstationsByService[service.id].length) {
+            blockIsAvailable = false;
+            break;
+          }
+
+          // Avanzar el bloque para el siguiente servicio
+          blockStart = addMinutes(blockStart, service.duration);
+        }
+
+        if (blockIsAvailable) {
+          availableStartTimes.push(new Date(currentStart));
+        }
+      }
+
+      // Avanzar al siguiente intervalo
+      currentStart = addMinutes(currentStart, interval);
+    }
+
     return this.paginateResults(availableStartTimes, page, pageSize);
   }
+  // ...existing code...
 
 
   async findProffesionals(serviceId: number, userRepository: Repository<User>) {
@@ -1143,95 +1190,95 @@ export class AppointmentService {
     return packageData;
   }
 
-
-  private async generateAvailableStartTimes2(config: SystemConfig, existingAppointments: DetailsAppointment[], categoryId: number, serviceDuration: number): Promise<Date[]> {
-    const { intervalMinutes, maxReservationDays, openingHour1, closingHour1, openingHour2, closingHour2, openDays } = config;
-
-    const today = new Date();
-    const maxDate = new Date();
-    maxDate.setDate(today.getDate() + maxReservationDays);
-    const [closingHour2Hour, closingHour2Minute] = closingHour2 ? closingHour2.split(':').map(Number) : [0, 0];
-    const [closingHour1Hour, closingHour1Minute] = closingHour1.split(':').map(Number);
-    maxDate.setHours(closingHour2 ? closingHour2Hour : closingHour1Hour, closingHour2 ? closingHour2Minute : closingHour1Minute, 0, 0);
-
-    const availableStartTimes: Date[] = [];
-    let currentStartTime = new Date(today);
-    let currentStartUTC = new Date(currentStartTime.toISOString());
-    const currentMinutes = currentStartUTC.getMinutes();
-    const nextMultipleOfTen = Math.ceil(currentMinutes / 10) * 10;
-    currentStartUTC.setMinutes(nextMultipleOfTen, 0, 0); // Redondear al próximo múltiplo de 10
-
-    const maxDateUTC = new Date(maxDate.toISOString());
-
-    // Obtener profesionales de la categoria
-    const professionals = await this.findProffesionalsByCategory(categoryId, this.userRepository)
-
-    // Obtener estaciones de trabajo de la categoria
-    const workstations = await this.findWorkstationsByCategory(categoryId, this.workstationRepository);
-
-    let lastStartTimeHour = closingHour1Hour;
-    let lastStartTimeMinute = closingHour1Minute - serviceDuration;
-
-    if (lastStartTimeMinute < 0) {
-      lastStartTimeHour -= 1;
-      lastStartTimeMinute += 60;
-    }
-
-    const lastStartTime = `${lastStartTimeHour.toString().padStart(2, '0')}:${lastStartTimeMinute.toString().padStart(2, '0')}:00`;
-
-    while ((currentStartUTC < maxDateUTC)) {
-      if (this.isValidDayAndTime(currentStartUTC, config, lastStartTime)) {
-        // esta validando los horarios en general, sin considerar categorias ni nada, si hay turno en ese horario, no va a devolver bien
-        if (!this.hasDetailsCollision(currentStartUTC, existingAppointments)) {
-          if (!this.hasFutureCollision(currentStartUTC, existingAppointments, serviceDuration)) {
-            if (currentStartUTC.getMinutes() % intervalMinutes === 0) {
-              // verifico disponibilidad de empleados y estaciones de trabajo en el horario
-              let isAvailable = true;
-              for (const appointment of existingAppointments) {
-                if (isAfter(currentStartUTC, appointment.datetimeStart) && isBefore(currentStartUTC, addMinutes(appointment.datetimeStart, appointment.durationNow))) {
-                  isAvailable = false;
-                  break;
+  /*
+    private async generateAvailableStartTimes2(config: SystemConfig, existingAppointments: DetailsAppointment[], categoryId: number, serviceDuration: number): Promise<Date[]> {
+      const { intervalMinutes, maxReservationDays, openingHour1, closingHour1, openingHour2, closingHour2, openDays } = config;
+  
+      const today = new Date();
+      const maxDate = new Date();
+      maxDate.setDate(today.getDate() + maxReservationDays);
+      const [closingHour2Hour, closingHour2Minute] = closingHour2 ? closingHour2.split(':').map(Number) : [0, 0];
+      const [closingHour1Hour, closingHour1Minute] = closingHour1.split(':').map(Number);
+      maxDate.setHours(closingHour2 ? closingHour2Hour : closingHour1Hour, closingHour2 ? closingHour2Minute : closingHour1Minute, 0, 0);
+  
+      const availableStartTimes: Date[] = [];
+      let currentStartTime = new Date(today);
+      let currentStartUTC = new Date(currentStartTime.toISOString());
+      const currentMinutes = currentStartUTC.getMinutes();
+      const nextMultipleOfTen = Math.ceil(currentMinutes / 10) * 10;
+      currentStartUTC.setMinutes(nextMultipleOfTen, 0, 0); // Redondear al próximo múltiplo de 10
+  
+      const maxDateUTC = new Date(maxDate.toISOString());
+  
+      // Obtener profesionales de la categoria
+      const professionals = await this.findProffesionalsByCategory(categoryId, this.userRepository)
+  
+      // Obtener estaciones de trabajo de la categoria
+      const workstations = await this.findWorkstationsByCategory(categoryId, this.workstationRepository);
+  
+      let lastStartTimeHour = closingHour1Hour;
+      let lastStartTimeMinute = closingHour1Minute - serviceDuration;
+  
+      if (lastStartTimeMinute < 0) {
+        lastStartTimeHour -= 1;
+        lastStartTimeMinute += 60;
+      }
+  
+      const lastStartTime = `${lastStartTimeHour.toString().padStart(2, '0')}:${lastStartTimeMinute.toString().padStart(2, '0')}:00`;
+  
+      while ((currentStartUTC < maxDateUTC)) {
+        if (this.isValidDayAndTime(currentStartUTC, config, lastStartTime)) {
+          // esta validando los horarios en general, sin considerar categorias ni nada, si hay turno en ese horario, no va a devolver bien
+          if (!this.hasDetailsCollision(currentStartUTC, existingAppointments)) {
+            if (!this.hasFutureCollision(currentStartUTC, existingAppointments, serviceDuration)) {
+              if (currentStartUTC.getMinutes() % intervalMinutes === 0) {
+                // verifico disponibilidad de empleados y estaciones de trabajo en el horario
+                let isAvailable = true;
+                for (const appointment of existingAppointments) {
+                  if (isAfter(currentStartUTC, appointment.datetimeStart) && isBefore(currentStartUTC, addMinutes(appointment.datetimeStart, appointment.durationNow))) {
+                    isAvailable = false;
+                    break;
+                  }
                 }
+                availableStartTimes.push(new Date(currentStartUTC));
               }
-              availableStartTimes.push(new Date(currentStartUTC));
+  
+            } else {
+  
+  
+              if (currentStartUTC.getMinutes() % intervalMinutes === 0) {
+  
+                const colisionAppointmentsFuture = await this.colisionAvailableFuture(currentStartUTC, serviceDuration, categoryId);
+                // Evaluo si hay cantidad de profesionales y estaciones de trabajo suficientes disponibles
+                if (colisionAppointmentsFuture.length < professionals.length && colisionAppointmentsFuture.length < workstations.length) {
+                  // Como aqui todavia no se deben asignar, con saber que hay disponibles es suficiente
+                  availableStartTimes.push(new Date(currentStartUTC));
+                }
+  
+              }
             }
-
           } else {
-
-
+  
             if (currentStartUTC.getMinutes() % intervalMinutes === 0) {
-
-              const colisionAppointmentsFuture = await this.colisionAvailableFuture(currentStartUTC, serviceDuration, categoryId);
+  
+              // turnos en colision con el horario actual
+              const colisionAppointments = await this.colisionAvailable(currentStartUTC, serviceDuration, categoryId);
+  
               // Evaluo si hay cantidad de profesionales y estaciones de trabajo suficientes disponibles
-              if (colisionAppointmentsFuture.length < professionals.length && colisionAppointmentsFuture.length < workstations.length) {
+              if (colisionAppointments.length < professionals.length && colisionAppointments.length < workstations.length) {
                 // Como aqui todavia no se deben asignar, con saber que hay disponibles es suficiente
                 availableStartTimes.push(new Date(currentStartUTC));
               }
-
-            }
-          }
-        } else {
-
-          if (currentStartUTC.getMinutes() % intervalMinutes === 0) {
-
-            // turnos en colision con el horario actual
-            const colisionAppointments = await this.colisionAvailable(currentStartUTC, serviceDuration, categoryId);
-
-            // Evaluo si hay cantidad de profesionales y estaciones de trabajo suficientes disponibles
-            if (colisionAppointments.length < professionals.length && colisionAppointments.length < workstations.length) {
-              // Como aqui todavia no se deben asignar, con saber que hay disponibles es suficiente
-              availableStartTimes.push(new Date(currentStartUTC));
             }
           }
         }
+  
+        currentStartUTC = addMinutes(currentStartUTC, 10);
       }
-
-      currentStartUTC = addMinutes(currentStartUTC, 10);
+  
+      return availableStartTimes;
     }
-
-    return availableStartTimes;
-  }
-
+  */
 
   // tengo que ingresar
   // 1. la fecha y hora actuales (currentStartTime)
@@ -1276,7 +1323,11 @@ export class AppointmentService {
 
 
 
-  private isValidDayAndTime(currentStartTime: Date, config: SystemConfig, lastStartTime: string): boolean {
+  private isValidDayAndTime(
+    currentStartTime: Date,
+    config: SystemConfig,
+    totalDuration: number
+  ): boolean {
     const { openDays, openingHour1, closingHour1, openingHour2, closingHour2 } = config;
 
     const daysOfWeekArray = [
@@ -1289,34 +1340,30 @@ export class AppointmentService {
       DaysOfWeek.SATURDAY,
     ];
 
-    // Obtenemos el día de la semana como un valor del enum
-    const dayOfWeek = daysOfWeekArray[currentStartTime.getDay()]; // Devuelve el enum correspondiente
-
-
-    // Validamos si el día está dentro de los días de apertura
+    const dayOfWeek = daysOfWeekArray[currentStartTime.getDay()];
     const isOpenDay = openDays.includes(dayOfWeek);
 
-    // Convertimos las horas de apertura y cierre a objetos Date para comparaciones precisas
-    const currentTime = currentStartTime.getHours() * 60 + currentStartTime.getMinutes(); // Hora en minutos
+    const currentMinutes = currentStartTime.getHours() * 60 + currentStartTime.getMinutes();
+    const endMinutes = currentMinutes + totalDuration;
+
     const openingTime1 = openingHour1 ? this.timeToMinutes(openingHour1) : null;
-    const closingTime1 = lastStartTime ? this.timeToMinutes(lastStartTime) : null;
+    const closingTime1 = closingHour1 ? this.timeToMinutes(closingHour1) : null;
     const openingTime2 = openingHour2 ? this.timeToMinutes(openingHour2) : null;
     const closingTime2 = closingHour2 ? this.timeToMinutes(closingHour2) : null;
 
-    // Validamos si está en el primer o segundo turno
+    // El turno debe empezar y terminar dentro de un turno válido
     const inFirstShift =
       openingTime1 !== null &&
       closingTime1 !== null &&
-      currentTime >= openingTime1 &&
-      currentTime <= closingTime1;
+      currentMinutes >= openingTime1 &&
+      endMinutes <= closingTime1;
 
     const inSecondShift =
       openingTime2 !== null &&
       closingTime2 !== null &&
-      currentTime >= openingTime2 &&
-      currentTime <= closingTime2;
+      currentMinutes >= openingTime2 &&
+      endMinutes <= closingTime2;
 
-    // Retornamos true solo si el día está abierto y el tiempo está dentro de algún turno
     return isOpenDay && (inFirstShift || inSecondShift);
   }
 
@@ -1889,7 +1936,7 @@ export class AppointmentService {
   //////////////////////////////////////////////////////////
   async getDatesStatistics(begin: string, end: string): Promise<any> {
     const endDate = end + ' 23:59:59';
-  
+
     const result = await this.detailsAppointmentRepository
       .createQueryBuilder('details')
       .innerJoin('details.appointment', 'appointment')
@@ -1901,7 +1948,7 @@ export class AppointmentService {
       .groupBy('DATE_TRUNC(\'day\', "details"."datetimeStart")')
       .orderBy('fecha')
       .getRawMany();
-  
+
     const totals = await this.detailsAppointmentRepository
       .createQueryBuilder('details')
       .innerJoin('details.appointment', 'appointment')
@@ -1910,7 +1957,7 @@ export class AppointmentService {
       .addSelect(`SUM(CASE WHEN appointment.state IN ('MOROSO', 'INACTIVO', 'CANCELADO') THEN 1 ELSE 0 END)::int`, 'total_moroso_inactivo_cancelado')
       .where(`"details"."datetimeStart" BETWEEN :begin AND :endDate`, { begin, endDate })
       .getRawOne();
-  
+
     return { result, totals };
   }
 
