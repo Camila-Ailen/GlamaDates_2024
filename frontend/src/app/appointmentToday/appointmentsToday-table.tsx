@@ -341,7 +341,22 @@ export function AppointmentsTodayTable() {
                           ) : (
                             <ViewCashDialog appointment={appointment} />
                           )}
-                          {hasPermission("read:appointments") && <ViewAppointmentDialog appointment={appointment} />}
+                          {hasPermission("read:appointments") && (
+                            <ViewAppointmentDialog
+                              appointment={{
+                                ...appointment,
+                                datetimeStart: appointment.datetimeStart instanceof Date
+                                  ? appointment.datetimeStart.toISOString()
+                                  : appointment.datetimeStart,
+                                details: appointment.details.map((detail: any) => ({
+                                  ...detail,
+                                  datetimeStart: detail.datetimeStart instanceof Date
+                                    ? detail.datetimeStart.toISOString()
+                                    : detail.datetimeStart,
+                                })),
+                              }}
+                            />
+                          )}
                           {hasPermission("update:appointments") && <EditAppointmentDialogAdmin appointment={appointment} />}
                         </div>
                       </TableCell>

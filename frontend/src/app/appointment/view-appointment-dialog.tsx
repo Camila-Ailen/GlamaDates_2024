@@ -10,11 +10,45 @@ import { format } from "date-fns/format"
 import { es } from "date-fns/locale"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { AppointmentHistoryButton } from "@/components/appointments/appointment-history-button"
 
-export function ViewAppointmentDialog({ appointment }) {
+interface AppointmentDetail {
+  service: {
+    name: string
+    price: number
+    duration: number
+    description: string
+  }
+  datetimeStart: string
+  employee: {
+    firstName: string
+    lastName: string
+  }
+  workstation: {
+    id: number
+    description: string
+  }
+}
+
+interface Appointment {
+  id: number
+  state: string
+  datetimeStart: string
+  client: {
+    firstName: string
+    lastName: string
+  }
+  package: {
+    name: string
+  }
+  total: number
+  details: AppointmentDetail[]
+}
+
+export function ViewAppointmentDialog({ appointment }: { appointment: Appointment }) {
   const [isOpen, setIsOpen] = useState(false)
 
-  const getStatusBadge = (state) => {
+  const getStatusBadge = (state: string) => {
     switch (state) {
       case "CANCELADO":
         return <Badge variant="destructive">CANCELADO</Badge>
@@ -178,6 +212,16 @@ export function ViewAppointmentDialog({ appointment }) {
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* Historial */}
+            <div className="flex gap-2 justify-center">
+              <AppointmentHistoryButton
+                appointmentId={appointment.id}
+                appointmentData={appointment}
+                size="sm"
+                variant="ghost"
+              />
             </div>
           </div>
         </ScrollArea>

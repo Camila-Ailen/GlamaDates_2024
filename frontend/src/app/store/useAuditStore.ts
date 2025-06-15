@@ -41,6 +41,7 @@ interface AuditState {
 
   // Nuevas acciones para obtener opciones de filtro
   fetchFilterOptions: () => Promise<{ entities: string[]; actions: string[]; users: (number | null)[] }>
+  fetchAppointmentAudits: (appointmentId: number) => Promise<Audit[]>
 }
 
 export const useAuditStore = create<AuditState>((set, get) => ({
@@ -214,6 +215,73 @@ export const useAuditStore = create<AuditState>((set, get) => ({
         actions: Array.from(new Set(audits.map((audit) => audit.accion))),
         users: Array.from(new Set(audits.map((audit) => audit.userId).filter((id) => id !== undefined && id !== null))),
       }
+    }
+  },
+
+  fetchAppointmentAudits: async (appointmentId: number) => {
+    const token = useAuthStore.getState().token
+
+    set({ isLoading: true, error: null })
+
+    try {
+      // Primero intentamos buscar auditorías específicas de appointments
+      const params = new URLSearchParams({
+        orderBy: "id",
+        orderType: "DESC",
+        offset: "0",
+        pageSize: "100",
+        entity: "Appointment", // Buscar por entidad Appointment
+      })
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auditoria?${params}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      })
+
+      if (response.status === 403) {
+        toast.error("Sesión expirada")
+        useAuthStore.getState().logout()
+        return []
+      }
+
+      if (!response.ok) {
+        throw new Error(`Error ${response.status}: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+
+      if (data.status === "success") {
+        // Filtrar auditorías que contengan el ID de la cita en los datos
+        const appointmentAudits = (data.data.results || []).filter((audit: Audit) => {
+          // Buscar en newData y oldData por el ID de la cita
+          const newDataStr = audit.newData ? JSON.stringify(audit.newData) : ""
+          const oldDataStr = audit.oldData ? JSON.stringify(audit.oldData) : ""
+          const description = audit.description || ""
+
+          return (
+            newDataStr.includes(`"id":${appointmentId}`) ||
+            oldDataStr.includes(`"id":${appointmentId}`) ||
+            newDataStr.includes(`"appointmentId":${appointmentId}`) ||
+            oldDataStr.includes(`"appointmentId":${appointmentId}`) ||
+            description.includes(`${appointmentId}`)
+          )
+        })
+
+        set({ isLoading: false })
+        return appointmentAudits
+      } else {
+        throw new Error(data.message || "Error al obtener las auditorías de la cita")
+      }
+    } catch (error) {
+      console.error("Error fetching appointment audits:", error)
+      set({
+        error: (error as Error).message,
+        isLoading: false,
+      })
+      toast.error("Error al cargar el historial de la cita")
+      return []
     }
   },
 }))

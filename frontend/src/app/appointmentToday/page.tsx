@@ -6,30 +6,34 @@ import useAuthStore from "@/app/store/useAuthStore"
 import { Loader2 } from "lucide-react"
 import { AppointmentsTodayTable } from './appointmentsToday-table'
 
+// Función para verificar permisos 
+const hasRequiredPermissions = (user: any) => {
+    return !!user &&
+        !!user.role &&
+        Array.isArray(user.role.permissions) &&
+        user.role.permissions.some((perm: any) => perm.permission === "read:todayappointment")
+}
 
 export default function AppointmetsTodayPage() {
     const router = useRouter()
     const { user, token, isLoading } = useAuthStore()
 
+
+
     useEffect(() => {
-        // Si no está cargando y no hay token, redirigir al login
-        if (!isLoading && !token) {
-            router.push("/login")
+        if (isLoading) return; // Espera a que termine de cargar
+
+        if (!token || !user) {
+            router.replace("/login")
             return
         }
 
         // Si el usuario está cargado y no tiene el rol necesario, redirigir
-        if (user && !hasRequiredPermissions(user)) {
-            router.push("/unauthorized")
+        if (!hasRequiredPermissions(user)) {
+            router.replace("/unauthorized")
             return
         }
     }, [isLoading, token, user, router])
-
-    // Función para verificar permisos 
-    const hasRequiredPermissions = (user: any) => {
-        return Array.isArray(user.role.permissions) &&
-            user.role.permissions.some((perm: any) => perm.permission === "read:todayappointment")
-    }
 
     // Mostrar pantalla de carga mientras se verifica la autenticación
     if (isLoading) {
@@ -44,12 +48,7 @@ export default function AppointmetsTodayPage() {
     }
 
     // Si no hay usuario o token, no renderizar nada (se redirigirá en el useEffect)
-    if (!user || !token) {
-        return null
-    }
-
-    // Si el usuario no tiene permisos, no renderizar nada (se redirigirá en el useEffect)
-    if (!hasRequiredPermissions(user)) {
+    if (!user || !token || !hasRequiredPermissions(user)) {
         return null
     }
 
