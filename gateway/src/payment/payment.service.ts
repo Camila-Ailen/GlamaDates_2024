@@ -303,7 +303,7 @@ export class PaymentService {
         const appointmentTime = appointment.datetimeStart
             ? new Date(appointment.datetimeStart).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
             : 'N/A';
-        const serviceDuration = appointment.details[0]?.durationNow || 'N/A';
+        const serviceDuration = appointment.details.reduce((sum, s) => sum + s.durationNow, 0);
         const professionalName = appointment.details[0]?.employee.firstName && appointment.details[0]?.employee.firstName || 'N/A';
         const transactionId = payment.transactionId || payment.id.toString();
 
@@ -318,7 +318,6 @@ export class PaymentService {
             appointmentDate,
             appointmentTime,
             serviceDuration: serviceDuration.toString(),
-            professionalName: `${appointment.details[0].employee.firstName} ${appointment.details[0].employee.lastName}`,
             discountAmount: payment.appointment.discount || 0,
         });
 
@@ -336,7 +335,6 @@ export class PaymentService {
         emailTemplate = emailTemplate.replace('{{appointmentDate}}', appointmentDate);
         emailTemplate = emailTemplate.replace('{{appointmentTime}}', appointmentTime);
         emailTemplate = emailTemplate.replace('{{serviceDuration}}', serviceDuration.toString());
-        emailTemplate = emailTemplate.replace('{{professionalName}}', professionalName);
         emailTemplate = emailTemplate.replace('{{viewAppointmentLink}}', `${process.env.FRONTEND_URL}/myDate`);
 
         // Envía el correo con el PDF adjunto

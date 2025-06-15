@@ -35,7 +35,7 @@ export function AppointmentListDialog({ isOpen, setIsOpen, date, appointments }:
           <DialogHeader>
             <DialogTitle>Citas para el {format(date, "d 'de' MMMM, yyyy", { locale: es })}</DialogTitle>
           </DialogHeader>
-          <ScrollArea className="h-[calc(100vh-150px)] pr-4">
+          <ScrollArea className="max-h-[calc(100vh-150px)] pr-4">
             <div className="grid gap-4 py-4">
               {appointments.length === 0 ? (
                 <p className="text-center text-muted-foreground">No hay citas para este día</p>

@@ -14,7 +14,6 @@ export class PdfService {
     appointmentDate: string
     appointmentTime: string
     serviceDuration: string
-    professionalName: string
     receiptNumber?: string
     discountAmount?: number
   }): Promise<Buffer> {
@@ -131,7 +130,7 @@ export class PdfService {
         doc.rect(40, 280, 8, 120).fillColor(secondaryColor).fill()
 
         // Título de sección
-        doc.fontSize(12).font("Helvetica-Bold").fillColor(primaryColor).text("DETALLES DEL SERVICIO", 60, 290)
+        doc.fontSize(12).font("Helvetica-Bold").fillColor(primaryColor).text("DETALLES DEL PAQUETE", 60, 290)
 
         // Datos del servicio
         doc
@@ -166,13 +165,6 @@ export class PdfService {
           .font("Helvetica")
           .text(`${data.serviceDuration} minutos`, 150, 370)
 
-        doc
-          .fontSize(11)
-          .font("Helvetica-Bold")
-          .fillColor(darkGray)
-          .text("Profesional:", 350, 310)
-          .font("Helvetica")
-          .text(data.professionalName, 420, 310)
 
         // ===== RESUMEN DE PAGO =====
         // Fondo para resumen de pago
