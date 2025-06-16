@@ -54,9 +54,7 @@ const Step4: React.FC = () => {
           </button>
         </Card>
 
-        <div className="relative">
-          <PaymentButton source="now" />
-        </div>
+        {/* <PaymentButton /> */}
 
         <Link href={fullURL} className="block">
           <Card className="border-blue-100 overflow-hidden transition-all duration-200 hover:shadow-md">
@@ -76,6 +74,7 @@ const Step4: React.FC = () => {
             </div>
           </Card>
         </Link>
+        
       </div>
     </div>
   )

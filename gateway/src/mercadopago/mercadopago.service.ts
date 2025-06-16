@@ -23,7 +23,7 @@ export class MercadopagoService {
     if (!appointment) {
       throw new Error("Appointment not found");
     }
-      
+
     try {
       const response = await preference.create({
         body: {
@@ -36,6 +36,9 @@ export class MercadopagoService {
               currency_id: 'ARS',
             }
           ],
+          payer: {
+            email: 'test_user_1686888273@testuser.com',
+          },
           back_urls: {
             success: 'https://localhost:3001/redirect',
             failure: 'https://localhost:3001/catalog',

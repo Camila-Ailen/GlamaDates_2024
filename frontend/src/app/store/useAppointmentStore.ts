@@ -3,6 +3,7 @@ import useAuthStore from './useAuthStore'
 import { toast } from 'sonner'
 import { Package } from './usePackageStore'
 import { User } from './useUserStore'
+import { Payment } from './usePaymentStore'
 
 export interface DetailsAppointment {
     id: number,
@@ -13,18 +14,6 @@ export interface DetailsAppointment {
     workstation: Workstation,
     service: Service,
     datetimeStart: Date,
-}
-
-export interface Payment {
-    id: number,
-    datetime: Date,
-    amount: number,
-    paymentMethod: string,
-    paymentType: string,
-    status: string,
-    observation: string,
-    transactionId: string,
-    appointment: Appointment,
 }
 
 export interface Appointment {

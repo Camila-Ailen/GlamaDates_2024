@@ -2,6 +2,8 @@ import { toast } from "sonner"
 import { create } from "zustand"
 import useAuthStore from "./useAuthStore"
 import type { Package } from "./usePackageStore"
+import { Appointment } from "./useAppointmentStore"
+import { usePaymentStore } from "./usePaymentStore"
 
 interface FormData {
   step1: { date: Date | null; availableTimes: string[] }
@@ -18,7 +20,7 @@ interface FormStore {
   setStep: (step: number) => void
   updateFormData: (step: keyof FormData | "selectedPackage", data: Partial<FormData[keyof FormData]> | Package) => void
   isStepValid: (step: number) => boolean
-  submitForm: () => Promise<void>
+  submitForm: () => Promise<Appointment | void>
   resetForm: () => void
   isOpen: boolean
   openForm: () => void
@@ -69,7 +71,7 @@ export const useFormStore = create<FormStore>()((set, get) => ({
         return false
     }
   },
-  submitForm: async () => {
+  submitForm: async (): Promise<Appointment | void> => {
     const convertTo24HourFormat = (time: string) => {
       const [timePart, modifier] = time.split(' ');
       let [hours, minutes] = timePart.split(':').map(Number);
@@ -125,9 +127,11 @@ export const useFormStore = create<FormStore>()((set, get) => ({
       set({ appointmentId: appointment.id })
 
       set({ paymentURL: appointment.payments[0].paymentURL });
+      usePaymentStore.getState().setPaymentUrl(appointment.payments[0].paymentURL);
 
       if (response.ok) {
         toast.success("Turno agendado exitosamente 🎉")
+        return appointment;
       } else {
         toast.error("Error al agendar turno")
         throw new Error("Failed to submit form")

@@ -4,7 +4,7 @@ import useAuthStore from "./useAuthStore"
 import { toast } from "sonner"
 import { Appointment } from "./useAppointmentStore"
 
-interface Payment {
+export interface Payment {
   id: number
   appointment: Appointment
   datetime: Date
@@ -38,6 +38,7 @@ interface PaymentState {
   cancelPayment: (id: number, observation: string) => Promise<void>
   setOrderBy: (orderBy: string) => void
   setOrderType: (orderType: "ASC" | "DESC") => void
+  setPaymentUrl: (url: string) => void
 }
 
 const token = useAuthStore.getState().token;
@@ -140,6 +141,7 @@ export const usePaymentStore = create<PaymentState>((set, get) => ({
 
   setOrderBy: (orderBy: string) => set({ orderBy }),
   setOrderType: (orderType: "ASC" | "DESC") => set({ orderType }),
+  setPaymentUrl: (url) => set({ paymentUrl: url }),
 
 }))
 

@@ -225,7 +225,7 @@ export function ViewMydateDialog({ appointment }) {
           <div className="mt-6 space-y-3">
             {appointment.state !== "COMPLETADO" &&
               appointment.state !== "ACTIVO" &&
-              appointment.state !== "INACTIVO" && <PaymentButton source="later" />}
+              appointment.state !== "INACTIVO" && <PaymentButton />}
 
             {appointment.state === "INACTIVO" && (
               <Button className="w-full bg-yellow-600 hover:bg-yellow-700 text-white">

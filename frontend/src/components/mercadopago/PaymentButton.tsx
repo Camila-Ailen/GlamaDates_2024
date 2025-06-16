@@ -1,26 +1,49 @@
-import { initMercadoPago, Wallet } from '@mercadopago/sdk-react'
-import useFormStore from '@/app/store/formStore';
+declare global {
+  interface Window {
+    MercadoPago: any;
+  }
+}
+
+import { useEffect, useRef } from 'react';
 import { usePaymentStore } from '@/app/store/usePaymentStore';
 
+const publicKey = process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY;
 
-const publicKey = process.env.NEXT_MERCADOPAGO_PUBLIC_KEY;
+export const PaymentButton: React.FC = () => {
+  const paymentUrl = usePaymentStore((state) => state.paymentUrl);
+  const walletContainer = useRef<HTMLDivElement>(null);
+  const alreadyRendered = useRef(false);
 
-interface PaymentButtonProps {
-    source: 'now' | 'later';
-}
+  useEffect(() => {
+    if (!publicKey || !paymentUrl || !walletContainer.current || alreadyRendered.current) return;
 
-export const PaymentButton: React.FC<PaymentButtonProps> = ({ source }) => {
-    // pago en el momento
-    const preferenceId = useFormStore((state) => state.paymentURL);
-    // pago despues
-    const paymentUrl = usePaymentStore((state) => state.paymentUrl);
+    if (!window.MercadoPago) {
+      console.error("❌ MercadoPago SDK no está disponible");
+      return;
+    }
 
-    const urlToUse = (source === 'now' ? preferenceId : paymentUrl) || '';
+    alreadyRendered.current = true;
 
-    initMercadoPago('APP_USR-6ab17ac5-0375-4c53-83a8-c457e1ab9b2f');
-    return (
-        <Wallet initialization={{ preferenceId: urlToUse }} customization={{ texts: { valueProp: 'smart_option' } }} />
-    )
-}
+    const mp = new window.MercadoPago(publicKey, { locale: 'es-AR' });
 
+    mp.bricks().create("wallet", "wallet_container", {
+      initialization: {
+        preferenceId: paymentUrl,
+      },
+      customization: {
+        texts: {
+          valueProp: 'smart_option',
+        },
+      },
+      settings: {
+        sandbox: true, 
+      },
+    });
+  }, [paymentUrl]);
 
+  return (
+    <div className="w-full flex justify-center min-h-[50px]">
+      <div id="wallet_container" ref={walletContainer} className="w-full" />
+    </div>
+  );
+};

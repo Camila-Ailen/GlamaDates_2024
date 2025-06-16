@@ -19,7 +19,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="es">
+      <head>
+        <script src="https://sdk.mercadopago.com/js/v2" async></script>
+      </head>
       <body suppressHydrationWarning className={ibmPlexSans.className}>
         <ThemeProvider
           attribute="class"
