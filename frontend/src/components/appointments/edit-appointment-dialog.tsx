@@ -11,6 +11,7 @@ import { RecommendationDialog } from "@/components/multistep/RecommendationDialo
 import { CalendarIcon } from "lucide-react" // Declare CalendarIcon here
 import { toast } from "sonner"
 import useAppointmentStore from "@/app/store/useAppointmentStore"
+import { RecommendationDialogEdit } from "../multistep/RecommendationDialogEdit"
 
 interface EditAppointmentDialogProps {
   appointmentId: number
@@ -195,7 +196,7 @@ export function EditAppointmentDialog({
           ) : availability.length > 0 ? (
             <>
               {showRecommendation ? (
-                <RecommendationDialog
+                <RecommendationDialogEdit
                   isOpen={showRecommendation}
                   onClose={() => setShowRecommendation(false)}
                   availability={availability}
