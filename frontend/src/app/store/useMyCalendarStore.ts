@@ -34,47 +34,39 @@ export const useMyCalendarStore = create<MyCalendarState>((set, get) => ({
     orderType: 'DESC',
     filter: '',
 
-    fetchMyDates: async (page?: number) => {
-        const { pageSize, orderBy, orderType, filter } = get();
-        const currentPage = page || get().currentPage;
-
+    fetchMyDates: async () => {
         set({ isLoading: true, error: null });
 
         try {
+            const token = useAuthStore.getState().token;
             const response = await fetch(
-                `${
-                    process.env.NEXT_PUBLIC_BACKEND_URL
-                }/api/appointment/professional?orderBy=${orderBy}&orderType=${orderType}&offset=${
-                    (currentPage - 1) * pageSize
-                }&pageSize=${pageSize}&filter=${filter}`,
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/appointment/professional`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
                 },
             );
-            
+
             if (response.status === 403 || response.status === 500) {
-                
                 useAuthStore.getState().logout();
                 toast.error("Sesión expirada");
                 return;
-            } 
+            }
 
-            console.log('response.status: ', response);
-            
             if (!response.ok) throw new Error("Error al obtener mis citas");
             const data = await response.json();
+            console.log("Mis citas:", data);
+
             set({
-                myDates: data.data.results,
-                total: data.data.total,
-                currentPage,
+                myDates: data.data,
+                total: data.data.length,
+                currentPage: 1,
                 isLoading: false,
             });
         } catch (error) {
             set({ error: (error as Error).message, isLoading: false });
         }
-
     },
 
     setOrderBy: (field) => set({ orderBy: field }),

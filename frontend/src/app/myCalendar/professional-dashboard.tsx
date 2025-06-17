@@ -31,7 +31,7 @@ export function ProfessionalDashboard() {
 
   useEffect(() => {
     if (token) {
-      fetchMyDates(1)
+      fetchMyDates()
     }
   }, [fetchMyDates, token, orderBy, orderType])
 

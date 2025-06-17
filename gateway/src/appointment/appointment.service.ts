@@ -1783,55 +1783,31 @@ export class AppointmentService {
 
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
-  async allByProfessional(user: User, params: {
-    query: PaginationAppointmentDto;
-  }): Promise<PaginationResponseDTO> {
-    const emptyResponse = {
-      total: 0,
-      pageSize: 0,
-      offset: params.query.offset,
-      results: [],
-    };
-
+  async allByProfessional(user: User): Promise<Appointment[]> {
     try {
-      if (Object.keys(params.query).length === 0) {
-        return emptyResponse;
-      }
-      if (params.query.pageSize?.toString() === '0') {
-        return emptyResponse;
-      }
-
-      const order = {};
-      if (params.query.orderBy && params.query.orderType) {
-        order[params.query.orderBy] = params.query.orderType;
-      }
-
-      const forPage = params.query.pageSize
-        ? parseInt(params.query.pageSize.toString(), 10) || 10
-        : 10;
-      const skip = params.query.offset;
-
-      const [appointments, total] = await this.appointmentRepository.findAndCount({
+      const appointments = await this.appointmentRepository.find({
         where: {
           deletedAt: IsNull(),
-          // client: { id: user.id },
           details: {
             employee: { id: user.id }
           },
           state: Not(AppointmentState.CANCELLED),
         },
-        relations: ['details', 'details.employee', 'details.workstation', 'details.service', 'client', 'package', 'package.services', 'package.services.category', 'payments'],
-        order,
-        take: forPage,
-        skip,
+        relations: [
+          'details',
+          'details.employee',
+          'details.workstation',
+          'details.service',
+          'client',
+          'package',
+          'package.services',
+          'package.services.category',
+          'payments'
+        ],
+        order: { datetimeStart: 'DESC' }, // Opcional: ordena por fecha descendente
       });
 
-      return {
-        total: total,
-        pageSize: forPage,
-        offset: params.query.offset,
-        results: appointments,
-      };
+      return appointments;
     } catch (error) {
       console.error(error);
       throw new HttpException(error.message, HttpStatus.BAD_REQUEST);

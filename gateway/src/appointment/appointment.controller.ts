@@ -206,9 +206,9 @@ export class AppointmentController extends BaseController {
   @Get('professional')
   @Auth('read:mycalendar')
   @ApiOperation({ summary: 'Get all appointments for a professional' })
-  async allByProfesional(@Req() request: { user: User }, @Query() query: PaginationAppointmentDto): Promise<ResposeDTO> {
+  async allByProfesional(@Req() request: { user: User }): Promise<ResposeDTO> {
     const user = request.user;
-    const appointments = await this.appointmentService.allByProfessional(user, { query });
+    const appointments = await this.appointmentService.allByProfessional(user);
     return { status: 'success', data: appointments };
   }
 

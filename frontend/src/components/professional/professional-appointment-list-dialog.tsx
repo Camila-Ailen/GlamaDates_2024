@@ -35,11 +35,11 @@ export function ProfessionalAppointmentListDialog({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-md max-h-[80vh] overflow-hidden flex flex-col">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Citas para el {format(date, "d 'de' MMMM, yyyy", { locale: es })}</DialogTitle>
           </DialogHeader>
-          <ScrollArea className="flex-1 max-h-[60vh]">
+          <ScrollArea className="max-h-[calc(100vh-150px)] pr-4">
             <div className="grid gap-4 py-4">
               {appointments.length === 0 ? (
                 <p className="text-center text-muted-foreground">No hay citas para este día</p>

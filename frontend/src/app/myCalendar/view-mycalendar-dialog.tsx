@@ -4,9 +4,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { format } from "date-fns/format"
 import { es } from "date-fns/locale"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Clock, MapPin, User, Scissors } from "lucide-react"
+import { Calendar, Clock, MapPin, User, Scissors, CheckCircle } from "lucide-react"
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
 
-export function ViewMycalendarDialog({ appointment }) {
+interface ProfessionalAppointmentCardProps {
+  appointment: any
+  onClick?: () => void
+  compact?: boolean
+  showActions?: boolean
+}
+
+export function ViewMycalendarDialog({
+  appointment,
+  showActions = true,
+}: ProfessionalAppointmentCardProps) {
+
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+
   const getStatusColor = (state: string) => {
     switch (state) {
       case "COMPLETADO":
@@ -22,6 +37,14 @@ export function ViewMycalendarDialog({ appointment }) {
         return "bg-blue-100 text-blue-800 border-blue-200"
     }
   }
+
+  const handleMarkComplete = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setIsConfirmOpen(true)
+  }
+
+  const serviceCount = appointment.details?.length || appointment.package?.services?.length || 0
+
 
   return (
     <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
@@ -110,6 +133,35 @@ export function ViewMycalendarDialog({ appointment }) {
               </Card>
             ))}
         </div>
+
+
+        <div className="mt-2">
+          {showActions && (
+          <CardContent className="pt-0 pb-0 px-4 flex justify-between items-center">
+            <div className="text-xs">
+              <span className="text-gray-500">
+                {serviceCount} {serviceCount === 1 ? "servicio" : "servicios"}
+              </span>
+            </div>
+            {showActions &&
+              appointment.state !== "CANCELADO" &&
+              appointment.state !== "INACTIVO" &&
+              appointment.state !== "COMPLETADO" &&
+              appointment.state !== "MOROSO" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                  onClick={handleMarkComplete}
+                >
+                  <CheckCircle className="h-4 w-4 mr-1" />
+                  Completada
+                </Button>
+              )}
+          </CardContent>
+        )}
+        </div>
+
       </div>
     </DialogContent>
   )
