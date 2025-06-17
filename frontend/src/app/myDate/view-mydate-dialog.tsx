@@ -32,6 +32,13 @@ function canEditAppointment(appointment) {
   return isPaid && isNotCompleted && hasEnoughTimeLeft
 }
 
+function canCancelAppointment(appointment) {
+  const appointmentTime = new Date(appointment.datetimeStart)
+  const now = new Date()
+  const diffInMinutes = (appointmentTime.getTime() - now.getTime()) / (1000 * 60)
+  return appointment.state === "PENDIENTE" && diffInMinutes > 40 // o el tiempo que desees
+}
+
 export function ViewMydateDialog({ appointment }) {
   const { cancelAppointment } = useMyDatesStore()
   const fetchPaymentUrl = usePaymentStore((state) => state.fetchPaymentUrl)
@@ -225,7 +232,8 @@ export function ViewMydateDialog({ appointment }) {
           <div className="mt-6 space-y-3">
             {appointment.state !== "COMPLETADO" &&
               appointment.state !== "ACTIVO" &&
-              appointment.state !== "INACTIVO" && <PaymentButton />}
+              appointment.state !== "INACTIVO" &&
+              <PaymentButton />}
 
             {appointment.state === "INACTIVO" && (
               <Button className="w-full bg-yellow-600 hover:bg-yellow-700 text-white">
@@ -246,16 +254,30 @@ export function ViewMydateDialog({ appointment }) {
               </Button>
             )}
 
-            {appointment.state === "PENDIENTE" && (
-              <Button
-                variant="outline"
-                className="w-full border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
-                onClick={handleCancelClick}
-              >
-                <Frown className="mr-2 h-5 w-5" />
-                Cancelar cita
-              </Button>
-            )}
+            {(appointment.state === "PENDIENTE") &&
+              (appointment.state !== "MOROSO") &&
+              (canCancelAppointment(appointment)) && (
+                <Button
+                  variant="outline"
+                  className="w-full border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
+                  onClick={handleCancelClick}
+                >
+                  <Frown className="mr-2 h-5 w-5" />
+                  Cancelar cita
+                </Button>
+              )}
+
+            {!canCancelAppointment(appointment) &&
+              (appointment.state !== "COMPLETADO") && (
+                <Button className="w-full bg-red-600 hover:bg-red-700 text-white">
+                  <Frown className="mr-2 h-5 w-5" />
+                  <span className="block">
+                    Lo lamentamos, pero esta cita ya no se puede cancelar<br />
+                    por haber superado el tiempo permitido.
+                  </span>                
+                  <Frown className="ml-2 h-5 w-5" />
+                </Button>
+              )}
 
             {(appointment.state === "COMPLETADO" || appointment.state === "ACTIVO") && (
               <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
