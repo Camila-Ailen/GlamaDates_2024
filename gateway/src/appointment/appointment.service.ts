@@ -765,7 +765,8 @@ export class AppointmentService {
   ////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////
   // Cron para enviar recordatorios de citas
-  @Cron('0 8 * * *') // Todos los días a las 8:00 AM
+  @Cron('0 20 * * *') // Todos los días a las 20:00
+  // @Cron('*/1 * * * *')
   async sendRemindersForTomorrow() {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -781,6 +782,7 @@ export class AppointmentService {
       relations: ['client', 'details', 'details.employee', 'package', 'package.services'],
     });
 
+    console.log(`Enviando recordatorios para ${appointments.length} citas programadas para mañana.`);
     for (const appointment of appointments) {
       await this.sendAppointmentReminderEmail(appointment.id);
     }
@@ -1435,6 +1437,7 @@ export class AppointmentService {
   //////////////////////////////////////////////////////////
   // Funcion para actualizar a inactiva la cita
   @Cron("59 23 * * *") // Se ejecuta cada dia a las 23:59
+  //@Cron('*/5 * * * *')
   async updatePendingToInactive(): Promise<void> {
     try {
       const todayStart = startOfDay(new Date());

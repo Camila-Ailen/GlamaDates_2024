@@ -27,7 +27,7 @@ function canEditAppointment(appointment) {
   const appointmentTime = new Date(appointment.datetimeStart)
   const now = new Date()
   const diffInMinutes = (appointmentTime.getTime() - now.getTime()) / (1000 * 60)
-  const hasEnoughTimeLeft = diffInMinutes > 40
+  const hasEnoughTimeLeft = diffInMinutes > 120 // Cambié a 120 minutos (2 horas) para mayor flexibilidad
 
   return isPaid && isNotCompleted && hasEnoughTimeLeft
 }
