@@ -368,78 +368,80 @@ export function EditAppointmentDialogAdmin({ appointment }) {
                   <h3 className="text-lg font-semibold">Asignación de Recursos</h3>
                 </div>
 
-                {appointment.details &&
-                  Array.isArray(appointment.details) &&
-                  appointment.details.map((detail, index) => (
-                    <Card key={detail.id} className="border-l-4 border-l-indigo-400">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <div className="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center text-xs font-bold text-indigo-700">
-                            {index + 1}
-                          </div>
-                          {detail.service.name}
-                        </CardTitle>
-                        <CardDescription>{detail.service.description}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor={`professional-${detail.id}`} className="flex items-center gap-2">
-                              <User className="h-4 w-4" />
-                              Profesional
-                            </Label>
-                            <Select
-                              value={selectedProfessionals[detail.id]?.toString() || ""}
-                              onValueChange={(value) =>
-                                setSelectedProfessionals({
-                                  ...selectedProfessionals,
-                                  [detail.id]: Number.parseInt(value),
-                                })
-                              }
-                            >
-                              <SelectTrigger id={`professional-${detail.id}`}>
-                                <SelectValue placeholder="Seleccionar profesional" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {serviceData[detail.id]?.selectedProfessional?.map((prof) => (
-                                  <SelectItem key={prof.id} value={prof.id.toString()}>
-                                    {prof.firstName} {prof.lastName}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
+                <ScrollArea className="h-[50vh] pr-4">
+                  {appointment.details &&
+                    Array.isArray(appointment.details) &&
+                    appointment.details.map((detail, index) => (
+                      <Card key={detail.id} className="border-l-4 border-l-indigo-400">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-base flex items-center gap-2">
+                            <div className="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center text-xs font-bold text-indigo-700">
+                              {index + 1}
+                            </div>
+                            {detail.service.name}
+                          </CardTitle>
+                          <CardDescription>{detail.service.description}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label htmlFor={`professional-${detail.id}`} className="flex items-center gap-2">
+                                <User className="h-4 w-4" />
+                                Profesional
+                              </Label>
+                              <Select
+                                value={selectedProfessionals[detail.id]?.toString() || ""}
+                                onValueChange={(value) =>
+                                  setSelectedProfessionals({
+                                    ...selectedProfessionals,
+                                    [detail.id]: Number.parseInt(value),
+                                  })
+                                }
+                              >
+                                <SelectTrigger id={`professional-${detail.id}`}>
+                                  <SelectValue placeholder="Seleccionar profesional" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {serviceData[detail.id]?.selectedProfessional?.map((prof) => (
+                                    <SelectItem key={prof.id} value={prof.id.toString()}>
+                                      {prof.firstName} {prof.lastName}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
 
-                          <div className="space-y-2">
-                            <Label htmlFor={`workstation-${detail.id}`} className="flex items-center gap-2">
-                              <MapPin className="h-4 w-4" />
-                              Estación de trabajo
-                            </Label>
-                            <Select
-                              value={selectedWorkstations[detail.id]?.toString() || ""}
-                              onValueChange={(value) =>
-                                setSelectedWorkstations({
-                                  ...selectedWorkstations,
-                                  [detail.id]: Number.parseInt(value),
-                                })
-                              }
-                            >
-                              <SelectTrigger id={`workstation-${detail.id}`}>
-                                <SelectValue placeholder="Seleccionar estación" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {serviceData[detail.id]?.selectedWorkstation?.map((station) => (
-                                  <SelectItem key={station.id} value={station.id.toString()}>
-                                    {station.name} - {station.description}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            <div className="space-y-2">
+                              <Label htmlFor={`workstation-${detail.id}`} className="flex items-center gap-2">
+                                <MapPin className="h-4 w-4" />
+                                Estación de trabajo
+                              </Label>
+                              <Select
+                                value={selectedWorkstations[detail.id]?.toString() || ""}
+                                onValueChange={(value) =>
+                                  setSelectedWorkstations({
+                                    ...selectedWorkstations,
+                                    [detail.id]: Number.parseInt(value),
+                                  })
+                                }
+                              >
+                                <SelectTrigger id={`workstation-${detail.id}`}>
+                                  <SelectValue placeholder="Seleccionar estación" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {serviceData[detail.id]?.selectedWorkstation?.map((station) => (
+                                    <SelectItem key={station.id} value={station.id.toString()}>
+                                      {station.name} - {station.description}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    ))}
+                </ScrollArea>
               </div>
             </TabsContent>
           </Tabs>
