@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatCurrency } from "@/lib/utils"
+import useCategoryStore from "../store/useCategoryStore"
 
 export function ServicesTable() {
   const {
@@ -53,11 +54,13 @@ export function ServicesTable() {
   const hasPermission = useAuthStore((state) => state.hasPermission)
 
   // Obtener categorías únicas de los servicios
+  const { categories, isLoading: isLoadingCategories, fetchCategories } = useCategoryStore()
   const uniqueCategories = Array.from(new Set(services.map((service) => service.category.name)))
 
   useEffect(() => {
     fetchServices()
-  }, [fetchServices, orderBy, orderType, currentPage])
+    fetchCategories()
+  }, [fetchServices, fetchCategories, orderBy, orderType, currentPage])
 
   // Efecto para manejar el debounce de la búsqueda
   useEffect(() => {
@@ -107,7 +110,7 @@ export function ServicesTable() {
     setCategoryFilter(value)
   }
 
-  
+
 
   const resetFilters = () => {
     setSearchTerm("")
@@ -147,7 +150,7 @@ export function ServicesTable() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2">
-            
+
 
             {hasPermission("create:services") && (
               <CreateServiceDialog>
@@ -171,9 +174,9 @@ export function ServicesTable() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas las categorías</SelectItem>
-                {uniqueCategories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.name}>
+                    {category.name}
                   </SelectItem>
                 ))}
               </SelectContent>

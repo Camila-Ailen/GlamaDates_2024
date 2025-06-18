@@ -16,8 +16,8 @@ export class ServiceService {
 
   @InjectRepository(Category)
   private readonly categoryRepository: Repository<Category>;
-  
-    ////////////////////////////////////////////////
+
+  ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   async getBy(body: ServiceDto): Promise<Service> {
     const service = await this.serviceRepository.findOne({
@@ -31,7 +31,7 @@ export class ServiceService {
   }
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
- 
+
   async all(params: {
     query: PaginationServiceDto;
   }): Promise<PaginationResponseDTO> {
@@ -41,7 +41,6 @@ export class ServiceService {
       offset: params.query.offset,
       results: [],
     };
-    console.log("desde el servicio 1 ",params.query);
     try {
       if (Object.keys(params.query).length === 0) {
         return emptyResponse;
@@ -50,32 +49,42 @@ export class ServiceService {
         return emptyResponse;
       }
 
-      const order = {};
+      const query = this.serviceRepository
+        .createQueryBuilder('service')
+        .leftJoinAndSelect('service.category', 'category')
+        .where('service.deletedAt IS NULL');
+
+      // Filtros dinámicos
+      if (params.query.name) {
+        query.andWhere('service.name ILIKE :name', { name: `%${params.query.name}%` });
+      }
+      if (params.query.description) {
+        query.andWhere('service.description ILIKE :description', { description: `%${params.query.description}%` });
+      }
+      if (params.query.category) {
+        query.andWhere('category.id = :categoryId', { categoryId: params.query.category.id });
+      }
+
+      // Orden dinámico
       if (params.query.orderBy && params.query.orderType) {
-        order[params.query.orderBy] = params.query.orderType;
+        let orderField: string;
+        if (params.query.orderBy === 'category') {
+          orderField = params.query.orderBy.includes('.') ? params.query.orderBy : `category.name`;
+        } else {
+          orderField = params.query.orderBy.includes('.') ? params.query.orderBy : `service.${params.query.orderBy}`;
+        }
+        query.orderBy(orderField, params.query.orderType.toUpperCase() as 'ASC' | 'DESC');
       }
 
       const forPage = params.query.pageSize
         ? parseInt(params.query.pageSize.toString(), 10) || 10
         : 10;
       const skip = params.query.offset;
-      const [services, total] = await this.serviceRepository.findAndCount({
-        where: {
-          name: params.query.name
-            ? Like(`%${params.query.name}%`)
-            : undefined,
-          description: params.query.description
-            ? Like(`%${params.query.description}%`)
-            : undefined,
-        },
-        relations: ['category'],
-        order,
-        take: forPage,
-        skip: skip,
-      });
 
-      console.log("desde el servicio ",params.query);
-
+      const [services, total] = await query
+        .take(forPage)
+        .skip(skip)
+        .getManyAndCount();
 
       return {
         total: total,
@@ -111,7 +120,7 @@ export class ServiceService {
       throw new HttpException('Category not found', HttpStatus.NOT_FOUND);
     }
     params.body.category = category;
-    console.log("desde el servicio ",params.body);
+    console.log("desde el servicio ", params.body);
     await this.serviceRepository.save(
       this.serviceRepository.create({
         ...params.body,
