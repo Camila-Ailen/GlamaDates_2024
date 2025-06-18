@@ -57,27 +57,34 @@ export class WorkstationService {
   /////////////////////////////////////////////////
   /////////////////////////////////////////////////
   async findAll(params: { query: PaginationWorkstationDto }): Promise<PaginationResponseDTO> {
-    const {
-      offset = 0,
-      pageSize = 10,
-      orderBy = 'id',
-      orderType = 'ASC',
-    } = params.query;
+    
+    const emptyResponse = {
+      total: 0,
+      pageSize: 0,
+      offset: params.query.offset,
+      results: [],
+    };
 
     try {
       const [results, total] = await this.workstationRepository.findAndCount({
         relations: ['categories'],
-        skip: offset,
-        take: pageSize,
+        skip: params.query.offset,
+        take: params.query.pageSize,
         order: {
-          [orderBy]: orderType,
+          [params.query.orderBy]: params.query.orderType,
         },
       });
 
+      const forPage = params.query.pageSize
+        ? parseInt(params.query.pageSize.toString(), 10) || 10
+        : 10;
+      const skip = params.query.offset;
+
+
       return {
         total,
-        pageSize,
-        offset,
+        pageSize: forPage,
+        offset: params.query.offset,
         results,
       };
     } catch (error) {

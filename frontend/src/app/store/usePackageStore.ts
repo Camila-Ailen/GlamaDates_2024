@@ -50,7 +50,7 @@ const usePackageStore = create<PackageState>((set, get) => ({
   packages: [],
   total: 0,
   currentPage: 1,
-  pageSize: 100,
+  pageSize: 20,
   isLoading: false,
   error: null,
   orderBy: "id",

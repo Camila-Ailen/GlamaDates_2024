@@ -54,7 +54,7 @@ export const useWorkstationStore = create<WorkstationState>((set, get) => ({
   workstations: [],
   total: 0,
   currentPage: 1,
-  pageSize: 10,
+  pageSize: 20,
   isLoading: false,
   error: null,
   orderBy: "id",
