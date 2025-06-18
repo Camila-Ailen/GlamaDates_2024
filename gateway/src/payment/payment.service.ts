@@ -98,7 +98,7 @@ export class PaymentService {
         if (!payment) throw new HttpException('Payment not found', HttpStatus.NOT_FOUND);
 
         payment.status = PaymentStatus.CANCELLED;
-        payment.datetime = new Date();
+        // payment.datetime = new Date(); //No creo que sea necesario cambiar la fecha. La ultima actualizacion es la fecha de cancelacion
         payment.observation = observation;
         await this.paymentRepository.save(payment);
 

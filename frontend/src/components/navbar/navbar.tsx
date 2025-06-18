@@ -165,11 +165,11 @@ export function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                   )}
-                  {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "read:users") && (
+                  {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "read:workstation") && (
                     <DropdownMenuItem>
-                      <Link href="/users" className="flex items-center">
-                        <Users className="mr-2 h-4 w-4 text-primary" />
-                        <span>Usuarios</span>
+                      <Link href="/workstation" className="flex items-center">
+                        <Armchair className="mr-2 h-4 w-4 text-primary" />
+                        <span>Estaciones de Trabajo</span>
                       </Link>
                     </DropdownMenuItem>
                   )}
@@ -178,14 +178,6 @@ export function Navbar() {
                       <Link href="/roles" className="flex items-center">
                         <ShieldUser className="mr-2 h-4 w-4 text-primary" />
                         <span>Roles</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
-                  {isAuthenticated && user?.role.permissions.some(permission => permission.permission === "read:workstation") && (
-                    <DropdownMenuItem>
-                      <Link href="/workstation" className="flex items-center">
-                        <Armchair className="mr-2 h-4 w-4 text-primary" />
-                        <span>Estaciones de Trabajo</span>
                       </Link>
                     </DropdownMenuItem>
                   )}
