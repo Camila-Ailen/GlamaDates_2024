@@ -27,6 +27,7 @@ import { ViewCashDialog } from "../appointmentToday/view-cash-dialog"
 import { Separator } from "@/components/ui/separator"
 import { DatePicker } from "./date-picker"
 import { EditAppointmentDialogAdmin } from "./edit-appointment-dialog-admin"
+import { stat } from "fs"
 
 export function AppointmentsTable() {
   const {
@@ -87,9 +88,17 @@ export function AppointmentsTable() {
     // Filtro de estado de pago
     if (paymentStatusFilter !== "all") {
       if (paymentStatusFilter === "pending") {
-        result = result.filter((appointment) => appointment.pending > 0)
+        result = result.filter((appointment) =>
+          appointment.payments?.[0]?.status === "PENDIENTE"
+        )
       } else if (paymentStatusFilter === "completed") {
-        result = result.filter((appointment) => appointment.pending <= 0)
+        result = result.filter((appointment) =>
+          appointment.payments?.[0]?.status === "COMPLETADO"
+        )
+      } else if (paymentStatusFilter === "cancelled") {
+        result = result.filter((appointment) =>
+          appointment.payments?.[0]?.status === "CANCELADO"
+        )
       }
     }
 
@@ -165,8 +174,14 @@ export function AppointmentsTable() {
     return <Badge variant="outline">{state}</Badge>
   }
 
-  const getPaymentStatusBadge = (pending: number) => {
-    if (pending > 0) {
+  const getPaymentStatusBadge = (status: string) => {
+    if (status === "CANCELADO") {
+      return (
+        <Badge variant="destructive" className="bg-red-100 text-red-800 border-red-300">
+          CANCELADO
+        </Badge>
+      )
+    } else if (status === "PENDIENTE") {
       return (
         <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
           PENDIENTE
@@ -281,6 +296,7 @@ export function AppointmentsTable() {
                         <SelectItem value="all">Todos los pagos</SelectItem>
                         <SelectItem value="pending">Pendientes de pago</SelectItem>
                         <SelectItem value="completed">Pagos completados</SelectItem>
+                        <SelectItem value="cancelled">Pagos cancelados</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -370,7 +386,7 @@ export function AppointmentsTable() {
                       </TableCell>
                       <TableCell>{getStatus(appointment.state)}</TableCell>
                       <TableCell className="text-right font-medium">${(appointment.total || 0).toFixed(2)}</TableCell>
-                      <TableCell>{getPaymentStatusBadge(appointment.pending || 0)}</TableCell>
+                      <TableCell>{getPaymentStatusBadge(appointment.payments[0].status)}</TableCell>
                       <TableCell>
                         <div className="flex justify-center space-x-1">
                           {appointment.pending > 0 ? (

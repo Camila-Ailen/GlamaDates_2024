@@ -14,7 +14,7 @@ export class ServiceController {
     ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Get()
-  @Auth('read:services')
+  // @Auth('read:services')
   @ApiOperation({ summary: 'Get all services' })
   async all(@Query() query: PaginationServiceDto): Promise<ResposeDTO> {
     console.log("desde el controlador: ", query);

@@ -41,10 +41,6 @@ export default function CatalogPage() {
     }
   }
 
-  const handleLoginClick = () => {
-    // Redirigir al usuario a la página de login con la URL actual como callback
-    router.push(`/login?callbackUrl=${encodeURIComponent(window.location.pathname)}`)
-  }
 
   useEffect(() => {
     fetchPackage()
@@ -83,7 +79,9 @@ export default function CatalogPage() {
               <p className="text-gray-600">Inicia sesión para acceder a todas las funcionalidades de reserva.</p>
             </div>
             <div className="flex gap-3">
-              <Button onClick={handleLoginClick} className="bg-pink-600 hover:bg-pink-700">
+              <Button 
+                onClick={() => router.push("/login")} 
+                className="bg-pink-600 hover:bg-pink-700">
                 <LogIn className="mr-2 h-4 w-4" />
                 Iniciar sesión
               </Button>
@@ -139,7 +137,7 @@ export default function CatalogPage() {
       {/* Botón flotante para iniciar sesión en dispositivos móviles */}
       {!token && (
         <div className="fixed bottom-6 right-6 md:hidden">
-          <Button onClick={handleLoginClick} size="lg" className="rounded-full shadow-lg bg-pink-600 hover:bg-pink-700">
+          <Button onClick={() => router.push("/login")} size="lg" className="rounded-full shadow-lg bg-pink-600 hover:bg-pink-700">
             <LogIn className="h-5 w-5" />
           </Button>
         </div>

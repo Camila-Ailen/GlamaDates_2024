@@ -14,7 +14,7 @@ export class PackageController {
   ////////////////////////////////////////////////
   ////////////////////////////////////////////////
   @Get()
-  @Auth('read:packages')
+  // @Auth('read:packages')
   @ApiOperation({ summary: 'Get all packages' })
   async all(@Query() query: PaginationPackageDto): Promise<ResposeDTO> {
     // console.log("desde el controlador: ", query);

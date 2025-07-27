@@ -259,7 +259,7 @@ export function EditAppointmentDialogAdmin({ appointment }) {
             <Pencil className="h-4 w-4 text-blue-900" />
           </Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-hidden">
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] flex flex-col">
           <DialogHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-t-lg -m-6 mb-4">
             <div className="flex items-center justify-between">
               <div>
@@ -277,174 +277,180 @@ export function EditAppointmentDialogAdmin({ appointment }) {
             </div>
           </DialogHeader>
 
-          <Tabs defaultValue="general" className="mt-4" onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2 bg-muted/50">
-              <TabsTrigger value="general" className="data-[state=active]:bg-white">
-                Información General
-              </TabsTrigger>
-              <TabsTrigger value="services" className="data-[state=active]:bg-white">
-                Servicios
-              </TabsTrigger>
-            </TabsList>
+          <div className="flex-1 overflow-y-auto p-6">
 
-            <TabsContent value="general" className="space-y-6 pt-6">
-              {/* Sección del Paquete */}
-              <Card className="border-l-4 border-l-purple-400">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Package className="h-5 w-5 text-purple-600" />
-                    Paquete de Servicios
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="bg-purple-50 rounded-lg p-4 mb-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-purple-900">{selectedPackage.name}</h3>
-                        <p className="text-sm text-purple-700 mt-1">{selectedPackage.description}</p>
-                        <div className="flex items-center gap-4 mt-3 text-sm">
-                          <div className="flex items-center gap-1">
-                            <DollarSign className="h-4 w-4 text-green-600" />
-                            <span className="font-medium">${appointment.total?.toFixed(2) || "0.00"}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-4 w-4 text-blue-600" />
-                            <span>{appointment.details[0].durationNow || 0} min</span>
+            <Tabs defaultValue="general" className="mt-4" onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-2 bg-muted/50">
+                <TabsTrigger value="general" className="data-[state=active]:bg-white">
+                  Información General
+                </TabsTrigger>
+                <TabsTrigger value="services" className="data-[state=active]:bg-white">
+                  Servicios
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="general" className="space-y-6 pt-6">
+                {/* Sección del Paquete */}
+                <Card className="border-l-4 border-l-purple-400">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Package className="h-5 w-5 text-purple-600" />
+                      Paquete de Servicios
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="bg-purple-50 rounded-lg p-4 mb-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-purple-900">{selectedPackage.name}</h3>
+                          <p className="text-sm text-purple-700 mt-1">{selectedPackage.description}</p>
+                          <div className="flex items-center gap-4 mt-3 text-sm">
+                            <div className="flex items-center gap-1">
+                              <DollarSign className="h-4 w-4 text-green-600" />
+                              <span className="font-medium">${appointment.total?.toFixed(2) || "0.00"}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-4 w-4 text-blue-600" />
+                              <span>
+                                {appointment.details?.reduce((total, detail) => total + (detail.service?.duration || 0), 0)} min
+                              </span>
+                            </div>
                           </div>
                         </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setPackageDialogOpen(true)}
+                          className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                        >
+                          <Edit className="h-3 w-3 mr-1" />
+                          Cambiar
+                        </Button>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setPackageDialogOpen(true)}
-                        className="border-purple-200 text-purple-700 hover:bg-purple-50"
-                      >
-                        <Edit className="h-3 w-3 mr-1" />
-                        Cambiar
-                      </Button>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
-              {/* Sección de Fecha y Hora */}
-              <Card className="border-l-4 border-l-blue-400">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Calendar className="h-5 w-5 text-blue-600" />
-                    Fecha y Hora
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="bg-blue-50 rounded-lg p-4 mb-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm text-blue-700 font-medium">Fecha programada</p>
-                        <p className="text-lg font-semibold text-blue-900">
-                          {format(new Date(appointment.datetimeStart), "EEEE d 'de' MMMM, yyyy", { locale: es })}
-                        </p>
-                        <p className="text-blue-800 font-medium">
-                          {format(new Date(appointment.datetimeStart), "HH:mm")} hs
-                        </p>
+                {/* Sección de Fecha y Hora */}
+                <Card className="border-l-4 border-l-blue-400">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Calendar className="h-5 w-5 text-blue-600" />
+                      Fecha y Hora
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="bg-blue-50 rounded-lg p-4 mb-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-blue-700 font-medium">Fecha programada</p>
+                          <p className="text-lg font-semibold text-blue-900">
+                            {format(new Date(appointment.datetimeStart), "EEEE d 'de' MMMM, yyyy", { locale: es })}
+                          </p>
+                          <p className="text-blue-800 font-medium">
+                            {format(new Date(appointment.datetimeStart), "HH:mm")} hs
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          onClick={handleEdit}
+                          className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                        >
+                          <Calendar className="h-4 w-4 mr-2" />
+                          Cambiar fecha y hora
+                        </Button>
                       </div>
-                      <Button
-                        variant="outline"
-                        onClick={handleEdit}
-                        className="border-blue-200 text-blue-700 hover:bg-blue-50"
-                      >
-                        <Calendar className="h-4 w-4 mr-2" />
-                        Cambiar fecha y hora
-                      </Button>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-            <TabsContent value="services" className="space-y-4 pt-6">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <User className="h-5 w-5 text-indigo-600" />
-                  <h3 className="text-lg font-semibold">Asignación de Recursos</h3>
+              <TabsContent value="services" className="space-y-4 pt-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <User className="h-5 w-5 text-indigo-600" />
+                    <h3 className="text-lg font-semibold">Asignación de Recursos</h3>
+                  </div>
+
+                  <ScrollArea className="h-[50vh] pr-4">
+                    {appointment.details &&
+                      Array.isArray(appointment.details) &&
+                      appointment.details.map((detail, index) => (
+                        <Card key={detail.id} className="border-l-4 border-l-indigo-400">
+                          <CardHeader className="pb-3">
+                            <CardTitle className="text-base flex items-center gap-2">
+                              <div className="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center text-xs font-bold text-indigo-700">
+                                {index + 1}
+                              </div>
+                              {detail.service.name}
+                            </CardTitle>
+                            <CardDescription>{detail.service.description}</CardDescription>
+                          </CardHeader>
+                          <CardContent className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <Label htmlFor={`professional-${detail.id}`} className="flex items-center gap-2">
+                                  <User className="h-4 w-4" />
+                                  Profesional
+                                </Label>
+                                <Select
+                                  value={selectedProfessionals[detail.id]?.toString() || ""}
+                                  onValueChange={(value) =>
+                                    setSelectedProfessionals({
+                                      ...selectedProfessionals,
+                                      [detail.id]: Number.parseInt(value),
+                                    })
+                                  }
+                                >
+                                  <SelectTrigger id={`professional-${detail.id}`}>
+                                    <SelectValue placeholder="Seleccionar profesional" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {serviceData[detail.id]?.selectedProfessional?.map((prof) => (
+                                      <SelectItem key={prof.id} value={prof.id.toString()}>
+                                        {prof.firstName} {prof.lastName}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div className="space-y-2">
+                                <Label htmlFor={`workstation-${detail.id}`} className="flex items-center gap-2">
+                                  <MapPin className="h-4 w-4" />
+                                  Estación de trabajo
+                                </Label>
+                                <Select
+                                  value={selectedWorkstations[detail.id]?.toString() || ""}
+                                  onValueChange={(value) =>
+                                    setSelectedWorkstations({
+                                      ...selectedWorkstations,
+                                      [detail.id]: Number.parseInt(value),
+                                    })
+                                  }
+                                >
+                                  <SelectTrigger id={`workstation-${detail.id}`}>
+                                    <SelectValue placeholder="Seleccionar estación" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {serviceData[detail.id]?.selectedWorkstation?.map((station) => (
+                                      <SelectItem key={station.id} value={station.id.toString()}>
+                                        {station.name} - {station.description}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                  </ScrollArea>
                 </div>
+              </TabsContent>
+            </Tabs>
+          </div>
 
-                <ScrollArea className="h-[50vh] pr-4">
-                  {appointment.details &&
-                    Array.isArray(appointment.details) &&
-                    appointment.details.map((detail, index) => (
-                      <Card key={detail.id} className="border-l-4 border-l-indigo-400">
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-base flex items-center gap-2">
-                            <div className="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center text-xs font-bold text-indigo-700">
-                              {index + 1}
-                            </div>
-                            {detail.service.name}
-                          </CardTitle>
-                          <CardDescription>{detail.service.description}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label htmlFor={`professional-${detail.id}`} className="flex items-center gap-2">
-                                <User className="h-4 w-4" />
-                                Profesional
-                              </Label>
-                              <Select
-                                value={selectedProfessionals[detail.id]?.toString() || ""}
-                                onValueChange={(value) =>
-                                  setSelectedProfessionals({
-                                    ...selectedProfessionals,
-                                    [detail.id]: Number.parseInt(value),
-                                  })
-                                }
-                              >
-                                <SelectTrigger id={`professional-${detail.id}`}>
-                                  <SelectValue placeholder="Seleccionar profesional" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {serviceData[detail.id]?.selectedProfessional?.map((prof) => (
-                                    <SelectItem key={prof.id} value={prof.id.toString()}>
-                                      {prof.firstName} {prof.lastName}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label htmlFor={`workstation-${detail.id}`} className="flex items-center gap-2">
-                                <MapPin className="h-4 w-4" />
-                                Estación de trabajo
-                              </Label>
-                              <Select
-                                value={selectedWorkstations[detail.id]?.toString() || ""}
-                                onValueChange={(value) =>
-                                  setSelectedWorkstations({
-                                    ...selectedWorkstations,
-                                    [detail.id]: Number.parseInt(value),
-                                  })
-                                }
-                              >
-                                <SelectTrigger id={`workstation-${detail.id}`}>
-                                  <SelectValue placeholder="Seleccionar estación" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {serviceData[detail.id]?.selectedWorkstation?.map((station) => (
-                                    <SelectItem key={station.id} value={station.id.toString()}>
-                                      {station.name} - {station.description}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                </ScrollArea>
-              </div>
-            </TabsContent>
-          </Tabs>
 
           <DialogFooter className="bg-gray-50 p-6 rounded-b-lg -m-6 mt-6">
             <Button variant="outline" onClick={() => setOpen(false)}>
